@@ -44,8 +44,13 @@
                     return get_class ($this);
                     break;
                 default: // write props into a file if the object has an ID.
-                    return $this->properties[$property];
-                    break;
+                    if (array_key_exists ($property, $this->properties)) {
+                        return $this->properties[$property];
+                        break;
+                    } else {
+                        // throw new Exception ('accessing invalid property');
+                        return null;
+                    }
             }
             $this->onRead (); // trigger event
         }
@@ -85,13 +90,13 @@
             return get_handler_by_url ($_SERVER['REQUEST_URI']);
         }
         
-        function render ($template = null) {
+        function render ($template = null, $more_options = array ()) {
             // shows object structure by default.
             if (file_exists (TEMPLATE_PATH . $template)) {
                 $pj = new View ($template);
                 $props = get_object_vars ($this);
                 if (array_key_exists ('properties', $props)) {
-                    $pj->ReplaceTags ($props['properties']);
+                    $pj->ReplaceTags (array_merge ($more_options, $props['properties']));
                 }
                 $pj->output ();
             } else {

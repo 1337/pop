@@ -11,7 +11,11 @@
         
         if (sizeof ($_vars_cache_) > 0) {
             if ($index) {
-                return $_vars_cache_[$index];
+                if (array_key_exists ($index, $_vars_cache_)) {
+                    return $_vars_cache_[$index];
+                } else {
+                    return null;
+                }
             } else {
                 return $_vars_cache_; // return cache if it exists
             }
@@ -31,7 +35,11 @@
             
             $_vars_cache_ = $vars; // cache the variables
             if ($index) {
-                return $vars[$index];
+                if (array_key_exists ($index, $vars)) {
+                    return $vars[$index];
+                } else {
+                    return null;
+                }
             } else {
                 return $vars;
             }
@@ -99,19 +107,6 @@
         curl_close ($process);
         return $data;
     }
-/*
-        
-        
-        curl_setopt ($process, CURLOPT_HTTPAUTH, CURLAUTH_BASIC ) ;
-        curl_setopt ($process, CURLOPT_USERPWD, $user . ":" . $pass);
-        curl_setopt ($process, CURLOPT_HEADER, true);
-        curl_setopt ($process, CURLOPT_TIMEOUT, 5);
-        curl_setopt ($process, CURLOPT_RETURNTRANSFER, TRUE);
-        if (!$return = curl_exec ($process)) die (curl_error ($process));
-        curl_close ($process);
-        die ($return);
-        return $return;
-    }*/
     
 // compression functions
     
