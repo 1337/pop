@@ -1,5 +1,4 @@
 vars.php
 *.bak
-modules/*
 data/*
 templates/*
