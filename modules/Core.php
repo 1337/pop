@@ -127,13 +127,15 @@
         }
 
         function ResolveTemplateName ($special = '') {
-            return is_file (TEMPLATE_PATH . $special) ?
-                        TEMPLATE_PATH . $special :
-                   is_file (TEMPLATE_PATH . SITE_TEMPLATE) ? 
-                        TEMPLATE_PATH . SITE_TEMPLATE :
-                   is_file (TEMPLATE_PATH . DEFAULT_TEMPLATE) ?
-                        TEMPLATE_PATH . DEFAULT_TEMPLATE :
-                        null;
+            if (is_file (TEMPLATE_PATH . $special)) {
+                return TEMPLATE_PATH . $special;
+            } elseif (is_file (TEMPLATE_PATH . SITE_TEMPLATE)) {
+                return TEMPLATE_PATH . SITE_TEMPLATE;
+            } elseif (is_file (TEMPLATE_PATH . DEFAULT_TEMPLATE)) {
+                return TEMPLATE_PATH . DEFAULT_TEMPLATE;
+            } else {
+                throw new Exception ('nope');
+            }
         }
 
         public function BuildPage () {
@@ -176,6 +178,7 @@
                 
                 // replace tags with object props
                 foreach ($tags as $tag => $data) {
+                    $data = (string) $data;
                     $data = (file_exists($data))     //decides on
                           ? $this->GetParsed ($data) //file replacement or
                           : $data;                   //string replacement.
