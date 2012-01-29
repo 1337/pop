@@ -4,25 +4,33 @@
         return (array) $url_parts['query'];
     }
 
+    $_vars_cache_ = array ();
     function vars ($index = false) {
         // gathers everything from the request.
+        global $_vars_cache_; // store once, use forever
         
-        // $str_GET = sad byproduct of mod_rewrite
-        $str_GET = parse_url ($_SERVER['REQUEST_URI']);
-        if (array_key_exists ('query', $str_GET)) {
-            parse_str($str_GET['query'], $REAL_GET);
+        if (sizeof ($_vars_cache_) > 0) {
+            return $_vars_cache_; // return cache if it exists
         } else {
-            $REAL_GET = array ();
-        }
-        if (isset ($_SESSION)) {
-            $vars = array_merge ($_COOKIE, $_SESSION, $_POST, $_GET, $REAL_GET);
-        } else {
-            $vars = array_merge ($_COOKIE, $_POST, $_GET, $REAL_GET);
-        }
-        if ($index) {
-            return $vars[$index];
-        } else {
-            return $vars;
+            // $str_GET = sad byproduct of mod_rewrite
+            $str_GET = parse_url ($_SERVER['REQUEST_URI']);
+            if (array_key_exists ('query', $str_GET)) {
+                parse_str($str_GET['query'], $REAL_GET);
+            } else {
+                $REAL_GET = array ();
+            }
+            if (isset ($_SESSION)) {
+                $vars = array_merge ($_COOKIE, $_SESSION, $_POST, $_GET, $REAL_GET);
+            } else {
+                $vars = array_merge ($_COOKIE, $_POST, $_GET, $REAL_GET);
+            }
+            
+            $_vars_cache_ = $vars; // cache the variables
+            if ($index) {
+                return $vars[$index];
+            } else {
+                return $vars;
+            }
         }
     }
     
@@ -41,6 +49,30 @@
         // fancy not implemented
         echo ("<p>hmm: $msg</p>");
     }
+    
+    function get_handler_by_url ($url) {
+        // provide the name of the handler that serves a given url.
+        global $all_hooks;
+        if (isset ($all_hooks) && is_array ($all_hooks)) {
+            foreach ($all_hooks as $module => $hooks) {
+                foreach ($hooks as $hook => $handler) {
+                    $url_parts = parse_url ($url);
+                    if ($url_parts) { // On malformed URLs, parse_url() may return FALSE
+                        $match = preg_match (
+                            '#^/' . SUBDIR . $hook . '$#i', 
+                            $url_parts['path']
+                        );
+                        if ($match) { // 1 = match
+                            return $handler; // superclass function
+                        }
+                    }
+                }
+            }        
+        }
+    }
+
+    
+// compression functions
     
     function css_compress ($h) {
         /* remove comments */

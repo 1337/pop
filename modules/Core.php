@@ -6,7 +6,7 @@
             // if no param (null): create (saved on first __set)
             // if param is array: create, with param = default values
             // if param is not array: get as param = id
-            if ($param) {
+            if (isset ($param)) {
                 if (is_array ($param)) {
                     // param is default values.
                     foreach ($param as $key => $value) {
@@ -15,13 +15,22 @@
                 } else {
                     // param is ID.
                     $path = $this->_path ($param);
-                    try {
-                        $props = unserialize (file_get_contents ($path));
-                        if ($props) {
-                            $this->properties = $props;
+                    if (is_file ($path)) {
+                        try {
+                            $props = unserialize (file_get_contents ($path));
+                            if ($props) {
+                                $this->properties = $props;
+                            }
+                            $this->properties['id'] = $param;
+                        } catch (Exception $e) { }
+                    } else {
+                        // not an existing object... create object ONLY IF WE
+                        // HAVE EXISTING PROPERTIES IN THE BAG
+                        if (sizeof ($this->properties) >= 2 &&
+                            isset ($this->properties['id'])) {
+                            $this->put ();
                         }
-                        $this->properties['id'] = $param;
-                    } catch (Exception $e) { }
+                    }
                 }
             }
             return $this;
@@ -70,6 +79,10 @@
             // to the object.
             $blob = serialize ($this->properties);
             return file_put_contents ($this->_path (), $blob, LOCK_EX);
+        }
+        
+        function handler () {
+            return get_handler_by_url ($_SERVER['REQUEST_URI']);
         }
         
         function render ($template = null) {
