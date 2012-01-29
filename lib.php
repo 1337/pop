@@ -5,6 +5,9 @@
     }
 
     function vars ($index = false) {
+        // gathers everything from the request.
+        
+        // $str_GET = sad byproduct of mod_rewrite
         $str_GET = parse_url ($_SERVER['REQUEST_URI']);
         if (array_key_exists ('query', $str_GET)) {
             parse_str($str_GET['query'], $REAL_GET);
@@ -20,6 +23,17 @@
             return $vars[$index];
         } else {
             return $vars;
+        }
+    }
+    
+    function check_keys ($array, $required_keys) {
+        // throw exception if the array (a=>b, c=>d, ...)
+        // does not contain all values in $required_keys (a, c, ...).
+        $common_keys = array_intersect (array_keys ($array), $required_keys);
+        if (sizeof ($common_keys) == sizeof ($required_keys)) {
+            return true;
+        } else {
+            throw new Exception('Not all arguments present; needed ' . sizeof ($required_keys));
         }
     }
     

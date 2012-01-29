@@ -7,10 +7,10 @@
             // if param is array: create, with param = default values
             // if param is not array: get as param = id
             if ($param) {
-                if is_array ($param) {
+                if (is_array ($param)) {
                     // param is default values.
                     foreach ($param as $key => $value) {
-                        
+                        $this->__set ($key, $value);
                     }
                 } else {
                     // param is ID.
