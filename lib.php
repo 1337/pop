@@ -10,7 +10,11 @@
         global $_vars_cache_; // store once, use forever
         
         if (sizeof ($_vars_cache_) > 0) {
-            return $_vars_cache_; // return cache if it exists
+            if ($index) {
+                return $_vars_cache_[$index];
+            } else {
+                return $_vars_cache_; // return cache if it exists
+            }
         } else {
             // $str_GET = sad byproduct of mod_rewrite
             $str_GET = parse_url ($_SERVER['REQUEST_URI']);
@@ -34,9 +38,13 @@
         }
     }
     
-    function check_keys ($array, $required_keys) {
+    function check_keys ($array, $required_keys, $first_array_is_assoc = true) {
         // throw exception if the array (a=>b, c=>d, ...)
         // does not contain all values in $required_keys (a, c, ...).
+        if (!$first_array_is_assoc) {
+            $array = array_combine($array, $array); // stackoverflow.com/questions/1066850/
+        }
+        
         $common_keys = array_intersect (array_keys ($array), $required_keys);
         if (sizeof ($common_keys) == sizeof ($required_keys)) {
             return true;
@@ -70,7 +78,40 @@
             }        
         }
     }
+    
+    function auth_curl ($url, $user, $pass, $protocol = 'http') {
+        // stackoverflow.com/questions/2140419
+        // $protocol doesn't work
+        if (!function_exists('curl_init')) die("Error: cURL does not exist! Please install cURL.");
+        $process = curl_init ($url);
+        
+        $options = array (
+            CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+            CURLOPT_HEADER => 0,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_USERPWD => "$user:$pass",
+            CURLOPT_URL => $url,
+        );
 
+        curl_setopt_array ($process, $options);
+        if (!curl_exec($process)) die(curl_error ($process));
+        $data = curl_multi_getcontent ($process);
+        curl_close ($process);
+        return $data;
+    }
+/*
+        
+        
+        curl_setopt ($process, CURLOPT_HTTPAUTH, CURLAUTH_BASIC ) ;
+        curl_setopt ($process, CURLOPT_USERPWD, $user . ":" . $pass);
+        curl_setopt ($process, CURLOPT_HEADER, true);
+        curl_setopt ($process, CURLOPT_TIMEOUT, 5);
+        curl_setopt ($process, CURLOPT_RETURNTRANSFER, TRUE);
+        if (!$return = curl_exec ($process)) die (curl_error ($process));
+        curl_close ($process);
+        die ($return);
+        return $return;
+    }*/
     
 // compression functions
     
