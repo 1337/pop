@@ -1,0 +1,16 @@
+# Options -Indexes
+# Options +FollowSymLinks
+
+ErrorDocument 404 /poop/index.php
+DirectoryIndex index.php index.html index.htm
+
+<IfModule mod_rewrite.c>
+  RewriteEngine on
+
+  RewriteBase /poop
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.php [L]
+
+</IfModule>
