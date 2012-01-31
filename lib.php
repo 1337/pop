@@ -1,7 +1,11 @@
 <?php
     function kwargs () { // come on, short round.
         $url_parts = parse_url ($_SERVER['REQUEST_URI']);
-        return (array) $url_parts['query'];
+        if (array_key_exists ('query', $url_parts)) {
+            return (array) $url_parts['query'];
+        } else {
+            return array ();
+        }
     }
 
     $_vars_cache_ = array ();

@@ -92,6 +92,7 @@
         
         function render ($template = null, $more_options = array ()) {
             // shows object structure by default.
+            $this->onBeforeRender (); // trigger event
             if (file_exists (TEMPLATE_PATH . $template)) {
                 $pj = new View ($template);
                 $props = get_object_vars ($this);
@@ -102,11 +103,22 @@
             } else {
                 print_r ($this->properties ());
             }
+            $this->onRender (); // trigger event
+        }
+        
+        // Query transduction
+        function all () {
+            if (isset ($this)) {
+                $q = new Query (get_class ($this));
+                return $q->all ();
+            } else {
+                throw new Exception ('Call all() with an instantiated object, e.g. new Model()->all()');
+            }
         }
         
         private function _path ($id = null) {
             if (!$id) {
-                $id = $this->properties['id'];            
+                $id = $this->properties['id'];
             }
             return sprintf ("%s%s.%s", // obj_id.obj_class
                              DATA_PATH, // paths include trailing slash
@@ -114,11 +126,13 @@
                              get_class ($this));
         }
 
-
+        
 
 
 
         // 
+        public function onBeforeRender () { }
+        public function onRender () { }
         public function onRead () { }
         public function onWrite () { }
     }
@@ -203,7 +217,8 @@
                        
                     $this->contents = preg_replace ("/<!-- ?self\." . $tag . " ?-->/i", $data, $this->contents);
                 }
-                $this->contents = str_ireplace("<!--root-->", DOMAIN, $this->contents);
+                // $this->contents = str_ireplace("<!--root-->", DOMAIN, $this->contents);
+                $this->contents = preg_replace ("/<!-- ?root ?-->/i", DOMAIN, $this->contents);
             }
         }
 
