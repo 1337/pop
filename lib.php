@@ -31,6 +31,7 @@
             } else {
                 $REAL_GET = array ();
             }
+            @session_start ();
             if (isset ($_SESSION)) {
                 $vars = array_merge ($_COOKIE, $_SESSION, $_POST, $_GET, $REAL_GET);
             } else {

@@ -22,7 +22,9 @@
                                 $this->properties = $props;
                             }
                             $this->properties['id'] = $param;
-                        } catch (Exception $e) { }
+                        } catch (Exception $e) {
+                            throw new Exception ('Read error');
+                        }
                     } else {
                         // not an existing object... create object ONLY IF WE
                         // HAVE EXISTING PROPERTIES IN THE BAG
@@ -92,12 +94,18 @@
         
         function render ($template = null, $more_options = array ()) {
             // shows object structure by default.
+            if (is_array ($template)) {
+                // swap parameters if they are given backwards. common problem
+                list ($template, $more_options) = array ($more_options, $template);
+            }
+            
             $this->onBeforeRender (); // trigger event
+            
             if (file_exists (TEMPLATE_PATH . $template)) {
                 $pj = new View ($template);
                 $props = get_object_vars ($this);
                 if (array_key_exists ('properties', $props)) {
-                    $pj->ReplaceTags (array_merge ($more_options, $props['properties']));
+                    $pj->ReplaceTags (array_merge ($props['properties'], $more_options));
                 }
                 $pj->output ();
             } else {
@@ -118,7 +126,14 @@
         
         private function _path ($id = null) {
             if (!$id) {
-                $id = $this->properties['id'];
+                if (array_key_exists ('id', $this->properties)) {
+                    // ID is not supplied, but object has it
+                    $id = $this->properties['id'];
+                } else {
+                    // ID is neither supplied nor an existing object property
+                    $id = uniqid ("random");
+                    // throw new Exception ('Attempting to access object with no ID');
+                }
             }
             return sprintf ("%s%s.%s", // obj_id.obj_class
                              DATA_PATH, // paths include trailing slash
@@ -205,7 +220,8 @@
             if (sizeof ($tags) > 0) {
                 // replace special tags (e.g. tags that must exist)
                 $tags = array_merge (array (
-                        'title'=>''
+                        'title' => '',
+                        'content' => ''
                     ), $tags);
                 
                 // replace tags with object props
