@@ -51,10 +51,22 @@
         }
     }
     
-    function check_keys ($array, $required_keys, $first_array_is_assoc = true) {
+    function is_assoc ($array) {
+        // JTS on http://php.net/manual/en/function.is-array.php
+        return (is_array ($array) && 
+            (count ($array) == 0 || 
+                0 !== count (array_diff_key (
+                    $array, 
+                    array_keys (array_keys ($array))
+                ))
+            )
+        );
+    }
+    
+    function check_keys ($array, $required_keys) {
         // throw exception if the array (a=>b, c=>d, ...)
         // does not contain all values in $required_keys (a, c, ...).
-        if (!$first_array_is_assoc) {
+        if (!is_assoc ($array)) {
             $array = array_combine($array, $array); // stackoverflow.com/questions/1066850/
         }
         
@@ -68,7 +80,7 @@
     
     function debug ($msg, $fancy = true) {
         // fancy not implemented
-        echo ("<p>hmm: $msg</p>");
+        echo ("<p>Error: $msg</p>");
     }
     
     function get_handler_by_url ($url) {

@@ -20,7 +20,7 @@
             }
             $all_hooks[$module] = $hooks;
         }
-    }
+    }    
 
     // serve loop: load responsible controller
     foreach ($all_hooks as $module => $hooks) {
@@ -42,9 +42,11 @@
                 } else {
                     // debug ('#^/' . SUBDIR . $hook . '$#i');
                 }
+            } else {
+                throw new Exception ('Cannot process malformed URL');
             }
         }
     }
     
-    debug ("No handler serves " . $_SERVER['REQUEST_URI'] . ".");
+    // debug ("No handler serves " . $_SERVER['REQUEST_URI'] . ".");
 ?>
