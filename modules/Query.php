@@ -16,8 +16,8 @@
             } elseif (is_object ($module_name)) {
                 $module_name = get_class ($module_name); // revert to its name
             }
-            // all data are stored as DATA_PATH/id.class_name
-            $matches = glob (DATA_PATH . "*.$module_name");
+            // all data are stored as DATA_PATH/class_name/id
+            $matches = glob (DATA_PATH . "$module_name/*");
             foreach ((array) $matches as $match) {
                 $this->found[] = basename ($match);
             }

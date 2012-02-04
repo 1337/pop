@@ -35,6 +35,7 @@
                     }
                 }
             }
+            $this->onLoad ();
             return $this;
         }
         
@@ -93,6 +94,7 @@
             // put is automatically called when a variable is assigned
             // to the object.
             $blob = serialize ($this->properties);
+            mkdir (dirname ($this->_path ()));
             return file_put_contents ($this->_path (), $blob, LOCK_EX);
         }
         
@@ -159,14 +161,14 @@
                     $id = $this->properties['id'];
                 } else {
                     // ID is neither supplied nor an existing object property
-                    $id = uniqid ("random");
+                    $id = uniqid ('', true);
                     // throw new Exception ('Attempting to access object with no ID');
                 }
             }
-            return sprintf ("%s%s.%s", // obj_id.obj_class
+            return sprintf ("%s/%s/%s", // data/obj_class/obj_id
                              DATA_PATH, // paths include trailing slash
-                             $id,
-                             get_class ($this));
+                             get_class ($this),
+                             $id);
         }
 
         
@@ -174,6 +176,7 @@
 
 
         // 
+        public function onLoad () { }
         public function onBeforeRender () { }
         public function onRender () { }
         public function onRead () { }
