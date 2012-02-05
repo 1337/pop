@@ -264,6 +264,14 @@
                        
                     $this->contents = preg_replace ("/<!-- ?self\." . $tag . " ?-->/i", $data, $this->contents);
                 }
+                
+                foreach (vars () as $tag => $data) { // replace dynamic vars
+                    $data = (string) $data;
+                    $this->contents = preg_replace ("/<!-- ?var\." . $tag . " ?-->/i", $data, $this->contents);
+                }
+                // hide unmatched var tags
+                $this->contents = preg_replace ("/<!-- ?var\.([a-z0-9-_])* ?-->/i", '', $this->contents);
+                
                 // $this->contents = str_ireplace("<!--root-->", DOMAIN, $this->contents);
                 $this->contents = preg_replace ("/<!-- ?root ?-->/i", DOMAIN, $this->contents);
             }

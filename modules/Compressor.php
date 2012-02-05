@@ -26,7 +26,6 @@
         function safe_file_name ($n) {
             // well, rejects traversal.
             if (strpos ($n, '..') !== false || 
-                strpos ($n, '.') !== false || 
                 strpos ($n, '//') !== false) {
                 throw new Exception ('file name unsafe!');
             } else {
