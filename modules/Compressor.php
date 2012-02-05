@@ -9,7 +9,9 @@
             $file = vars('file', false);
             if ($file !== false) {
                 $filename = $this->safe_file_name (TEMPLATE_PATH . "$file.css");
-                header("Content-type: text/css");
+                ob_start ("ob_gzhandler");
+                header ('Content-type: text/css');
+                header ('Cache-Control: max-age=37739520, public');
                 echo css_compress (file_get_contents ($filename));
             }
         }
@@ -18,8 +20,10 @@
             $file = vars('file', false);
             if ($file !== false) {
                 $filename = $this->safe_file_name (TEMPLATE_PATH . "$file.js");
-                header("Content-type: application/javascript");
-                echo css_compress (file_get_contents ($filename));
+                ob_start ("ob_gzhandler");
+                header ('Content-type: text/javascript; charset: UTF-8');
+                header ('Cache-Control: max-age=37739520, public');
+                echo file_get_contents ($filename);
             }
         }
         

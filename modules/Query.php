@@ -97,6 +97,8 @@
                     return ($a->{$field} >= $cond);
                 case '<=':
                     return ($a->{$field} <= $cond);
+                case '><': // within; $cond must be [min, max]
+                    return ($a->{$field} >= $cond[0] && $a->{$field} <= $cond[1]);
                 case 'IN':
                     return (in_array ($a->{$field}, $cond));
                 default:

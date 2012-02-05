@@ -8,7 +8,7 @@
         );
         
         function index () {
-            vars();
+            var_dump (debug_backtrace (true));
         }
     }
 ?>
