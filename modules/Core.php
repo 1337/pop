@@ -94,7 +94,7 @@
             // put is automatically called when a variable is assigned
             // to the object.
             $blob = serialize ($this->properties);
-            mkdir (dirname ($this->_path ()));
+            @mkdir (dirname ($this->_path ()));
             return file_put_contents ($this->_path (), $blob, LOCK_EX);
         }
         
@@ -105,8 +105,8 @@
         function render ($template = null, $more_options = array ()) {
             // shows object structure by default.
             if (is_array ($template)) {
-                // swap parameters if they are given backwards. common problem
-                list ($template, $more_options) = array ($more_options, $template);
+                // swap parameters if template is not given.
+                list ($template, $more_options) = array (null, $template);
             }
             
             $this->onBeforeRender (); // trigger event

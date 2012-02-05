@@ -9,7 +9,7 @@
     }
 
     $_vars_cache_ = array ();
-    function vars ($index = false) {
+    function vars ($index = false, $default = null) {
         // gathers everything from the request.
         global $_vars_cache_; // store once, use forever
         
@@ -18,7 +18,7 @@
                 if (array_key_exists ($index, $_vars_cache_)) {
                     return $_vars_cache_[$index];
                 } else {
-                    return null;
+                    return $default;
                 }
             } else {
                 return $_vars_cache_; // return cache if it exists
@@ -42,10 +42,11 @@
             if ($index) {
                 if (array_key_exists ($index, $vars)) {
                     return $vars[$index];
-                } else {
-                    return null;
+                } else { // ono...
+                    return $default;
                 }
             } else {
+                // die(var_export($vars, true));
                 return $vars;
             }
         }

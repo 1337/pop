@@ -12,6 +12,7 @@
     $modules = array (
         'Core',
         'Query',
+        'Sample',
     );
     
     @chmod (DATA_PATH, 0777);

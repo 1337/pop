@@ -1,11 +1,15 @@
 <?php
     require_once ('vars.php');
     require_once ('lib.php');
-    // TODO: events, access levels, object caches, perm checks, relationships
-    // TODO: filter by properties
+    // TODO: events, access levels, perm checks, relationships
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
     // TODO: let core handle errors, not modules
     
+    @chmod (DATA_PATH, 0777);
+    if (!is_writable (DATA_PATH)) {
+        die ("data path not writable");
+    }
+
     $all_hooks = array (); // accumulates hooks from all modules
     // init loop: load php files, get definitions, get urls (hooks)
     foreach ($modules as $module) { // modules is in (default_)vars.php
@@ -48,5 +52,5 @@
         }
     }
     
-    // debug ("No handler serves " . $_SERVER['REQUEST_URI'] . ".");
+    debug ("No handler serves " . $_SERVER['REQUEST_URI'] . ".");
 ?>
