@@ -12,7 +12,7 @@
     function vars ($index = false, $default = null) {
         // gathers everything from the request.
         global $_vars_cache_; // store once, use forever
-        
+
         if (sizeof ($_vars_cache_) > 0) {
             if ($index) {
                 if (array_key_exists ($index, $_vars_cache_)) {
@@ -37,7 +37,7 @@
             } else {
                 $vars = array_merge ($_COOKIE, $_POST, $_GET, $REAL_GET);
             }
-            
+
             $_vars_cache_ = $vars; // cache the variables
             if ($index) {
                 if (array_key_exists ($index, $vars)) {
@@ -51,19 +51,19 @@
             }
         }
     }
-    
+
     function is_assoc ($array) {
         // JTS on http://php.net/manual/en/function.is-array.php
-        return (is_array ($array) && 
-            (count ($array) == 0 || 
+        return (is_array ($array) &&
+            (count ($array) == 0 ||
                 0 !== count (array_diff_key (
-                    $array, 
+                    $array,
                     array_keys (array_keys ($array))
                 ))
             )
         );
     }
-    
+
     function check_keys ($array, $required_keys) {
         // throw exception if the array (a=>b, c=>d, ...)
         // does not contain all values in $required_keys (a, c, ...).
@@ -110,7 +110,7 @@
         // $protocol doesn't work
         if (!function_exists('curl_init')) die("Error: cURL does not exist! Please install cURL.");
         $process = curl_init ($url);
-        
+
         $options = array (
             CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
             CURLOPT_HEADER => 0,
