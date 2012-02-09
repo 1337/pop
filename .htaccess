@@ -2,12 +2,12 @@
 #Options +FollowSymLinks
 
 DirectoryIndex index.php index.html index.htm
-ErrorDocument 404 /poop/index.php
+#ErrorDocument 404 /pop/index.php
 
 #<IfModule mod_rewrite.c>
 #  RewriteEngine on
 #
-#  RewriteBase /poop
+#  RewriteBase /pop
 #
 #  RewriteCond %{REQUEST_FILENAME} !-f
 #  RewriteCond %{REQUEST_FILENAME} !-d

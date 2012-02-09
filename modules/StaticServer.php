@@ -9,6 +9,7 @@
         
         function index () {
             var_dump (debug_backtrace (true));
+            die();
         }
     }
 ?>

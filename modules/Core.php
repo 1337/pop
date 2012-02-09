@@ -39,7 +39,7 @@
             return $this;
         }
         
-        public function __get($property) {
+        public function __get ($property) {
             $property = strtolower ($property); // case-insensitive
             
             switch ($property) { // manage special cases
@@ -58,7 +58,7 @@
             $this->onRead (); // trigger event
         }
         
-        public function __set($property, $value) {
+        public function __set ($property, $value) {
             $property = strtolower ($property); // case-insensitive
             $this->properties[$property] = $value;
             
