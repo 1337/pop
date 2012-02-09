@@ -4,7 +4,7 @@
     // TODO: events, access levels, perm checks, relationships
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
     // TODO: let core handle errors, not modules
-    
+
     @chmod (DATA_PATH, 0777);
     if (!is_writable (DATA_PATH)) {
         die ("data path not writable");
@@ -24,7 +24,7 @@
             }
             $all_hooks[$module] = $hooks;
         }
-    }    
+    }
 
     // serve loop: load responsible controller
     foreach ($all_hooks as $module => $hooks) {
@@ -32,7 +32,7 @@
             $url_parts = parse_url ($_SERVER['REQUEST_URI']);
             if ($url_parts) { // On malformed URLs, parse_url() may return FALSE
                 $match = preg_match (
-                    '#^/' . SUBDIR . $hook . '$#i', 
+                    '#^/' . SUBDIR . $hook . '$#i',
                     $url_parts['path']
                 );
                 if ($match) { // 1 = match
@@ -51,6 +51,6 @@
             }
         }
     }
-    
+
     debug ("No handler serves " . $_SERVER['REQUEST_URI'] . ".");
 ?>
