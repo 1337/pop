@@ -10,7 +10,7 @@
                 <str> 'type' unique
                 <str> 'props' serialized object
         */
-        var $link;
+        var $link, $db, $host, $user, $password;
         
         function __construct ($param = null,
                               $db = MYSQL_DB, 
@@ -19,28 +19,45 @@
                               $password = MYSQL_PASSWORD) {
             parent::__construct ($param); // idk...
             $this->_connect ($db, $host, $user, $password);
+            $this->db = $db;
+            $this->host = $host;
+            $this->user = $user;
+            $this->password = $password;
         }
         
         public function __get ($property) {
             $property = strtolower ($property); // case-insensitive
-            
             switch ($property) { // manage special cases
                 case 'type':
                     return get_class ($this);
                     break;
-                default: // write props into a file if the object has an ID.
-                    // first check file system.
+                default:
+                    // first check file system (now used as cache)
                     $cached_val = parent::__get ($property);
                     if (is_null ($cached_val)) { // FS returns null if no result.
                         $id = $this->id;
-                        $sql = "SELECT `$property` FROM `objects` WHERE `id`='$id' LIMIT 1";
+                        // never hurts to call again
+                        $this->_connect ($this->db, $this->host, $this->user, $this->password);
+                        $sql = "SELECT `properties` FROM `objects` WHERE `id`='$id' LIMIT 1";
                         $ss = mysql_query ($sql, $this->link);
                         if ($ss) {
-                            $row = mysql_fetch_assoc ($ss);
-                            $this->{$property} = $row[$property]; // cache result
-                            return $row[$property];
+                            if (mysql_num_rows ($ss) == 1) { // limit 1, 1 result!
+                                $row = mysql_fetch_assoc ($ss);
+                                // cache result; save to FS cache. line below should call put()
+                                $prop_str = $row['properties'];
+                                $props = unserialize ($prop_str); // unpack
+                                
+                                // existence of FS object guarantees consistency!
+                                // load entire DB object into FS.
+                                foreach ($props as $prop_key => $prop_val) {
+                                    $this->{$prop_key} = $prop_val;
+                                }
+                                return $props[$property]; // done caching, return result
+                            } else {
+                                return null; // no result found in DB either :(
+                            }
                         } else {
-                            throw new Exception ('failed to query database');
+                            throw new Exception ('Failed to query database');
                         }
                     } else { // result is cached - win!
                         return $cached_val;
@@ -50,7 +67,33 @@
         }
         
         public function __set ($property, $value) {
-            //
+            // write to DB and reset cache (if you want to keep the cache, feel free to do so)
+
+            // never hurts to call again
+            $this->_connect ($this->db, $this->host, $this->user, $this->password);
+            $id = mysql_real_escape_string ($this->id, $link);
+            $type = mysql_real_escape_string ($this->type, $link);
+            $prop_str = mysql_real_escape_string (
+                serialize ($this->properties), // private variable
+                $link
+            );
+            $sql = "INSERT INTO `objects`
+                    SET `id` = '$id',
+                        `type` = '$type',
+                        `properties` = '$prop_str'
+                    ON DUPLICATE KEY UPDATE 
+                        `id` = '$id',
+                        `type` = '$type', 
+                        `properties` = '$prop_str'";
+            $ss = mysql_query ($sql, $this->link);
+            
+            if ($ss) { // if write succeeds, ruin the FS cache.
+                unlink ($this->_path ());
+            } else {
+                throw new Exception ('Failed to update database');
+            }
+            
+            $this->onWrite (); // trigger event
         }
         
         private function _connect ($db, $host, $user, $password) {
