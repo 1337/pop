@@ -259,6 +259,31 @@
             }
         }
 
+        public function expand_page_loops () {
+            $regex = "/<!-- ?for ([a-z0-9-_]+) in self.([a-z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/isU";
+            // e.g. <!-- for i in self.objects --> bla bla bla <!-- endfor -->
+            // i = case-insensitive, s = newlines included, U = non-greedy
+            
+            /* Array (
+                [0] => Array (
+                    [0] => <!-- for i in self.objects -->Hello<!-- endfor -->
+                    [1] => <!-- for i2 in self.objects2 -->Hello2<!-- endfor -->
+                )
+            [1] => Array (
+                    [0] => i
+                    [1] => i2
+                )
+            [2] => Array (
+                    [0] => objects
+                    [1] => objects2
+                )
+            [3] => Array (
+                    [0] =>Hello
+                    [1] =>Hello2
+                )
+            ) */
+        }
+        
         public function replace_tags ($tags = array ()) {
             $this->build_page (); // recursively include files
             if (sizeof ($tags) > 0) {
@@ -288,11 +313,6 @@
                 // $this->contents = str_ireplace("<!--root-->", DOMAIN, $this->contents);
                 $this->contents = preg_replace ("/<!-- ?root ?-->/i", DOMAIN, $this->contents);
             }
-        }
-        
-        public function page_loops () {
-            $regex = "/<!-- ?for ([a-z0-9-_])+ in self.([a-z0-9-_])+ ?-->/i";
-            // e.g. <!-- for i in self.objects -->
         }
         
         public function output () {
