@@ -51,7 +51,23 @@
             }
         }
     }
-
+    
+    function new_object ($param = null, $class_name = 'Model') {
+        /*  
+            retrieve existing object from memory... otherwise, load / make.
+            this is something like get_or_create_object_by_name.
+            
+            $param can be ID or array of properties.
+            if properties are supplied, this object is never retrived from mem.
+        */
+        if (is_string ($id) && isset ($_models_cache_["$class_name/$id"])) {
+            return $_models_cache_["$class_name/$id"];
+        } else {
+            // Model::__construct() adds itself to $_models_cache_.
+            return new $class_name ($param);
+        }
+    } $_models_cache_ = array ();
+    
     function is_assoc ($array) {
         // JTS on http://php.net/manual/en/function.is-array.php
         return (is_array ($array) &&
@@ -148,7 +164,7 @@
         }     
         return $h;
     }
- 
+
     function html_compress ($h) {
         return preg_replace ('/(?:(?)|(?))(\s+)(?=\<\/?)/',' ', $h);
     }

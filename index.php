@@ -9,7 +9,7 @@
     if (!is_writable (DATA_PATH)) {
         die ("data path not writable");
     }
-
+    
     $all_hooks = array (); // accumulates hooks from all modules
     // init loop: load php files, get definitions, get urls (hooks)
     foreach ($modules as $module) { // modules is in (default_)vars.php
@@ -37,7 +37,7 @@
                 );
                 if ($match) { // 1 = match
                     try {
-                        $page = new $module ();
+                        $page = new_object (null, $module);
                         $page->$handler (); // superclass function
                         exit (); // load only one page...
                     } catch (Exception $e) {
