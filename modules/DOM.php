@@ -1,5 +1,5 @@
 <?php
-    class HTMLTag extends Model {
+    class DOM extends Model {
         var $id; // prevent writing object into DB
         
         // this thing generates HTML tags.

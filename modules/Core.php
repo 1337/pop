@@ -25,7 +25,7 @@
                             
                             // cache this object by reference; key being {class}/{id}
                             // use function $ to get the object back.
-                            $_models_cache_[get_class ($this) '/' . $this->properties['id']] =& $this;
+                            $_models_cache_[get_class ($this) . '/' . $this->properties['id']] =& $this;
                             
                         } catch (Exception $e) {
                             throw new Exception ('Read error');
@@ -91,8 +91,8 @@
             return $this->__toString ();
         }
         
-        public static function get ($id = null, $class_name = null) {
-            // allows calls like Model::get(id)
+        public static function _get ($id = null, $class_name = null) {
+            // allows calls like Model::_get(id)
             if (is_null ($class_name) && function_exists('get_called_class')) {
                 $class_name = get_called_class ();
             }

@@ -60,7 +60,7 @@
             $param can be ID or array of properties.
             if properties are supplied, this object is never retrived from mem.
         */
-        if (is_string ($id) && isset ($_models_cache_["$class_name/$id"])) {
+        if (is_string ($param) && isset ($_models_cache_["$class_name/$param"])) {
             return $_models_cache_["$class_name/$id"];
         } else {
             // Model::__construct() adds itself to $_models_cache_.
