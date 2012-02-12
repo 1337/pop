@@ -44,6 +44,10 @@
             return $this;
         }
         
+        public function __invoke () {
+            // doesn't do anything
+        }
+        
         public function __get ($property) {
             $property = strtolower ($property); // case-insensitive
             
@@ -127,8 +131,10 @@
             if (file_exists (TEMPLATE_PATH . $template)) {
                 $pj = new_object ($template, 'View');
                 $props = get_object_vars ($this);
-                if (array_key_exists ('properties', $props)) {
-                    $pj->replace_tags (array_merge ($props['properties'], $more_options));
+                if (array_key_exists ('properties', $props)) { // checks if this object is a Model...?
+                    $options = array_merge ($props['properties'], $more_options);
+                    $pj->expand_page_loops ($options);
+                    $pj->replace_tags ($options);
                 }
                 $pj->output ();
             } else {
@@ -174,7 +180,7 @@
                     $id = $this->properties['id'];
                 } else {
                     // ID is neither supplied nor an existing object property
-                    $id = uniqid ('', true);
+                    $id = uniqid ('');
                     // throw new Exception ('Attempting to access object with no ID');
                 }
             }
@@ -259,7 +265,7 @@
             }
         }
 
-        public function expand_page_loops () {
+        public function expand_page_loops ($tags = array ()) {
             $regex = "/<!-- ?for ([a-z0-9-_]+) in self.([a-z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/isU";
             // e.g. <!-- for i in self.objects --> bla bla bla <!-- endfor -->
             // i = case-insensitive, s = newlines included, U = non-greedy
@@ -282,6 +288,19 @@
                     [1] =>Hello2
                 )
             ) */
+            $matches = array ();
+            if (preg_match_all ($regex, $this->contents, $matches)) {
+                // foreach loop found...
+                for ($i = 0; $i < sizeof ($matches[2]); $i++) {
+                     // $len = sizeof objects2; number of times to loop
+                    $len = sizeof ($tags[$matches[2][$i]]);
+                    for ($j = 0; $j < $len; $j++) {
+                        
+                    }
+                }
+            } else {
+                
+            }
         }
         
         public function replace_tags ($tags = array ()) {

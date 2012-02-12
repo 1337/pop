@@ -4,7 +4,8 @@
     // TODO: events, access levels, perm checks, relationships
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
     // TODO: let core handle errors, not modules
-
+    
+    @ob_start ();
     @chmod (DATA_PATH, 0777);
     if (!is_writable (DATA_PATH)) {
         die ("data path not writable");

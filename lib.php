@@ -100,7 +100,7 @@
         echo ("<p>Error: $msg</p>");
     }
     
-    function get_handler_by_url ($url) {
+    function get_handler_by_url ($url, $include_module = false) {
         // provide the name of the handler that serves a given url.
         global $all_hooks;
         if (isset ($all_hooks) && is_array ($all_hooks)) {
@@ -113,7 +113,9 @@
                             $url_parts['path']
                         );
                         if ($match) { // 1 = match
-                            return $handler; // superclass function
+                            return $include_module ? 
+                                "$module.$handler" : 
+                                $handler; // superclass function
                         }
                     }
                 }

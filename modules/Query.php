@@ -6,11 +6,11 @@
         var $found; // need this to overload $this->found[]
 
         // array of objects successfully queried. calling fetch() clears it.
-        var $objects;
+        var $found_objects;
 
         function __construct ($module_name = false) {
             // false module name searches all modules.
-            $this->objects = array (); // init var
+            $this->found_objects = array (); // init var
             if (!$module_name) {
                 $module_name = '*';
             } elseif (is_object ($module_name)) {
@@ -34,16 +34,16 @@
             // comparison operators allowed: <, >, ==, !=, <=, >=, IN
             $this->filter = $filter;
             $this->filter_condition = $condition;
-            $this->objects = array_filter ($t = (array) $this->objects, array ($this, "_filter_function"));
+            $this->found_objects = array_filter ($t = (array) $this->found_objects, array ($this, "_filter_function"));
             return $this; // chaining for php 5
         }
         
         function order ($by, $asc = true) {
             // EXTREMELY slow.
             $this->sort_field = $by;
-            usort ($t = (array) $this->objects, array ($this, "_sort_function")); // php automagic
+            usort ($t = (array) $this->found_objects, array ($this, "_sort_function")); // php automagic
             if (!$asc) {
-                $objects = array_reverse ($objects);
+                $this->found_objects = array_reverse ($this->found_objects);
             }
             return $this; // chaining for php 5
         }
@@ -52,17 +52,17 @@
             // This class does NOT store or cache these results.
             // calling fetch more than once on the same object will erase them.
             $files = array_slice ((array) $this->found, 0, $limit);
-            $this->objects = array (); // reset var
+            $this->found_objects = array (); // reset var
             foreach ((array) $this->found as $file) {
-                $this->objects[] = $this->_create_object_from_filename ($file);
+                $this->found_objects[] = $this->_create_object_from_filename ($file);
             }
-            // return $this->objects;
+            // return $this->found_objects;
             return $this;
         }
 
         function get () {
             // throw objects out.
-            return $this->objects;
+            return $this->found_objects;
         }
         
         function count () {
