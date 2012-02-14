@@ -57,7 +57,15 @@
                     break;
                 default: // write props into a file if the object has an ID.
                     if (array_key_exists ($property, $this->properties)) {
-                        return $this->properties[$property];
+                        if (substr ($this->properties[$property], 0, 5) == "db://") {
+                            // notation means "this thing is a Model"
+                            // db://ClassName/ID
+                            $class = substr ($this->properties[$property], 5, strpos ($this->properties[$property], '/', 5) - 5);
+                            $id = substr($db, strpos ($db, '/', 5) + 1);
+                            return new_object ($id, $class);
+                        } else {
+                            return $this->properties[$property];
+                        }
                         break;
                     } else {
                         // throw new Exception ('accessing invalid property');
@@ -69,6 +77,11 @@
         
         public function __set ($property, $value) {
             $property = strtolower ($property); // case-insensitive
+            
+            if ($value instanceof Model && !is_null ($value->id)) {
+                $value = $value->get_db_key (); // replace object by a reference to it, so we can serialize THIS object
+            }
+            
             $this->properties[$property] = $value;
             
             switch ($property) { // manage special cases
@@ -171,6 +184,19 @@
             } else {
                 throw new Exception ('Call order() with an instantiated object');
             }            
+        }
+        
+        function get_db_key () {
+            // wrapper
+            return $this->_key ();
+        }
+        
+        private function _key () {
+            if (array_key_exists ('id', $this->properties)) {
+                return 'db://' . get_class ($this) . '/' . $this->id;
+            } else {
+                throw new Exception ('Cannot request DB key before ID assignment');
+            }
         }
         
         private function _path ($id = null) {
