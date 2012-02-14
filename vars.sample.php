@@ -10,7 +10,8 @@
     define ("SUBDIR", substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
     
     $modules = array (
-        'Core',
+        'Model',
+        'View',
         'Query',
         'Sample',
     );

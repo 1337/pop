@@ -25,16 +25,20 @@
         }
         
         function all () {
-            return $this->fetch()->get();
+            $this->get();
+            return $this; // chaining for php 5
         }
     
         function filter ($filter, $condition) {
-            // VERY slow.
+            // run fetch() before filter. since all() calls fetch(), you can do that too.
             // $filter = field name followed by an operator, e.g. 'name =='
             // comparison operators allowed: <, >, ==, !=, <=, >=, IN
             $this->filter = $filter;
             $this->filter_condition = $condition;
             $this->found_objects = array_filter ($t = (array) $this->found_objects, array ($this, "_filter_function"));
+            
+            // update filename counts (count() uses it)
+            $this->found = array_map (array ($this, "_get_object_name"), (array) $this->found_objects);
             return $this; // chaining for php 5
         }
         
@@ -62,6 +66,9 @@
 
         function get () {
             // throw objects out.
+            if (sizeof ($this->found_objects) <= 0) {
+                $this->fetch (); // if nothing, try fetch again just to be sure
+            }
             return $this->found_objects;
         }
         
@@ -92,6 +99,7 @@
                 case '==':
                     return ($a->{$field} == $cond);
                 case '!=':
+                case '<>': // because vb.
                     return ($a->{$field} != $cond);
                 case '>=':
                     return ($a->{$field} >= $cond);
@@ -105,6 +113,11 @@
                     throw new Exception ("'$mode' is not a recognized filter mode");
                     break;
             }
+        }
+        
+        private function _get_object_name ($o) {
+            // Model(hello) -> Model/hello
+            return get_class ($o) . '/' . $o->id; // if this is a Model, this will not fail
         }
         
         private function _create_object_from_filename ($file) {
