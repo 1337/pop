@@ -1,7 +1,7 @@
 <?php
 
     class Model {
-        private $properties = array ();
+        protected $properties = array ();
         
         public function __construct ($param = null) {
             // if no param (null): create (saved on first __set)
@@ -57,7 +57,8 @@
                     break;
                 default: // write props into a file if the object has an ID.
                     if (array_key_exists ($property, $this->properties)) {
-                        if (substr ($this->properties[$property], 0, 5) == "db://") {
+                        if (is_string ($this->properties[$property]) && 
+                            substr ($this->properties[$property], 0, 5) == "db://") {
                             // notation means "this thing is a Model"
                             // db://ClassName/ID
                             $class = substr ($this->properties[$property], 5, strpos ($this->properties[$property], '/', 5) - 5);
@@ -199,7 +200,7 @@
             }
         }
         
-        private function _path ($id = null) {
+        function _path ($id = null) {
             if (!$id) {
                 if (array_key_exists ('id', $this->properties)) {
                     // ID is not supplied, but object has it
@@ -210,7 +211,7 @@
                     // throw new Exception ('Attempting to access object with no ID');
                 }
             }
-            return sprintf ("%s/%s/%s", // data/obj_class/obj_id
+            return sprintf ("%s%s/%s", // data/obj_class/obj_id
                              DATA_PATH, // paths include trailing slash
                              get_class ($this),
                              $id);

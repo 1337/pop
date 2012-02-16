@@ -1,5 +1,5 @@
 <?php
-    class User extends Model {
+    class User extends MySQLModel {
         public static $urls = array (
             "user/log/?" => "user_tracker", // /pop/user/log
             "user/log/view/?" => "user_viewer" // /pop/user/log/view

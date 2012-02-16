@@ -49,7 +49,7 @@
                                 
                                 // existence of FS object guarantees consistency!
                                 // load entire DB object into FS.
-                                foreach ($props as $prop_key => $prop_val) {
+                                foreach ((array) $props as $prop_key => $prop_val) {
                                     $this->{$prop_key} = $prop_val;
                                 }
                                 return $props[$property]; // done caching, return result
@@ -68,14 +68,16 @@
         
         public function __set ($property, $value) {
             // write to DB and reset cache (if you want to keep the cache, feel free to do so)
+            parent::__set ($property, $value); // access to magic methods
 
             // never hurts to call again
             $this->_connect ($this->db, $this->host, $this->user, $this->password);
-            $id = mysql_real_escape_string ($this->id, $link);
-            $type = mysql_real_escape_string ($this->type, $link);
+
+            $id = mysql_real_escape_string ($this->id, $this->link);
+            $type = mysql_real_escape_string ($this->type, $this->link);
             $prop_str = mysql_real_escape_string (
                 serialize ($this->properties), // private variable
-                $link
+                $this->link
             );
             $sql = "INSERT INTO `objects`
                     SET `id` = '$id',
