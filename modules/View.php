@@ -106,7 +106,8 @@
                 // replace special tags (e.g. tags that must exist)
                 $tags = array_merge (array (
                         'title' => '',
-                        'content' => ''
+                        'styles' => '',
+                        'content' => '',
                     ), $tags);
                 
                 // replace tags with object props
@@ -132,7 +133,7 @@
         }
         
         public function output () {
-            echo (html_compress ($this->contents));
+            echo (Compressor::html_compress ($this->contents));
         }
     }
 ?>

@@ -228,4 +228,22 @@
         public function onRead () { }
         public function onWrite () { }
     }
+
+    // helpers
+    function new_object ($param = null, $class_name = 'Model') {
+        /*  
+            retrieve existing object from memory... otherwise, load / make.
+            this is something like get_or_create_object_by_name.
+            
+            $param can be ID or array of properties.
+            if properties are supplied, this object is never retrived from mem.
+        */
+        if (is_string ($param) && isset ($_models_cache_["$class_name/$param"])) {
+            return $_models_cache_["$class_name/$id"];
+        } else {
+            // Model::__construct() adds itself to $_models_cache_.
+            return new $class_name ($param);
+        }
+    } $_models_cache_ = array ();
+
 ?>
