@@ -130,7 +130,8 @@
         }
         
         function handler () {
-            return get_handler_by_url ($_SERVER['REQUEST_URI']);
+            list ($module, $handler) = get_handler_by_url ($_SERVER['REQUEST_URI']);
+            return $handler;
         }
         
         function render ($template = null, $more_options = array ()) {

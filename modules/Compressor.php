@@ -61,7 +61,7 @@
             }
         }
         
-        function safe_file_name ($n) {
+        private function safe_file_name ($n) {
             // well, rejects traversal.
             if (strpos ($n, '..') !== false || // traversal (../../)
                 strpos ($n, '//') !== false || // remote (http://)

@@ -99,7 +99,7 @@
                         if ($match) { // 1 = match
                             return $include_module ? 
                                 "$module.$handler" : 
-                                $handler; // superclass function
+                                array ($module, $handler); // superclass function
                         }
                     }
                 }

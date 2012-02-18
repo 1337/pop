@@ -133,7 +133,11 @@
         }
         
         public function output () {
-            echo (Compressor::html_compress ($this->contents));
+            if (class_exists ("Compressor")) {
+                echo (Compressor::html_compress ($this->contents));
+            } else {
+                echo ($this->contents);
+            }
         }
     }
 ?>

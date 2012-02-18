@@ -28,29 +28,14 @@
     }
 
     // serve loop: load responsible controller
-    foreach ($all_hooks as $module => $hooks) {
-        foreach ($hooks as $hook => $handler) {
-            $url_parts = parse_url ($_SERVER['REQUEST_URI']);
-            if ($url_parts) { // On malformed URLs, parse_url() may return FALSE
-                $match = preg_match (
-                    '#^/' . SUBDIR . $hook . '$#i',
-                    $url_parts['path']
-                );
-                if ($match) { // 1 = match
-                    try {
-                        $page = new_object (null, $module);
-                        $page->$handler (); // superclass function
-                        exit (); // load only one page...
-                    } catch (Exception $e) {
-                        debug ($e->getMessage ()); // you fail at life
-                    }
-                } else {
-                    // debug ('#^/' . SUBDIR . $hook . '$#i');
-                }
-            } else {
-                throw new Exception ('Cannot process malformed URL');
-            }
-        }
+    $url_parts = parse_url ($_SERVER['REQUEST_URI']);
+    list ($module, $handler) = get_handler_by_url ($url_parts['path']);
+    try {
+        $page = new_object (null, $module);
+        $page->$handler (); // superclass function
+        exit (); // load only one page...
+    } catch (Exception $e) {
+        debug ($e->getMessage ()); // you fail at life
     }
 
     debug ("No handler serves " . $_SERVER['REQUEST_URI'] . ".");
