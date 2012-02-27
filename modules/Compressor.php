@@ -1,8 +1,8 @@
 <?php
     class Compressor {
         public static $urls = array (
-            "c/?" => "css",
-            "j/?" => "js",
+            "css/?" => "css",
+            "js/?" => "js",
         );
         
         // compression functions
@@ -42,7 +42,7 @@
         function css () {
             $file = vars('file', false);
             if ($file !== false) {
-                $filename = $this->safe_file_name (TEMPLATE_PATH . "$file.css");
+                $filename = $this->safe_file_name (TEMPLATE_PATH . "css/$file.css");
                 ob_start ("ob_gzhandler");
                 header ('Content-type: text/css');
                 header ('Cache-Control: max-age=37739520, public');
@@ -53,7 +53,7 @@
         function js () {
             $file = vars('file', false);
             if ($file !== false) {
-                $filename = $this->safe_file_name (TEMPLATE_PATH . "$file.js");
+                $filename = $this->safe_file_name (TEMPLATE_PATH . "js/$file.js");
                 ob_start ("ob_gzhandler");
                 header ('Content-type: text/javascript; charset: UTF-8');
                 header ('Cache-Control: max-age=37739520, public');
