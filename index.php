@@ -29,8 +29,8 @@
 
     // serve loop: load responsible controller
     $url_parts = parse_url ($_SERVER['REQUEST_URI']);
-    list ($module, $handler) = get_handler_by_url ($url_parts['path']);
     try {
+        list ($module, $handler) = get_handler_by_url ($url_parts['path'], true);
         $page = new_object (null, $module);
         $page->$handler (); // superclass function
         exit (); // load only one page...

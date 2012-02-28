@@ -100,6 +100,8 @@
                             return $include_module ? 
                                 "$module.$handler" : 
                                 array ($module, $handler); // superclass function
+                        } else {
+                            throw new Exception("URL $url does not map to any handler");
                         }
                     }
                 }
