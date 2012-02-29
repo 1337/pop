@@ -40,7 +40,7 @@
         }
 
         function css () {
-            $file = vars('file', false);
+            $file = vars('file', vars('f', false));
             if ($file !== false) {
                 $filename = $this->safe_file_name (TEMPLATE_PATH . "css/$file.css");
                 ob_start ("ob_gzhandler");
@@ -51,7 +51,7 @@
         }
         
         function js () {
-            $file = vars('file', false);
+            $file = vars('file', vars('f', false));
             if ($file !== false) {
                 $filename = $this->safe_file_name (TEMPLATE_PATH . "js/$file.js");
                 ob_start ("ob_gzhandler");

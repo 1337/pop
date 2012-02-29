@@ -1,16 +1,12 @@
-#Options -Indexes
-#Options +FollowSymLinks
+Options +FollowSymLinks
 
 DirectoryIndex index.php index.html index.htm
-#ErrorDocument 404 /pop/index.php
 
-#<IfModule mod_rewrite.c>
-#  RewriteEngine on
-#
-#  RewriteBase /pop
-#
-#  RewriteCond %{REQUEST_FILENAME} !-f
-#  RewriteCond %{REQUEST_FILENAME} !-d
-#  RewriteRule ^ index.php [P]
-#
-#</IfModule>
+<IfModule mod_rewrite.c>
+  RewriteEngine on
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.php [L]
+
+</IfModule>

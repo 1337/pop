@@ -239,11 +239,15 @@
             $param can be ID or array of properties.
             if properties are supplied, this object is never retrived from mem.
         */
-        if (is_string ($param) && isset ($_models_cache_["$class_name/$param"])) {
-            return $_models_cache_["$class_name/$id"];
-        } else {
-            // Model::__construct() adds itself to $_models_cache_.
-            return new $class_name ($param);
+        try {
+            if (is_string ($param) && isset ($_models_cache_["$class_name/$param"])) {
+                return $_models_cache_["$class_name/$id"];
+            } else {
+                // Model::__construct() adds itself to $_models_cache_.
+                return new $class_name ($param);
+            }
+        } catch (Exception $e) {
+            die ('Cannot create object...');
         }
     } $_models_cache_ = array ();
 

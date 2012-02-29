@@ -2,3 +2,6 @@ vars.php
 *.bak
 data/*
 templates/*
+modules/*guesswork*
+modules/*shopify*
+.git*

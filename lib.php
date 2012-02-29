@@ -84,7 +84,7 @@
         echo ("<p>Error: $msg</p>");
     }
     
-    function get_handler_by_url ($url, $include_module = false) {
+    function get_handler_by_url ($url, $very_verbose = false) {
         // provide the name of the handler that serves a given url.
         global $all_hooks;
         if (isset ($all_hooks) && is_array ($all_hooks)) {
@@ -97,16 +97,14 @@
                             $url_parts['path']
                         );
                         if ($match) { // 1 = match
-                            return $include_module ? 
-                                "$module.$handler" : 
-                                array ($module, $handler); // superclass function
-                        } else {
-                            throw new Exception("URL $url does not map to any handler");
+                            return array ($module, $handler); // superclass function
                         }
                     }
                 }
             }        
         }
+        // throw new Exception("URL $url does not map to any handler");
+        return array (null, null);
     }
     
     function auth_curl ($url, $user, $pass, $protocol = 'http') {
