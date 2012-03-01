@@ -6,14 +6,14 @@ It is 100% compatible with [backbone.js](http://documentcloud.github.com/backbon
 ## Installing
 
 1. Install your web server
-    * In lighttpd, rewrite rules are as follows:
+    * In lighttpd, rewrite rules are as follows:  
 ```
 (/etc/lighttpd/lighttpd.conf)
 
 url.rewrite-once = (
 "(.*)" => "/pop/index.php"
 )
-```
+``` 
     * In apache2, your ```.htaccess``` file should have these rules:
 ```
 DirectoryIndex index.php
