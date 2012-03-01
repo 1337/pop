@@ -111,19 +111,12 @@
             $this->onWrite (); // trigger event
         }
         
-        public function __toString ($type = 'JSON') {
-            switch (strtoupper ($type)) {
-                case 'JSON':
-                    return json_decode ($this->properties);
-                case 'PHP':
-                    return serialize ($this->properties);
-                default:
-                    throw new Exception ("Bad type '$type' supplied to toString");
-            }
+        public function __toString () {
+            return json_decode ($this->properties);
         }
         
-        public function to_string ($type = 'JSON') {
-            return $this->__toString ($type);
+        public function to_string () {
+            return $this->__toString ();
         }
         
         public static function _get ($id = null, $class_name = null) {
@@ -265,7 +258,7 @@
                 return new $class_name ($param);
             }
         } catch (Exception $e) {
-            die ('Cannot create object...');
+            die ('Cannot create object: ' . $e->getMessage ());
         }
     } $_models_cache_ = array ();
 

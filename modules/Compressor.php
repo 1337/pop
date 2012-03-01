@@ -40,24 +40,29 @@
         }
 
         function css () {
-            $file = vars('file', vars('f', false));
-            if ($file !== false) {
-                $filename = $this->safe_file_name (TEMPLATE_PATH . "css/$file.css");
+            $files = vars('files', vars('f', false));
+            if ($files !== false) {
                 ob_start ("ob_gzhandler");
                 header ('Content-type: text/css');
                 header ('Cache-Control: max-age=37739520, public');
-                echo $this->css_compress (file_get_contents ($filename));
+                foreach (explode (',', $files) as $file) {
+                    $filename = $this->safe_file_name (TEMPLATE_PATH . "css/$file.css");
+                    echo $this->css_compress (file_get_contents ($filename));
+                }
             }
         }
         
         function js () {
-            $file = vars('file', vars('f', false));
+            $files = vars('files', vars('f', false));
             if ($file !== false) {
-                $filename = $this->safe_file_name (TEMPLATE_PATH . "js/$file.js");
                 ob_start ("ob_gzhandler");
                 header ('Content-type: text/javascript; charset: UTF-8');
                 header ('Cache-Control: max-age=37739520, public');
-                echo $this->js_compress (file_get_contents ($filename));
+                foreach (explode (',', $files) as $file) {
+                    $filename = $this->safe_file_name (TEMPLATE_PATH . "js/$file.js");
+                    // JS compressor adds a ';' at the end of each script by default
+                    echo $this->js_compress (file_get_contents ($filename) . ';');
+                }
             }
         }
         

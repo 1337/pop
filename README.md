@@ -5,16 +5,22 @@ It is 100% compatible with [backbone.js](http://documentcloud.github.com/backbon
 
 ## Installing
 
-1. Install your web server
-    * In lighttpd, rewrite rules are as follows:  
+### Requirements
+* PHP 5.2+
+* Apache2, lighttpd, or similar web server with URL rewriting
+
+### Install your web server
+If you use lighttpd, rewrite rules are as follows:
+
 ```
 (/etc/lighttpd/lighttpd.conf)
 
-url.rewrite-once = (
-"(.*)" => "/pop/index.php"
-)
-``` 
-    * In apache2, your ```.htaccess``` file should have these rules:
+url.rewrite-if-not-file = ( "(.*)" => "/pop/index.php?file=$0" )
+
+```
+
+If you use apache2, your ```.htaccess``` file should have these rules:
+
 ```
 DirectoryIndex index.php
 
@@ -33,6 +39,11 @@ ErrorDocument 404 /index.php
 2. Run ```chmod -R 666 (install path)/pop/data``` to allow PHP write access to the data folder.
 
 ## Changelog
+
+### 2012-03-01
+* Changed storage format from serialized PHP to JSON. It is still possible to read serialized PHP objects.
+* CSS/JS compressors now accept multiple filenames, and concatenates them when serving.
+* Misc cross-machine bug fixes.
 
 ### 2012-02-14
 * Valentine's Day mode added. It is not compatible with MySQLModel.
