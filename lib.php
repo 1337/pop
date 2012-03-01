@@ -1,4 +1,23 @@
 <?php
+    
+    function create_guid () {
+        // http://php.net/manual/en/function.com-create-guid.php
+        if (function_exists ('com_create_guid')) {
+            return trim (com_create_guid (), '{}');
+        }
+        return sprintf (
+            '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
+            mt_rand (0, 65535),
+            mt_rand (0, 65535),
+            mt_rand (0, 65535),
+            mt_rand (16384, 20479),
+            mt_rand (32768, 49151),
+            mt_rand (0, 65535),
+            mt_rand (0, 65535),
+            mt_rand (0, 65535)
+        );
+    }
+
     function kwargs () { // come on, short round.
         $url_parts = parse_url ($_SERVER['REQUEST_URI']);
         if (array_key_exists ('query', $url_parts)) {
@@ -84,8 +103,9 @@
         echo ("<p>Error: $msg</p>");
     }
     
-    function get_handler_by_url ($url, $very_verbose = false) {
+    function get_handler_by_url ($url) {
         // provide the name of the handler that serves a given url.
+        // caution! function will DIE if matching fails.
         global $all_hooks;
         if (isset ($all_hooks) && is_array ($all_hooks)) {
             foreach ($all_hooks as $module => $hooks) {
@@ -101,10 +121,9 @@
                         }
                     }
                 }
-            }        
+            }
         }
-        // throw new Exception("URL $url does not map to any handler");
-        return array (null, null);
+        throw new Exception("URL $url does not map to any handler");
     }
     
     function auth_curl ($url, $user, $pass, $protocol = 'http') {

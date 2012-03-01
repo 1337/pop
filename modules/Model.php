@@ -8,6 +8,9 @@
             // if param is array: create, with param = default values
             // if param is not array: get as param = id
             if (isset ($param)) {
+                // will be overwritten if object loads with existing guid property
+                $this->properties['guid'] = create_guid ();
+
                 if (is_array ($param)) {
                     // param is default values.
                     foreach ($param as $key => $value) {
@@ -58,10 +61,12 @@
                 default: // write props into a file if the object has an ID.
                     if (array_key_exists ($property, $this->properties)) {
                         if (is_string ($this->properties[$property]) && 
-                            substr ($this->properties[$property], 0, 5) == "db://") {
+                            substr ($this->properties[$property], 0, 5) === "db://") {
                             // notation means "this thing is a Model"
                             // db://ClassName/ID
-                            $class = substr ($this->properties[$property], 5, strpos ($this->properties[$property], '/', 5) - 5);
+                            $class = substr ($this->properties[$property],
+                                             5,
+                                             strpos ($this->properties[$property], '/', 5) - 5);
                             $id = substr($db, strpos ($db, '/', 5) + 1);
                             return new_object ($id, $class);
                         } else {
@@ -241,7 +246,7 @@
         */
         try {
             if (is_string ($param) && isset ($_models_cache_["$class_name/$param"])) {
-                return $_models_cache_["$class_name/$id"];
+                return $_models_cache_["$class_name/$param"];
             } else {
                 // Model::__construct() adds itself to $_models_cache_.
                 return new $class_name ($param);
