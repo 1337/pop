@@ -20,11 +20,16 @@
                     $path = $this->_path ($param);
                     if (is_file ($path)) {
                         try {
-                            $props = unserialize (file_get_contents ($path));
+                            $file_contents = file_get_contents ($path);
+                            // json_decode: true = array, false = object
+                            $props = json_decode ($file_contents, true);
+                            if ($props == null) { // if fails
+                                $props = unserialize ($file_contents);
+                            }
                             if ($props) {
                                 $this->properties = $props;
                             }
-                            $this->properties['id'] = $param;
+                            $this->properties['id'] = $param; // add ID
                             
                             // cache this object by reference; key being {class}/{id}
                             // use function $ to get the object back.
@@ -106,12 +111,19 @@
             $this->onWrite (); // trigger event
         }
         
-        public function __toString () {
-            return json_decode ($this->properties); // if this is useful to you
+        public function __toString ($type = 'JSON') {
+            switch (strtoupper ($type)) {
+                case 'JSON':
+                    return json_decode ($this->properties);
+                case 'PHP':
+                    return serialize ($this->properties);
+                default:
+                    throw new Exception ("Bad type '$type' supplied to toString");
+            }
         }
         
-        public function to_string () {
-            return $this->__toString ();
+        public function to_string ($type = 'JSON') {
+            return $this->__toString ($type);
         }
         
         public static function _get ($id = null, $class_name = null) {
@@ -129,7 +141,8 @@
         function put () {
             // put is automatically called when a variable is assigned
             // to the object.
-            $blob = serialize ($this->properties);
+            // $blob = serialize ($this->properties);
+            $blob = json_encode ($this->properties);
             @mkdir (dirname ($this->_path ()));
             return file_put_contents ($this->_path (), $blob, LOCK_EX);
         }
