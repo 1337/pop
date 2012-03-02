@@ -1,22 +1,4 @@
 <?php
-    
-    function create_guid () {
-        // http://php.net/manual/en/function.com-create-guid.php
-        if (function_exists ('com_create_guid')) {
-            return trim (com_create_guid (), '{}');
-        }
-        return sprintf (
-            '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
-            mt_rand (0, 65535),
-            mt_rand (0, 65535),
-            mt_rand (0, 65535),
-            mt_rand (16384, 20479),
-            mt_rand (32768, 49151),
-            mt_rand (0, 65535),
-            mt_rand (0, 65535),
-            mt_rand (0, 65535)
-        );
-    }
 
     function kwargs () { // come on, short round.
         $url_parts = parse_url ($_SERVER['REQUEST_URI']);
@@ -97,9 +79,40 @@
             throw new Exception('Not all arguments present; needed ' . sizeof ($required_keys));
         }
     }
-    
-    function debug ($msg, $fancy = true) {
-        // fancy not implemented
+
+    function create_guid () {
+        // http://php.net/manual/en/function.com-create-guid.php
+        if (function_exists ('com_create_guid')) {
+            return trim (com_create_guid (), '{}');
+        }
+        return sprintf (
+            '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
+            mt_rand (0, 65535),
+            mt_rand (0, 65535),
+            mt_rand (0, 65535),
+            mt_rand (16384, 20479),
+            mt_rand (32768, 49151),
+            mt_rand (0, 65535),
+            mt_rand (0, 65535),
+            mt_rand (0, 65535)
+        );
+    }
+
+    function filesize_natural ($bytes) {
+        # Snippet from PHP Share: http://www.phpshare.org
+        if ($bytes >= 1073741824) {
+            $bytes = number_format ($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            $bytes = number_format ($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            $bytes = number_format ($bytes / 1024, 2) . ' KB';
+        } else {
+            $bytes = $bytes . ' B';
+        }
+        return $bytes;
+    }
+
+    function debug ($msg) {
         echo ("<div style='border:1px #ccc solid;
                            padding:2ex;
                            color:#000;
@@ -109,7 +122,7 @@
                    Error<hr />$msg
                </div>");
     }
-    
+
     function get_handler_by_url ($url) {
         // provide the name of the handler that serves a given url.
         // caution! function will DIE if matching fails.
