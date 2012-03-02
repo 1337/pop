@@ -1,4 +1,5 @@
 <?php
+    set_time_limit (3); // preferred; prevents DDoS?
     define ("DOMAIN", 'http://' . $_SERVER["SERVER_NAME"]);
     define ("PATH", dirname ($_SERVER['SCRIPT_FILENAME']) . '/');
     define ("DATA_PATH", PATH . 'data/');

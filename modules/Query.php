@@ -1,21 +1,43 @@
 <?php
     class Query extends Model {
-    // extends Model to get property bags. Don't assign an ID!
+        /*  extends Model to get property bags. Don't assign an ID!
+            usage:
+                get all existing module types as an array of strings: 
+                    $a = new Query();
+                    var_dump ($a->found);
+                
+                get all objects of a certain type as an array of objects:
+                    $a = new Query('ModuleName');
+                    var_dump ($a->get ());
+                
+                sort by a property:
+                    $a = new Query('ModuleName');
+                    var_dump (
+                        $a->fetch()
+                          ->filter('id ==', 123)
+                          ->get ()
+                    );
+                    (fetch() is required to filter.)
+        */
         
         // array of matching filenames.
         var $found; // need this to overload $this->found[]
 
         // array of objects successfully queried. calling fetch() clears it.
         var $found_objects;
+        
+        // module name, e.g. "Product", "Student"
+        var $module_name;
 
         function __construct ($module_name = false) {
             // false module name searches all modules.
             $this->found_objects = array (); // init var
             if (!$module_name) {
-                $module_name = '*';
+                $module_name = '*'; // <-- gives you module types
             } elseif (is_object ($module_name)) {
                 $module_name = get_class ($module_name); // revert to its name
             }
+            $this->module_name = $module_name;
             // all data are stored as DATA_PATH/class_name/id
             $matches = glob (DATA_PATH . "$module_name/*");
             foreach ((array) $matches as $match) {
@@ -54,7 +76,7 @@
 
         function fetch ($limit = PHP_INT_MAX) {
             // This class does NOT store or cache these results.
-            // calling fetch more than once on the same object will erase them.
+            // calling fetch more than once on the same Query object will reset its list of items found.
             $files = array_slice ((array) $this->found, 0, $limit);
             $this->found_objects = array (); // reset var
             foreach ((array) $this->found as $file) {
@@ -91,24 +113,29 @@
             $cond = $this->filter_condition; // e.g. '5'
             $mode = trim (substr ($filter, -2)); // should be >, <, ==, !=, <=, >=, or IN
             $field = trim (substr ($filter, 0, strlen ($filter) - strlen ($mode)));
+            $haystack = $a->{$field}; // good name
             switch ($mode) {
                 case '>':
-                    return ($a->{$field} > $cond);
+                    return ($haystack > $cond);
                 case '<':
-                    return ($a->{$field} < $cond);
+                    return ($haystack < $cond);
                 case '==':
-                    return ($a->{$field} == $cond);
+                    return ($haystack == $cond);
                 case '!=':
                 case '<>': // because vb.
-                    return ($a->{$field} != $cond);
+                    return ($haystack != $cond);
                 case '>=':
-                    return ($a->{$field} >= $cond);
+                    return ($haystack >= $cond);
                 case '<=':
-                    return ($a->{$field} <= $cond);
+                    return ($haystack <= $cond);
                 case '><': // within; $cond must be [min, max]
-                    return ($a->{$field} >= $cond[0] && $a->{$field} <= $cond[1]);
+                    return ($haystack >= $cond[0] && $haystack <= $cond[1]);
                 case 'IN':
-                    return (in_array ($a->{$field}, $cond));
+                    return (in_array ($haystack, $cond));
+                case '!%': // 'is within the condition'
+                    return (strpos ($cond, $haystack) >= 0);
+                case '%': // 'contains condition'
+                    return (strpos ($haystack, $cond) >= 0);
                 default:
                     throw new Exception ("'$mode' is not a recognized filter mode");
                     break;
@@ -122,14 +149,7 @@
         
         private function _create_object_from_filename ($file) {
             // output: object of Id.Type
-            if (!strpos ($file, '.')) {
-                // this can't possibly be an existing object.
-                throw new Exception ('Illegal string: ' . $file);
-            } else {
-                $object_type = end (explode ('.', $file)); // filename.TYPE
-                $object_name = basename ($file, ".$object_type"); // FILENAME.type
-                return new $object_type ($object_name); // new TYPE (FILENAME)        
-            }
+            return new $this->module_name ($file); // new TYPE (FILENAME)        
         }
     }
 ?>

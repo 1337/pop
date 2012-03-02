@@ -111,6 +111,19 @@
         }
         return $bytes;
     }
+    
+    function fast_glob ($path) {
+        // mod: http://www.phparch.com/2010/04/putting-glob-to-the-test/
+        $files = array ();
+        $dir = opendir ($path);
+        while (($currentFile = readdir ($dir)) !== false) {
+            if ( $currentFile != '.' && $currentFile != '..' ) {
+                $files[] = $currentFile;
+            }
+        }
+        closedir ($dir);
+        return $files;
+    }
 
     function debug ($msg) {
         echo ("<div style='border:1px #ccc solid;

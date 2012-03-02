@@ -1,13 +1,21 @@
 <?php
-    require_once ('vars.php');
+    if (file_exists ('vars.php')) {
+        require_once ('vars.php'); // put your setup variables in this file
+    } else {
+        // defaults kick in only if you did not set up properly
+        require_once ('vars.default.php');
+    }
+    
     require_once ('lib.php');
     // TODO: events, access levels, perm checks, relationships
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
     // TODO: let core handle errors, not modules
     
-    @ob_start ();
-    
     if (USE_POP_REDIRECTION === true) {
+        // "Also note that using zlib.output_compression is preferred over ob_gzhandler()."
+        @ini_set ("zlib.output_compression", 4096);
+        
+        @ob_start ();
         $all_hooks = array (); // accumulates hooks from all modules
         // init loop: load php files, get definitions, get urls (hooks)
         foreach ($modules as $module) { // modules is in (default_)vars.php
@@ -32,9 +40,14 @@
             $page->$handler (); // superclass function
             exit (); // load only one page...
         } catch (Exception $e) {
-            debug ($e->getMessage ()); // you fail at life
+            debug (sprintf (
+                "%s %s %d",
+                $e->getMessage (),
+                $e->getFile (),
+                $e->getLine ()
+            )); // you fail at life
         }
     }
     
-    // if 
+    // if not USE_POP_REDIRECTION, the rest of the page can be coded as usual.
 ?>

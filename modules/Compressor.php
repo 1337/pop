@@ -40,9 +40,8 @@
         }
 
         function css () {
-            $files = vars('files', vars('f', false));
+            $files = vars('files', vars('file', false));
             if ($files !== false) {
-                ob_start ("ob_gzhandler");
                 header ('Content-type: text/css');
                 header ('Cache-Control: max-age=37739520, public');
                 foreach (explode (',', $files) as $file) {
@@ -53,9 +52,8 @@
         }
         
         function js () {
-            $files = vars('files', vars('f', false));
-            if ($file !== false) {
-                ob_start ("ob_gzhandler");
+            $files = vars('files', vars('file', false));
+            if ($files !== false) {
                 header ('Content-type: text/javascript; charset: UTF-8');
                 header ('Cache-Control: max-age=37739520, public');
                 foreach (explode (',', $files) as $file) {
