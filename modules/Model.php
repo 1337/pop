@@ -166,7 +166,6 @@
                 $props = get_object_vars ($this);
                 if (array_key_exists ('properties', $props)) { // checks if this object is a Model...?
                     $options = array_merge ($props['properties'], $more_options);
-                    $pj->expand_page_loops ($options);
                     $pj->replace_tags ($options);
                 }
                 $pj->output ();

@@ -40,6 +40,15 @@ ErrorDocument 404 /index.php
 
 ## Changelog
 
+### 2012-03-02
+* Added template loops: if template is rendered with option `'array' => array(1,2,3,4)`, then `<!-- for x in array --><!-- x --><!-- endfor -->` would print '1234'.
+* Added recursive template inclusion. Also, you can now add template inclusion tags as part of an object.
+* Added support for template snippets in subfolders.
+* Simplified template tags: you can now use `<!-- property -->` in place of `<!-- self.property -->`.
+* Simplified template inclusion tag: you can now use `<!-- include "file.php" -->` in place of `<!-- inherit file="file.php" -->`.
+* Improved speed of template rendering, with ~10% memory savings.
+* Added tag properties: memory usage (`<!-- memory_usage -->`), subdirectories (`<!-- subdir -->`), and current handler (`<!-- handler -->`).
+
 ### 2012-03-01
 * Changed storage format from serialized PHP to JSON. It is still possible to read serialized PHP objects.
 * CSS/JS compressors now accept multiple filenames, and concatenates them when serving.

@@ -51,7 +51,7 @@
                         try {
                             $nv = new_object ($filename, 'View');
                             // replace tags in this contents with that contents
-                            $this->contents = preg_replace ('/<!--\s*include\s+"' . addslashes ($filename) . '"\s*-->/', $nv->contents, $this->contents);
+                            $this->contents = preg_replace ('/<!--\s*include\s+"' . preg_quote ($filename, '/') . '"\s*-->/', $nv->contents, $this->contents);
                             unset ($nv); // free memory
                         } catch (Exception $e) {
                             // include fail? fail.
@@ -63,14 +63,15 @@
         }
 
         public function expand_page_loops ($tags = array ()) {
-            $regex = "/<!-- ?for ([a-z0-9-_]+) in self.([a-z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/isU";
-            // e.g. <!-- for i in self.objects --> bla bla bla <!-- endfor -->
+            $regex = "/<!-- ?for ([a-z0-9-_]+) in ([A-Za-z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/sU";
+            // e.g. <!-- for i in objects --> bla bla bla <!-- endfor -->
             // i = case-insensitive, s = newlines included, U = non-greedy
+            // defaults to case-sensitive.
             
             /* Array (
                 [0] => Array (
-                    [0] => <!-- for i in self.objects -->Hello<!-- endfor -->
-                    [1] => <!-- for i2 in self.objects2 -->Hello2<!-- endfor -->
+                    [0] => <!-- for i in objects -->Hello<!-- endfor -->
+                    [1] => <!-- for i2 in objects2 -->Hello2<!-- endfor -->
                 )
             [1] => Array (
                     [0] => i
@@ -86,17 +87,32 @@
                 )
             ) */
             $matches = array ();
-            if (preg_match_all ($regex, $this->contents, $matches)) {
+            while (preg_match_all ($regex, $this->contents, $matches) > 0) {
+                $buffer = ''; // stuff to be printed
                 // foreach loop found...
-                for ($i = 0; $i < sizeof ($matches[2]); $i++) {
-                     // $len = sizeof objects2; number of times to loop
-                    $len = sizeof ($tags[$matches[2][$i]]);
-                    for ($j = 0; $j < $len; $j++) {
-                        // TODO
-                    }
+                for ($i = 0; $i < sizeof ($matches[2]); $i++) { // [objects,objects2]
+                    if (isset ($tags[$matches[2][$i]])) {
+                        $len = sizeof ($tags[$matches[2][$i]]); // length of that variable
+                        
+                        // replace items and loop
+                        for ($j = 0; $j < $len; $j++) {
+                            $tag = $tags[$matches[2][$i]];
+                            $buffer .= preg_replace (
+                                "/<!-- ?" . preg_quote ($matches[1][$i], '/') . " ?-->/", // what
+                                $tags[$matches[2][$i]][$j], // by what
+                                $matches[3][$i] // content
+                            );
+                        }
+                    } // else: tag is replaced by $buffer = ''
+                    
+                    // eliminate the tag
+                    $this->contents = preg_replace (
+                        '/<!-- ?for ' . preg_quote ($matches[1][$i], '/') . ' in ' . preg_quote ($matches[2][$i], '/') . ' ?-->.*<!-- ?endfor ?-->/sU', 
+                        $buffer, 
+                        $this->contents
+                    );
                 }
-            } else {
-                // TODO
+                $matches = array ();
             }
         }
         
@@ -112,8 +128,9 @@
                             'content' => '',
                             'root' => DOMAIN,
                             'subdir' => SUBDIR,
+                            'base' => DOMAIN . '/' . SUBDIR,
                             'handler' => "$_era.$_ert",
-                            'memory_get_usage' => filesize_natural (memory_get_peak_usage ())
+                            'memory_usage' => filesize_natural (memory_get_peak_usage ())
                         ), // "required" defaults
                         $all_hooks,
                         vars (), // environmental variables
@@ -122,6 +139,7 @@
             
             // replacing will stop when there are no more <!-- include "tags" -->.
             do {
+                $this->expand_page_loops ($tags);
                 $this->build_page (); // recursively include files (resolves include tags)
                 
                 // build tags array; replace tags with object props
