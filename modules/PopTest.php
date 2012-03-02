@@ -8,26 +8,38 @@
         
         function setup () {
             $this->thing = new Model();
+            $this->thing2 = new Model();
         }
         
+        // POP TESTS
         function test_model_atomic_prop_rw () {
             $this->thing->derp = 1;
             $this->assertEqual ($this->thing->derp, 1);
         }
-     
         function test_model_poly_prop_rw () {
             $this->thing->derp = array (1,2,3);
             $this->assertEqual ($this->thing->derp, array (1,2,3));
         }
-     
         function test_model_ref_prop_rw () {
             $this->thing->derp = $this;
             $this->assertReference ($this->thing->derp, $this);
         }
-        
-        function test_php_version () {
-            $this->assertNotEqual (strlen (phpversion ()), 0);
+        function test_model_ref_assign_rw () {
+            $this->thing->derp2 = $this->thing2;
+            $this->assertIdentical ($this->thing->derp2, $this->thing2);
         }
+        function test_model_ref_persist () {
+            // from last test
+            $this->assertIdentical ($this->thing->derp2, $this->thing2);
+        }
+        function test_model_ref_serialize () {
+            // from last test
+            $this->thing->id = 'test';
+            $obj = new Model('test');
+            $this->assertIdentical ($obj->derp2, $this->thing2);
+        }
+        
+        // PHP TESTS
         function test_safe_mode () {
             $this->assertEqual (ini_get ('safe_mode'), 0);
         }
@@ -36,12 +48,6 @@
         }
         function test_display_errors () {
             $this->assertEqual (ini_get ('display_errors'), 1);
-        }
-        function test_display_startup_errors () {
-            $this->assertEqual (ini_get ('display_startup_errors'), 0);
-        }
-        function test_short_open_tag () {
-            $this->assertEqual (ini_get ('short_open_tag'), 1);
         }
         function test_allow_url_fopen () {
             $this->assertEqual (ini_get ('allow_url_fopen'), 1);
@@ -57,12 +63,6 @@
         }
         function test_arg_separator_output () {
             $this->assertEqual (ini_get ('arg_separator.output'), '&');
-        }
-        function test_asp_tags () {
-            $this->assertEqual (ini_get ('asp_tags'), 0);
-        }
-        function test_y2k_compliance () {
-            $this->assertEqual (ini_get ('y2k_compliance'), 1);
         }
         function test_allow_call_time_pass_reference () {
             $this->assertEqual (ini_get ('allow_call_time_pass_reference'), 1);
@@ -97,9 +97,6 @@
         function test_default_charset () {
             $this->assertEqual (ini_get ('default_charset'), '');
         }
-        function test_zend_extension () {
-            $this->assertEqual (ini_get ('zend_extension'), null);
-        }
         function test_file_uploads () {
             $this->assertEqual (ini_get ('file_uploads'), 1);
         }
@@ -115,7 +112,7 @@
         function test_get_magic_quotes_runtime () {
             $this->assertEqual (get_magic_quotes_runtime (), 0);
         }
-     
+        
         function run_test () {
             $this->showResults();
         }

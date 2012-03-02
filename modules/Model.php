@@ -111,13 +111,13 @@
             $this->onWrite (); // trigger event
         }
         
-        public function __toString () {
+        /*public function __toString () {
             return json_decode ($this->properties);
         }
         
         public function to_string () {
             return $this->__toString ();
-        }
+        }*/
         
         public static function _get ($id = null, $class_name = null) {
             // allows calls like Model::_get(id)
@@ -135,6 +135,13 @@
             // put is automatically called when a variable is assigned
             // to the object.
             // $blob = serialize ($this->properties);
+            
+            // Model checks for its required permission.
+            @chmod (DATA_PATH, 0777);
+            if (!is_writable (DATA_PATH)) {
+                die ("data path not writable");
+            }
+            
             $blob = json_encode ($this->properties);
             @mkdir (dirname ($this->_path ()));
             return file_put_contents ($this->_path (), $blob, LOCK_EX);

@@ -100,7 +100,14 @@
     
     function debug ($msg, $fancy = true) {
         // fancy not implemented
-        echo ("<p>Error: $msg</p>");
+        echo ("<div style='border:1px #ccc solid;
+                           padding:2ex;
+                           color:#000;
+                           box-shadow: 3px 3px 5px #ddd;
+                           border-radius:8px;
+                           font:1em monospace;'>
+                   Error<hr />$msg
+               </div>");
     }
     
     function get_handler_by_url ($url) {
@@ -113,7 +120,7 @@
                     $url_parts = parse_url ($url);
                     if ($url_parts) { // On malformed URLs, parse_url() may return FALSE
                         $match = preg_match (
-                            '#^/' . SUBDIR . $hook . '$#i', 
+                            '#^/' . SUBDIR . '?' . $hook . '$#i', 
                             $url_parts['path']
                         );
                         if ($match) { // 1 = match
@@ -123,7 +130,7 @@
                 }
             }
         }
-        throw new Exception("URL $url does not map to any handler");
+        throw new Exception("We have nothing to serve at $url");
     }
     
     function auth_curl ($url, $user, $pass, $protocol = 'http') {
