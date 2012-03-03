@@ -179,5 +179,4 @@
         curl_close ($process);
         return $data;
     }
-
 ?>

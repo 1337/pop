@@ -163,12 +163,10 @@
             
             if (file_exists (TEMPLATE_PATH . $template)) {
                 $pj = new_object ($template, 'View');
-                $props = get_object_vars ($this);
-                if (array_key_exists ('properties', $props)) { // checks if this object is a Model...?
-                    $options = array_merge ($props['properties'], $more_options);
-                    $pj->replace_tags ($options);
-                }
-                $pj->output ();
+                $pj->replace_tags (
+                    array_merge ($this->properties, $more_options)
+                );
+                echo $pj->__toString ();
             } else {
                 print_r ($this->properties ());
             }

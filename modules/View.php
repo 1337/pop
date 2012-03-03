@@ -3,7 +3,7 @@
     class View {
         //  View handles page templates (Views). put them inside TEMPLATE_PATH.
         var $contents;
-        var $include_pattern;
+        var $include_pattern, $forloop_pattern;
 
         function __construct ($special = '') {
             // if $special (file name) is specified, then that template will be used instead.
@@ -13,7 +13,17 @@
             $this->contents = $this->get_parsed ($template);
             
             // constants
-            $this->include_pattern = '/<!--\s*include\s+"([^"]+)"\s*-->/';
+            $this->include_pattern = '/<!-- ?include ?"([^"]+)" ?-->/';
+            $this->forloop_pattern = "/<!-- ?for ([a-zA-Z0-9-_]+), ?([a-zA-Z0-9-_]+) in ([a-zA-Z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/sU";
+        }
+        
+        function __toString () {
+            // GZ buffering is handled elsewhere.
+            if (class_exists ("Compressor")) {
+                return (Compressor::html_compress ($this->contents));
+            } else {
+                return ($this->contents);
+            }
         }
 
         function get_parsed ($file) {
@@ -45,35 +55,32 @@
             }
         }
 
-        public function build_page () {
+        private function include_snippets () {
             /* replace tags that look like
                <!-- include "header_and_footer.php" -->
                with their actual contents.
                
                replace_tags help recurse this function.
             */
-
             $matches = array (); // preg_match_all gives you an array of &$matches.
             if (preg_match_all ($this->include_pattern, $this->contents, $matches) > 0) {
                 if (sizeof ($matches) > 0 && sizeof ($matches[1]) > 0) {
-                    foreach ($matches[1] as $filename) { // [1] because [0] is full line
+                    foreach ($matches[1] as $index => $filename) { // [1] because [0] is full line
                         try {
                             $nv = $this->get_parsed ($filename);
-                            // replace tags in this contents with that contents
-                            $this->contents = preg_replace ('/<!--\s*include\s+"' . preg_quote ($filename, '/') . '"\s*-->/', $nv, $this->contents);
-                            unset ($nv); // free memory
-                        } catch (Exception $e) {
-                            // include fail? fail.
-                            $this->contents = preg_replace ('/<!--\s*include\s+"' . preg_quote ($filename, '/') . '"\s*-->/', '', $this->contents);
+                        } catch (Exception $e) { // include fail? fail.
+                            $nv = '';
                         }
+                        // replace tags in this contents with that contents
+                        $this->contents = str_replace ($matches[0][$index], $nv, $this->contents);
+                        unset ($nv); // free memory
                     }
                 }
-                $matches = array (); // reset matches for next preg_match
             }
         }
 
-        public function expand_page_loops ($tags = array ()) {
-            $regex = "/<!-- ?for ([a-zA-Z0-9-_]+), ?([a-zA-Z0-9-_]+) in ([a-zA-Z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/sU";
+        private function expand_page_loops ($tags = array ()) {
+            $regex = $this->forloop_pattern;
             // e.g. <!-- for i in objects --> bla bla bla <!-- endfor -->
             // i = case-insensitive, s = newlines included, U = non-greedy
             // defaults to case-sensitive.
@@ -96,8 +103,8 @@
                                 "/<!-- ?" . preg_quote ($matches[2][$i], '/') . " ?-->/sU"  // value
                             ), 
                             array ( // replace
-                                $match_keys[$lc], 
-                                $match_vals[$lc]
+                                (string) $match_keys[$lc],
+                                (string) $match_vals[$lc]
                             ), 
                             $matches[4][$i] // loop content
                         );
@@ -113,51 +120,44 @@
             global $all_hooks;
             
             // populate tags
-            list ($_era, $_ert) = get_handler_by_url ($_SERVER['REQUEST_URI'], true);
+            list ($_era, $_ert) = get_handler_by_url ($_SERVER['REQUEST_URI'], true);            
             $tags = array_merge (
-                        array (
-                            'title' => '',
-                            'styles' => '',
-                            'content' => '',
-                            'root' => DOMAIN,
-                            'subdir' => SUBDIR,
-                            'base' => DOMAIN . '/' . SUBDIR,
-                            'handler' => "$_era.$_ert",
-                            'memory_usage' => filesize_natural (memory_get_peak_usage ())
-                        ), // "required" defaults
-                        $all_hooks,
-                        vars (), // environmental variables
-                        $tags // custom tags
-                    );
+                array (
+                    'title' => '',
+                    'styles' => '',
+                    'content' => '',
+                    'root' => DOMAIN,
+                    'subdir' => SUBDIR,
+                    'base' => DOMAIN . '/' . SUBDIR,
+                    'handler' => "$_era.$_ert",
+                    'memory_usage' => filesize_natural (memory_get_peak_usage ())
+                ), // "required" defaults
+                $all_hooks, // how are you going to use these?
+                vars (), // environmental variables
+                $tags // custom tags
+            );
             
+            // build tags array; replace tags with object props
+            foreach ($tags as $tag => $data) {
+                $tags_processed[] = "/<!-- ?$tag ?-->/";
+                $values_processed[] = (string) $data; // "abc", "true" or "array"
+            }
+
             // replacing will stop when there are no more <!-- include "tags" -->.
-            do {
+            while (preg_match ($this->include_pattern, $this->contents) > 0 ||
+                   preg_match ($this->forloop_pattern, $this->contents) > 0) {
+
+                $this->include_snippets (); // recursively include files (resolves include tags)
                 $this->expand_page_loops ($tags);
-                $this->build_page (); // recursively include files (resolves include tags)
                 
-                // build tags array; replace tags with object props
-                foreach ($tags as $tag => $data) {
-                    $tags_processed[] = "/<!-- ?$tag ?-->/";
-                    // data could have weird stuff like "true" or "array"
-                    $values_processed[] = (string) $data;
-                }
-                
-                // replace ALL the tags EXCEPT quoted ones (inherits),
+                // replace all variable tags
                 $this->contents = preg_replace ($tags_processed, $values_processed, $this->contents);
-                unset ($tags_processed, $values_processed);
-            } while (preg_match ($this->include_pattern, $this->contents) > 0);
+            } // remember, replacement may generate new include tags
+            unset ($tags_processed, $values_processed); // free ram
             
             // then hide unmatched var tags
             $this->contents = preg_replace ("/<!-- ?([a-z0-9-_])+ ?-->/", '', $this->contents);
-        }
-        
-        public function output () {
-            // GZ buffering is handled elsewhere.
-            if (class_exists ("Compressor")) {
-                echo (Compressor::html_compress ($this->contents));
-            } else {
-                echo ($this->contents);
-            }
+            return $this; // chaining
         }
     }
 ?>

@@ -40,6 +40,17 @@ ErrorDocument 404 /index.php
 
 ## Changelog
 
+### 2012-03-03
+* You can now use associative arrays:
+
+```
+<ul>
+    <!-- for key,val in store -->
+	<li><!-- key -->, <!-- val --></li>
+    <!-- endfor -->
+</ul>
+```
+
 ### 2012-03-02
 * Added template loops: if template is rendered with option `'array' => array(1,2,3,4)`, then `<!-- for x in array --><!-- x --><!-- endfor -->` would print '1234'.
 * Added recursive template inclusion. Also, you can now add template inclusion tags as part of an object.
