@@ -1,12 +1,12 @@
 <?php
-    if (file_exists ('vars.php')) {
-        require_once ('vars.php'); // put your setup variables in this file
+    if (file_exists (dirname (__FILE__) . '/vars.php')) {
+        require_once (dirname (__FILE__) . '/vars.php'); // put your setup variables in this file
     } else {
         // defaults kick in only if you did not set up properly
-        require_once ('vars.default.php');
+        require_once (dirname (__FILE__) . '/vars.default.php');
     }
     
-    require_once ('lib.php');
+    require_once (dirname (__FILE__) . '/lib.php');
     // TODO: events, access levels, perm checks, relationships
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
     // TODO: let core handle errors, not modules
@@ -21,8 +21,8 @@
         // init loop: load php files, get definitions, get urls (hooks)
         foreach ($modules as $module) { // modules is in (default_)vars.php
             $path = "modules/$module.php";
-            if (file_exists ($path)) {
-                include_once ($path); // modules are the php classes
+            if (file_exists (dirname (__FILE__) . '/' . $path) && !class_exists ($module)) {
+                include_once (dirname (__FILE__) . '/' . $path); // modules are the php classes
                 $get_urls = (array) get_class_vars ($module);
                 if (array_key_exists ('urls', $get_urls)) {
                     $hooks = $get_urls['urls'];
@@ -47,6 +47,13 @@
                 $e->getFile (),
                 $e->getLine ()
             )); // you fail at life
+        }
+    } else { // use POP as library
+        foreach ($modules as $module) { // modules is in (default_)vars.php
+            $path = "modules/$module.php";
+            if (file_exists (dirname (__FILE__) . '/' . $path) && !class_exists ($module)) {
+                include_once (dirname (__FILE__) . '/' . $path); // modules are the php classes
+            }
         }
     }
     

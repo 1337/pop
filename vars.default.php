@@ -30,9 +30,4 @@
         'Query',
         'Sample',
     );
-    
-    @chmod (DATA_PATH, 0777);
-    if (!is_writable (DATA_PATH)) {
-        die ("data path not writable");
-    }
 ?>
