@@ -18,7 +18,16 @@
 
         function get_parsed ($file) {
             ob_start();
-            include ($file);
+            if (strpos ($file, TEMPLATE_PATH) === false) {
+                $file = TEMPLATE_PATH . $file;
+            }
+            
+            if (file_exists ($file)) {
+                @include ($file);
+            } else {
+                // file not found
+                debug ("File $file not found");
+            }
             $buffer = ob_get_contents();
             ob_end_clean();
             return $buffer;
@@ -49,12 +58,13 @@
                 if (sizeof ($matches) > 0 && sizeof ($matches[1]) > 0) {
                     foreach ($matches[1] as $filename) { // [1] because [0] is full line
                         try {
-                            $nv = new_object ($filename, 'View');
+                            $nv = $this->get_parsed ($filename);
                             // replace tags in this contents with that contents
-                            $this->contents = preg_replace ('/<!--\s*include\s+"' . preg_quote ($filename, '/') . '"\s*-->/', $nv->contents, $this->contents);
+                            $this->contents = preg_replace ('/<!--\s*include\s+"' . preg_quote ($filename, '/') . '"\s*-->/', $nv, $this->contents);
                             unset ($nv); // free memory
                         } catch (Exception $e) {
                             // include fail? fail.
+                            $this->contents = preg_replace ('/<!--\s*include\s+"' . preg_quote ($filename, '/') . '"\s*-->/', '', $this->contents);
                         }
                     }
                 }
@@ -63,56 +73,39 @@
         }
 
         public function expand_page_loops ($tags = array ()) {
-            $regex = "/<!-- ?for ([a-z0-9-_]+) in ([A-Za-z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/sU";
+            $regex = "/<!-- ?for ([a-zA-Z0-9-_]+), ?([a-zA-Z0-9-_]+) in ([a-zA-Z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/sU";
             // e.g. <!-- for i in objects --> bla bla bla <!-- endfor -->
             // i = case-insensitive, s = newlines included, U = non-greedy
             // defaults to case-sensitive.
             
-            /* Array (
-                [0] => Array (
-                    [0] => <!-- for i in objects -->Hello<!-- endfor -->
-                    [1] => <!-- for i2 in objects2 -->Hello2<!-- endfor -->
-                )
-            [1] => Array (
-                    [0] => i
-                    [1] => i2
-                )
-            [2] => Array (
-                    [0] => objects
-                    [1] => objects2
-                )
-            [3] => Array (
-                    [0] =>Hello
-                    [1] =>Hello2
-                )
-            ) */
             $matches = array ();
-            while (preg_match_all ($regex, $this->contents, $matches) > 0) {
+            preg_match_all ($regex, $this->contents, $matches);
+            for ($i = 0; $i < sizeof ($matches[0]); $i++) { // each match
                 $buffer = ''; // stuff to be printed
-                // foreach loop found...
-                for ($i = 0; $i < sizeof ($matches[2]); $i++) { // [objects,objects2]
-                    if (isset ($tags[$matches[2][$i]])) {
-                        $len = sizeof ($tags[$matches[2][$i]]); // length of that variable
-                        
-                        // replace items and loop
-                        for ($j = 0; $j < $len; $j++) {
-                            $tag = $tags[$matches[2][$i]];
-                            $buffer .= preg_replace (
-                                "/<!-- ?" . preg_quote ($matches[1][$i], '/') . " ?-->/", // what
-                                $tags[$matches[2][$i]][$j], // by what
-                                $matches[3][$i] // content
-                            );
-                        }
-                    } // else: tag is replaced by $buffer = ''
+                // replace tags within the inner loop, n times
+                if (array_key_exists ($matches[3][$i], $tags)) { // if such tag exists
+                    $match_keys = array_keys ($tags[$matches[3][$i]]);
+                    $match_vals = array_values ($tags[$matches[3][$i]]);
                     
-                    // eliminate the tag
-                    $this->contents = preg_replace (
-                        '/<!-- ?for ' . preg_quote ($matches[1][$i], '/') . ' in ' . preg_quote ($matches[2][$i], '/') . ' ?-->.*<!-- ?endfor ?-->/sU', 
-                        $buffer, 
-                        $this->contents
-                    );
-                }
-                $matches = array ();
+                    // number of times the specific match is to be repeated
+                    for ($lc = 0; $lc < sizeof ($tags[$matches[3][$i]]); $lc++) {
+                        // now, replace the key and value
+                        $buffer .= preg_replace (
+                            array ( // search
+                                "/<!-- ?" . preg_quote ($matches[1][$i], '/') . " ?-->/sU", // key
+                                "/<!-- ?" . preg_quote ($matches[2][$i], '/') . " ?-->/sU"  // value
+                            ), 
+                            array ( // replace
+                                $match_keys[$lc], 
+                                $match_vals[$lc]
+                            ), 
+                            $matches[4][$i] // loop content
+                        );
+                    }
+                } // else: even if value doesn't exist, remove the tag.
+
+                // str_replace is faster
+                $this->contents = str_replace ($matches[0][$i], $buffer, $this->contents);
             }
         }
         

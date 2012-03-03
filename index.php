@@ -14,8 +14,9 @@
     if (USE_POP_REDIRECTION === true) {
         // "Also note that using zlib.output_compression is preferred over ob_gzhandler()."
         @ini_set ("zlib.output_compression", 4096);
-        
         @ob_start ();
+        header("Cache-Control: maxage=9999999");
+
         $all_hooks = array (); // accumulates hooks from all modules
         // init loop: load php files, get definitions, get urls (hooks)
         foreach ($modules as $module) { // modules is in (default_)vars.php

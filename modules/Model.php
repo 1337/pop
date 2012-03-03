@@ -7,7 +7,7 @@
             // if no param (null): create (saved on first __set)
             // if param is array: create, with param = default values
             // if param is not array: get as param = id
-            if (isset ($param)) {
+            if (!is_null ($param)) {
                 // will be overwritten if object loads with existing guid property
                 $this->properties['guid'] = create_guid ();
 
@@ -266,6 +266,6 @@
         } catch (Exception $e) {
             die ('Cannot create object: ' . $e->getMessage ());
         }
-    } $_models_cache_ = array ();
+    } $_models_cache_ = array (); // cache variable
 
 ?>
