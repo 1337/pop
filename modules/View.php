@@ -2,7 +2,7 @@
     require_once (dirname (__FILE__) . '/Model.php');
 
     class View {
-        //  View handles page templates (Views). put them inside TEMPLATE_PATH.
+        //  View handles page templates (Views). put them inside VIEWS_PATH.
         var $contents;
         var $include_pattern, $forloop_pattern;
 
@@ -29,8 +29,8 @@
 
         function get_parsed ($file) {
             ob_start();
-            if (strpos ($file, TEMPLATE_PATH) === false) {
-                $file = TEMPLATE_PATH . $file;
+            if (strpos ($file, VIEWS_PATH) === false) {
+                $file = VIEWS_PATH . $file;
             }
             
             if (file_exists ($file)) {
@@ -45,12 +45,12 @@
         }
 
         function resolve_template_name ($special = '') {
-            if (is_file (TEMPLATE_PATH . $special)) {
-                return TEMPLATE_PATH . $special;
-            } elseif (is_file (TEMPLATE_PATH . SITE_TEMPLATE)) {
-                return TEMPLATE_PATH . SITE_TEMPLATE;
-            } elseif (is_file (TEMPLATE_PATH . DEFAULT_TEMPLATE)) {
-                return TEMPLATE_PATH . DEFAULT_TEMPLATE;
+            if (is_file (VIEWS_PATH . $special)) {
+                return VIEWS_PATH . $special;
+            } elseif (is_file (VIEWS_PATH . SITE_TEMPLATE)) {
+                return VIEWS_PATH . SITE_TEMPLATE;
+            } elseif (is_file (VIEWS_PATH . DEFAULT_TEMPLATE)) {
+                return VIEWS_PATH . DEFAULT_TEMPLATE;
             } else {
                 throw new Exception ('nope');
             }
@@ -132,6 +132,7 @@
                     'base' => DOMAIN . '/' . SUBDIR,
                     'handler' => "$_era.$_ert",
                     'memory_usage' => filesize_natural (memory_get_peak_usage ()),
+                    'exec_time' => round (microtime() - EXEC_START_TIME, 2) . 's',
                     'year' => date ("Y"),
                     'month' => date ("m"),
                     'day' => date ("d"),

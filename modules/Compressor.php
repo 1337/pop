@@ -45,7 +45,7 @@
                 header ('Content-type: text/css');
                 header ('Cache-Control: max-age=37739520, public');
                 foreach (explode (',', $files) as $file) {
-                    $filename = $this->safe_file_name (TEMPLATE_PATH . "css/$file.css");
+                    $filename = $this->safe_file_name (VIEWS_PATH . "css/$file.css");
                     echo $this->css_compress (file_get_contents ($filename));
                 }
             }
@@ -57,7 +57,7 @@
                 header ('Content-type: text/javascript; charset: UTF-8');
                 header ('Cache-Control: max-age=37739520, public');
                 foreach (explode (',', $files) as $file) {
-                    $filename = $this->safe_file_name (TEMPLATE_PATH . "js/$file.js");
+                    $filename = $this->safe_file_name (VIEWS_PATH . "js/$file.js");
                     // JS compressor adds a ';' at the end of each script by default
                     echo $this->js_compress (file_get_contents ($filename) . ';');
                 }

@@ -11,6 +11,7 @@
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
     // TODO: let core handle errors, not modules
     
+    define ('EXEC_START_TIME', microtime ());
     if (USE_POP_REDIRECTION === true) {
         // "Also note that using zlib.output_compression is preferred over ob_gzhandler()."
         @ini_set ("zlib.output_compression", 4096);

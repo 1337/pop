@@ -1,6 +1,8 @@
 <?php
     // set to false if using POP as persistance library
-    define ("USE_POP_REDIRECTION", true);
+    if (!defined ('USE_POP_REDIRECTION')) {
+        define ("USE_POP_REDIRECTION", true);
+    }
 
     set_time_limit (3); // preferred; prevents DDoS?
     define ("DOMAIN", 'http://' . $_SERVER["SERVER_NAME"]);
@@ -8,7 +10,9 @@
     define ("DATA_PATH", PATH . 'data/');
     define ("MODULE_PATH", PATH . 'modules/');
     define ("LIBRARY_PATH", PATH . 'lib/');
-    define ("TEMPLATE_PATH", PATH . 'templates/');
+    define ("VIEWS_PATH", PATH . 'views/');
+    define ("TEMPLATE_PATH", VIEWS_PATH . 'templates/');
+    define ("STATIC_PATH", 'static/'); // cannot be changed
     define ("SITE_TEMPLATE", 'default.php');
     define ("DEFAULT_TEMPLATE", 'default.php');
     

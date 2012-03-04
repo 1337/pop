@@ -161,7 +161,7 @@
             
             $this->onBeforeRender (); // trigger event
             
-            if (file_exists (TEMPLATE_PATH . $template)) {
+            if (file_exists (VIEWS_PATH . $template)) {
                 $pj = new_object ($template, 'View');
                 $pj->replace_tags (
                     array_merge ($this->properties, $more_options)
@@ -224,6 +224,12 @@
             $param can be ID or array of properties.
             if properties are supplied, this object is never retrived from mem.
         */
+        
+        // attempt to include the module if it isn't already. scoped include!
+        if (!class_exists ($class_name)) {
+            include_once (MODULE_PATH . $class_name . '.php');
+        }
+        // die (MODULE_PATH . $class_name . '.php');
         try {
             if (is_string ($param) && isset ($_models_cache_["$class_name/$param"])) {
                 return $_models_cache_["$class_name/$param"];
