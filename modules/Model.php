@@ -139,7 +139,7 @@
             // Model checks for its required permission.
             @chmod (DATA_PATH, 0777);
             if (!is_writable (DATA_PATH)) {
-                die ("data path not writable");
+                die ("data path " . DATA_PATH . " not writable");
             }
             
             $blob = json_encode ($this->properties);

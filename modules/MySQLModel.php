@@ -1,4 +1,6 @@
 <?php
+    require_once (dirname (__FILE__) . '/Model.php');
+
     class MySQLModel extends Model {
         /* 
             Lets pop use MySQL databases.

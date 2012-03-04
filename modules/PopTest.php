@@ -1,4 +1,6 @@
 <?php 
+    require_once (dirname (__FILE__) . '/UnitTest.php');
+
     class PopTest extends UnitTest {
         public $thing;
      

@@ -1,4 +1,6 @@
 <?php
+    require_once (dirname (__FILE__) . '/Model.php');
+
     class Query extends Model {
         /*  extends Model to get property bags. Don't assign an ID!
             usage:
@@ -132,6 +134,8 @@
                     return ($haystack >= $cond[0] && $haystack <= $cond[1]);
                 case 'IN':
                     return (in_array ($haystack, $cond));
+                case 'NI': // reverse IN
+                    return (in_array ($cond, $haystack));
                 case '!%': // 'is within the condition'
                     return (strpos ($cond, $haystack) >= 0);
                 case '%': // 'contains condition'

@@ -1,4 +1,5 @@
 <?php
+    require_once (dirname (__FILE__) . '/Model.php');
 
     class View {
         //  View handles page templates (Views). put them inside TEMPLATE_PATH.

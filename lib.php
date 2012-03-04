@@ -107,6 +107,22 @@
             );
         }
     }
+    
+    if (!function_exists ('left')) {
+        function left ($str,$pos) {
+            return substr($str,0,$pos);
+        }
+    }
+
+    if (!function_exists ('first')) {
+        function first ($str, $fit = 100) {
+            // wrapper for left with ellipses 
+            if (strlen ($str) > $fit) {
+                $str = left ($str, $fit - 3) . "...";
+            } 
+            return $str;
+        }
+    }
 
     if (!function_exists ('filesize_natural')) {
         function filesize_natural ($bytes) {

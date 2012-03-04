@@ -1,4 +1,7 @@
 <?php
+    // set to false if using POP as persistance library
+    define ("USE_POP_REDIRECTION", true);
+
     set_time_limit (3); // preferred; prevents DDoS?
     define ("DOMAIN", 'http://' . $_SERVER["SERVER_NAME"]);
     define ("PATH", dirname ($_SERVER['SCRIPT_FILENAME']) . '/');
@@ -8,16 +11,10 @@
     define ("TEMPLATE_PATH", PATH . 'templates/');
     define ("SITE_TEMPLATE", 'default.php');
     define ("DEFAULT_TEMPLATE", 'default.php');
-    // _SERVER["DOCUMENT_ROOT"]	    D:/wamp/www/
-    // PATH	                        D:/wamp/www/poop/
-    // http://www.ca/kittehs/ => kittehs/    
     
     // SUBDIR: exclude prefix slash, include trailing slash.
     // define ("SUBDIR", substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
     define ("SUBDIR", substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
-    
-    // set to false if using POP as persistance library
-    define ("USE_POP_REDIRECTION", true);
 
     define ("MYSQL_USER", '');
     define ("MYSQL_PASSWORD", '');
