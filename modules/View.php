@@ -121,7 +121,7 @@
             global $all_hooks;
             
             // populate tags
-            list ($_era, $_ert) = get_handler_by_url ($_SERVER['REQUEST_URI'], true);            
+            list ($_era, $_ert) = get_handler_by_url ($_SERVER['REQUEST_URI'], false);
             $tags = array_merge (
                 array (
                     'title' => '',
@@ -131,9 +131,15 @@
                     'subdir' => SUBDIR,
                     'base' => DOMAIN . '/' . SUBDIR,
                     'handler' => "$_era.$_ert",
-                    'memory_usage' => filesize_natural (memory_get_peak_usage ())
+                    'memory_usage' => filesize_natural (memory_get_peak_usage ()),
+                    'year' => date ("Y"),
+                    'month' => date ("m"),
+                    'day' => date ("d"),
+                    'hour' => date ("G"),
+                    'minute' => date ("i"),
+                    'second' => date ("s")
                 ), // "required" defaults
-                $all_hooks, // how are you going to use these?
+                (array) $all_hooks, // how are you going to use these?
                 vars (), // environmental variables
                 $tags // custom tags
             );
@@ -159,6 +165,16 @@
             // then hide unmatched var tags
             $this->contents = preg_replace ("/<!-- ?([a-z0-9-_])+ ?-->/", '', $this->contents);
             return $this; // chaining
+        }
+    }
+    
+    if (!function_exists ('render')) {
+        function render ($options = array (), $template = '') {
+            // that's why you ob_start at the beginning of Things.
+            $content = ob_get_contents (); ob_end_clean ();
+            $options = array_merge ($options, array ('content'=>$content));
+            $pj = new_object ($options, 'Model');
+            $pj->render ();
         }
     }
 ?>

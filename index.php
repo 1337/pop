@@ -55,6 +55,7 @@
                 include_once (dirname (__FILE__) . '/' . $path); // modules are the php classes
             }
         }
+        @ob_start ();
     }
     
     // if not USE_POP_REDIRECTION, the rest of the page can be coded as usual.

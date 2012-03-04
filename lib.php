@@ -167,9 +167,20 @@
                    </div>");
         }
     }
+    
+    if (!function_exists ('println')) {
+        function println ($what, $hdng = 'p') {
+            if ($hdng >= 1 && $hdng <= 6) {
+                $heading = 'h' . $hdng;
+            } else {
+                $heading = $hdng;
+            }     
+            echo("<$heading>$what</$heading>\n");
+        }
+    }
 
     if (!function_exists ('get_handler_by_url')) {
-        function get_handler_by_url ($url) {
+        function get_handler_by_url ($url, $verbose = true) {
             // provide the name of the handler that serves a given url.
             // caution! function will DIE if matching fails.
             global $all_hooks;
@@ -189,7 +200,11 @@
                     }
                 }
             }
-            throw new Exception("We have nothing to serve at $url");
+            if ($verbose) {
+                throw new Exception("We have nothing to serve at $url");
+            } else {
+                return false;
+            }
         }
     }
     
