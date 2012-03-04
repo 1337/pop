@@ -111,13 +111,13 @@
             $this->onWrite (); // trigger event
         }
         
-        /*public function __toString () {
-            return json_decode ($this->properties);
+        public function __toString () {
+            return json_encode ($this->properties);
         }
         
         public function to_string () {
             return $this->__toString ();
-        }*/
+        }
         
         public static function _get ($id = null, $class_name = null) {
             // allows calls like Model::_get(id)
@@ -171,36 +171,6 @@
                 print_r ($this->properties ());
             }
             $this->onRender (); // trigger event
-        }
-        
-        /* Query transduction methods
-           example: new Shop()->filter('id ==', 5000)->fetch()->get()
-        */
-        function all () {
-            if (class_exists ('Query') && isset ($this)) {
-                $q = new_object (get_class ($this), 'Query');
-                return $q->all ();
-            } else {
-                throw new Exception ('Call all() with an instantiated object, e.g. new Model()->all()');
-            }
-        }
-        
-        function filter ($filter, $condition) {
-            if (class_exists ('Query') && isset ($this)) {
-                $q = new_object (get_class ($this), 'Query');
-                return $q->fetch()->filter ($filter, $condition);
-            } else {
-                throw new Exception ('Call filter() with an instantiated object');
-            }            
-        }
-
-        function order ($by, $asc = true) {
-            if (class_exists ('Query') && isset ($this)) {
-                $q = new_object (get_class ($this), 'Query');
-                return $q->fetch()->order ($by, $asc);
-            } else {
-                throw new Exception ('Call order() with an instantiated object');
-            }            
         }
         
         function get_db_key () {

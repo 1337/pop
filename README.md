@@ -40,6 +40,13 @@ ErrorDocument 404 /index.php
 
 ## Changelog
 
+### 2012-03-04
+* Added Thing adaptor for [Things](http://github.com/1337/things). You can use `new Thing ($oid)` exactly the same way.
+* Improved UnitTest UI.
+* Improved Query class performance: filters are now only processed on-demand.
+* Simplified Query syntax: `$query_class->all()->filter('property IN', $values)->fetch()->get()` can be done with `$query_class->filter('property IN', $values)->get()`.
+* Removed `Subclass.query_functions()` because it is unorthodox.
+
 ### 2012-03-03
 * You can now use associative arrays:
 

@@ -9,27 +9,30 @@
                     var_dump ($a->found);
                 
                 get all objects of a certain type as an array of objects:
-                    $a = new Query('ModuleName');
+                    $a = new_object ('ModuleName', 'Query');
                     var_dump ($a->get ());
                 
                 sort by a property:
-                    $a = new Query('ModuleName');
+                    $a = new_object ('ModuleName', 'Query');
                     var_dump (
-                        $a->fetch()
-                          ->filter('id ==', 123)
+                        $a->filter('id ==', 123)
                           ->get ()
                     );
-                    (fetch() is required to filter.)
         */
         
-        // array of matching filenames.
-        var $found; // need this to overload $this->found[]
-
-        // array of objects successfully queried. calling fetch() clears it.
-        var $found_objects;
+        var $found; // public array of matching filenames. need this to overload $this->found[]
+        protected $found_objects; // array of objects successfully queried. calling fetch() clears it.
         
         // module name, e.g. "Product", "Student"
-        var $module_name;
+        protected $module_name;
+        
+        /*  an array of filters: 
+            [
+                ['name ==', 'brian'],
+                ['age >=', '1337']
+            ]
+        */
+        protected $filters;
 
         function __construct ($module_name = false) {
             // false module name searches all modules.
@@ -47,22 +50,15 @@
             }
             return $this; // chaining for php 5
         }
-        
-        function all () {
-            $this->get();
-            return $this; // chaining for php 5
-        }
     
         function filter ($filter, $condition) {
-            // run fetch() before filter. since all() calls fetch(), you can do that too.
+            // adds a filter to the Query.
             // $filter = field name followed by an operator, e.g. 'name =='
             // comparison operators allowed: <, >, ==, !=, <=, >=, IN
-            $this->filter = $filter;
-            $this->filter_condition = $condition;
-            $this->found_objects = array_filter ($t = (array) $this->found_objects, array ($this, "_filter_function"));
             
-            // update filename counts (count() uses it)
-            $this->found = array_map (array ($this, "_get_object_name"), (array) $this->found_objects);
+            // $this->filter_condition = $condition;
+
+            $this->filters[] = array ($filter, $condition);
             return $this; // chaining for php 5
         }
         
@@ -82,14 +78,35 @@
             $files = array_slice ((array) $this->found, 0, $limit);
             $this->found_objects = array (); // reset var
             foreach ((array) $this->found as $file) {
-                $this->found_objects[] = $this->_create_object_from_filename ($file);
+                $object = $this->_create_object_from_filename ($file);
+                $include_this_object = true;
+                foreach ((array) $this->filters as $filter) {
+                    // if any filter is not met, $include_this_object is false
+                    $include_this_object = $include_this_object && 
+                                           $this->_filter_function ($object, $filter);
+                    unset ($this->filter);
+                }
+                if ($include_this_object) {
+                    $this->found_objects[] = $object;
+                }
             }
+            // update filenames (count() uses it)
+            $this->found = array_map (array ($this, "_get_object_name"), (array) $this->found_objects);
+            
+            // reset the filters (doesn't matter no more)
+            unset ($this->filters);
             // return $this->found_objects;
             return $this;
         }
 
         function get () {
             // throw objects out.
+            
+            /* foreach ((array) $this->found as $file) {
+                $this->found_objects[] = $this->_create_object_from_filename ($file);
+            }
+            $this->found_objects = array_filter ($t = (array) $this->found_objects, array ($this, "_filter_function")); */
+            
             if (sizeof ($this->found_objects) <= 0) {
                 $this->fetch (); // if nothing, try fetch again just to be sure
             }
@@ -98,6 +115,9 @@
         
         function count () {
             // fast enough
+            if (sizeof ($this->filters) > 0) {
+                $this->fetch (); // gotta recount...
+            }
             return sizeof ($this->found);
         }
 
@@ -110,17 +130,20 @@
             }
         }
         
-        private function _filter_function ($a) {
-            $filter = $this->filter; // e.g. 'name =='
-            $cond = $this->filter_condition; // e.g. '5'
-            $mode = trim (substr ($filter, -2)); // should be >, <, ==, !=, <=, >=, or IN
-            $field = trim (substr ($filter, 0, strlen ($filter) - strlen ($mode)));
-            $haystack = $a->{$field}; // good name
+        private function _filter_function ($object, $filter) {
+            // $filter = e.g. ['name ==', 'brian']
+            // returns true if object meets filter criteria.
+            $cond = $filter[1]; // e.g. '5'
+            $mode = trim (substr ($filter[0], -2)); // should be >, <, ==, !=, <=, >=, or IN
+            $field = trim (substr ($filter[0], 0, strlen ($filter[0]) - strlen ($mode)));
+            $haystack = $object->{$field}; // good name
             switch ($mode) {
                 case '>':
                     return ($haystack > $cond);
                 case '<':
                     return ($haystack < $cond);
+                
+                case '=':
                 case '==':
                     return ($haystack == $cond);
                 case '!=':

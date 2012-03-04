@@ -38,15 +38,27 @@
             // from last test
             $this->thing->id = 'test';
             $obj = new Model('test');
-            $this->assertIdentical ($obj->derp2, $this->thing2);
+            $this->assertEqual ($this->thing, $obj);
+        }
+        function test_query_count () {
+            $this->thing2->id = 'test2';
+            $q = new Query ('Model');
+            $this->assertEqual ($q->count(), 2);
+        }
+        function test_query_filter () {
+            $this->thing2->abc = 'def';
+            $q = new Query ('Model');
+            $this->assertEqual (reset ($q->filter('abc ==', 'def')->get()), $this->thing2);
+        }
+        function test_query_filter_count () {
+            $this->thing2->abc = 'def';
+            $q = new Query ('Model');
+            $this->assertEqual ($q->filter('abc ==', 'def')->count(), 1);
         }
         
         // PHP TESTS
         function test_safe_mode () {
             $this->assertEqual (ini_get ('safe_mode'), 0);
-        }
-        function test_error_reporting () {
-            $this->assertEqual (ini_get ('error_reporting'), null);
         }
         function test_display_errors () {
             $this->assertEqual (ini_get ('display_errors'), 1);
@@ -65,9 +77,6 @@
         }
         function test_arg_separator_output () {
             $this->assertEqual (ini_get ('arg_separator.output'), '&');
-        }
-        function test_allow_call_time_pass_reference () {
-            $this->assertEqual (ini_get ('allow_call_time_pass_reference'), 1);
         }
         function test_disable_functions () {
             $this->assertEqual (ini_get ('disable_functions'), false);
