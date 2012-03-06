@@ -1,5 +1,5 @@
 <?php
-    require_once (dirname (__FILE__) . '/Model.php');
+    // require_once (dirname (__FILE__) . '/Model.php');
 
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
@@ -14,7 +14,7 @@
             $this->contents = $this->get_parsed ($template);
             
             // constants
-            $this->include_pattern = '/<!-- ?include ?"([^"]+)" ?-->/';
+            $this->include_pattern = '/<!-- ?include ?"([^"]+)" ?-->/U';
             $this->forloop_pattern = "/<!-- ?for ([a-zA-Z0-9-_]+), ?([a-zA-Z0-9-_]+) in ([a-zA-Z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/sU";
         }
         
@@ -33,7 +33,8 @@
                 $file = VIEWS_PATH . $file;
             }
             
-            if (file_exists ($file)) {
+            // open_basedir
+            if (@file_exists ($file)) {
                 @include ($file);
             } else {
                 // file not found
@@ -132,7 +133,7 @@
                     'base' => DOMAIN . '/' . SUBDIR,
                     'handler' => "$_era.$_ert",
                     'memory_usage' => filesize_natural (memory_get_peak_usage ()),
-                    'exec_time' => round (microtime() - EXEC_START_TIME, 2) . 's',
+                    'exec_time' => round (microtime(true) - EXEC_START_TIME, 2) . 's',
                     'year' => date ("Y"),
                     'month' => date ("m"),
                     'day' => date ("d"),
@@ -147,14 +148,15 @@
             
             // build tags array; replace tags with object props
             foreach ($tags as $tag => $data) {
-                $tags_processed[] = "/<!-- ?$tag ?-->/";
+                $tags_processed[] = "/<!-- ?$tag ?-->/U";
                 $values_processed[] = (string) $data; // "abc", "true" or "array"
             }
 
             // replacing will stop when there are no more <!-- include "tags" -->.
-            while (preg_match ($this->include_pattern, $this->contents) > 0 ||
-                   preg_match ($this->forloop_pattern, $this->contents) > 0) {
-
+            while (preg_match_multi (
+                        array ($this->include_pattern, 
+                               $this->forloop_pattern), 
+                        $this->contents)) {
                 $this->include_snippets (); // recursively include files (resolves include tags)
                 $this->expand_page_loops ($tags);
                 
@@ -164,7 +166,7 @@
             unset ($tags_processed, $values_processed); // free ram
             
             // then hide unmatched var tags
-            $this->contents = preg_replace ("/<!-- ?([a-z0-9-_])+ ?-->/", '', $this->contents);
+            $this->contents = preg_replace ("/<!-- ?([a-z0-9-_])+ ?-->/U", '', $this->contents);
             return $this; // chaining
         }
     }

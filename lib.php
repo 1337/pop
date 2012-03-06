@@ -230,4 +230,15 @@
             return $data;
         }
     }
+    
+    if (!function_exists ('preg_match_multi')) {
+        function preg_match_multi ($patterns, $contents) {
+            // accept multiple preg patterrns on the same string.
+            foreach ((array) $patterns as $pattern) {
+                if (preg_match ($pattern, $contents) > 0) {
+                    return true;
+                }
+            }
+        }
+    }
 ?>

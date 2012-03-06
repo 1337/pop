@@ -92,7 +92,7 @@
             $ss = mysql_query ($sql, $this->link);
             
             if ($ss) { // if write succeeds, ruin the FS cache.
-                unlink ($this->_path ());
+                @unlink ($this->_path ());
             } else {
                 throw new Exception ('Failed to update database');
             }

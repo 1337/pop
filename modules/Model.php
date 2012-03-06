@@ -143,7 +143,9 @@
             }
             
             $blob = json_encode ($this->properties);
-            @mkdir (dirname ($this->_path ()));
+            if (@mkdir (dirname ($this->_path ()))) {
+                throw new Exception ('Cannot create data directory!');
+            }
             return file_put_contents ($this->_path (), $blob, LOCK_EX);
         }
         
@@ -161,12 +163,14 @@
             
             $this->onBeforeRender (); // trigger event
             
-            if (file_exists (VIEWS_PATH . $template)) {
-                $pj = new_object ($template, 'View');
+            // open_basedir
+            if (@file_exists (VIEWS_PATH . $template)) {
+                $pj = new View ($template);
                 $pj->replace_tags (
                     array_merge ($this->properties, $more_options)
                 );
                 echo $pj->__toString ();
+                unset ($pj);
             } else {
                 print_r ($this->properties ());
             }

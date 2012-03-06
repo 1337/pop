@@ -75,8 +75,9 @@
         function fetch ($limit = PHP_INT_MAX) {
             // This class does NOT store or cache these results.
             // calling fetch more than once on the same Query object will reset its list of items found.
-            $files = array_slice ((array) $this->found, 0, $limit);
+            // $files = array_slice ((array) $this->found, 0, $limit);
             $this->found_objects = array (); // reset var
+            $found_count = 0;
             foreach ((array) $this->found as $file) {
                 $object = $this->_create_object_from_filename ($file);
                 $include_this_object = true;
@@ -88,6 +89,11 @@
                 }
                 if ($include_this_object) {
                     $this->found_objects[] = $object;
+                    $found_count++;
+                }
+                if ($found_count >= $limit) {
+                    // we have enough objects! quit looking immediately.
+                    break;
                 }
             }
             // update filenames (count() uses it)
@@ -99,7 +105,7 @@
             return $this;
         }
 
-        function get () {
+        function get ($limit = PHP_INT_MAX) {
             // throw objects out.
             
             /* foreach ((array) $this->found as $file) {
@@ -108,7 +114,7 @@
             $this->found_objects = array_filter ($t = (array) $this->found_objects, array ($this, "_filter_function")); */
             
             if (sizeof ($this->found_objects) <= 0) {
-                $this->fetch (); // if nothing, try fetch again just to be sure
+                $this->fetch ($limit); // if nothing, try fetch again just to be sure
             }
             return $this->found_objects;
         }
