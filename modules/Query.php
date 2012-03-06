@@ -1,7 +1,7 @@
 <?php
     require_once (dirname (__FILE__) . '/Model.php');
 
-    class Query extends Model {
+    class Query {
         /*  extends Model to get property bags. Don't assign an ID!
             usage:
                 get all existing module types as an array of strings: 
@@ -15,8 +15,7 @@
                 sort by a property:
                     $a = new_object ('ModuleName', 'Query');
                     var_dump (
-                        $a->filter('id ==', 123)
-                          ->get ()
+                        $a->filter('id ==', 123)->get (1)
                     );
         */
         
@@ -56,8 +55,6 @@
             // $filter = field name followed by an operator, e.g. 'name =='
             // comparison operators allowed: <, >, ==, !=, <=, >=, IN
             
-            // $this->filter_condition = $condition;
-
             $this->filters[] = array ($filter, $condition);
             return $this; // chaining for php 5
         }
@@ -75,7 +72,6 @@
         function fetch ($limit = PHP_INT_MAX) {
             // This class does NOT store or cache these results.
             // calling fetch more than once on the same Query object will reset its list of items found.
-            // $files = array_slice ((array) $this->found, 0, $limit);
             $this->found_objects = array (); // reset var
             $found_count = 0;
             foreach ((array) $this->found as $file) {
@@ -101,18 +97,11 @@
             
             // reset the filters (doesn't matter no more)
             unset ($this->filters);
-            // return $this->found_objects;
             return $this;
         }
 
         function get ($limit = PHP_INT_MAX) {
             // throw objects out.
-            
-            /* foreach ((array) $this->found as $file) {
-                $this->found_objects[] = $this->_create_object_from_filename ($file);
-            }
-            $this->found_objects = array_filter ($t = (array) $this->found_objects, array ($this, "_filter_function")); */
-            
             if (sizeof ($this->found_objects) <= 0) {
                 $this->fetch ($limit); // if nothing, try fetch again just to be sure
             }
@@ -182,7 +171,12 @@
         
         private function _create_object_from_filename ($file) {
             // output: object of Id.Type
-            return new $this->module_name ($file); // new TYPE (FILENAME)        
+            if (function_exists ('new_object')) {
+                return new_object ($file, $this->module_name);
+            } else {
+                return new $this->module_name ($file); // new TYPE (FILENAME)        
+            }
         }
     }
+    
 ?>

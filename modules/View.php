@@ -4,7 +4,7 @@
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
         var $contents;
-        var $include_pattern, $forloop_pattern;
+        var $include_pattern, $forloop_pattern, $if_pattern;
 
         function __construct ($special = '') {
             // if $special (file name) is specified, then that template will be used instead.
@@ -13,9 +13,10 @@
             $template = $this->resolve_template_name ($special); // returns full path
             $this->contents = $this->get_parsed ($template);
             
-            // constants
+            // constants default to case-sensitive.
             $this->include_pattern = '/<!-- ?include ?"([^"]+)" ?-->/U';
-            $this->forloop_pattern = "/<!-- ?for ([a-zA-Z0-9-_]+), ?([a-zA-Z0-9-_]+) in ([a-zA-Z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/sU";
+            $this->forloop_pattern = '/<!-- ?for ([a-zA-Z0-9-_]+), ?([a-zA-Z0-9-_]+) in ([a-zA-Z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/sU';
+            $this->if_pattern      = '/<!-- ?if ([a-zA-Z0-9-_]+) ?-->(.*)((<!-- ?elseif ([a-zA-Z0-9-_]+) ?-->(.*))*)(<!-- ?else ?-->(.*))*<!-- ?endif ?-->/sU';
         }
         
         function __toString () {
@@ -84,8 +85,6 @@
         private function expand_page_loops ($tags = array ()) {
             $regex = $this->forloop_pattern;
             // e.g. <!-- for i in objects --> bla bla bla <!-- endfor -->
-            // i = case-insensitive, s = newlines included, U = non-greedy
-            // defaults to case-sensitive.
             
             $matches = array ();
             preg_match_all ($regex, $this->contents, $matches);
@@ -118,6 +117,51 @@
             }
         }
         
+        private function resolve_if_conditionals ($tags = array ()) {
+            $regex = $this->if_pattern;
+            // e.g. <!-- if a -->b<!-- elseif c -->d<!-- elseif e -->f<!-- else g -->h<!-- endif -->
+            
+            $matches = array ();
+            preg_match_all ($regex, $this->contents, $matches);
+            for ($i = 0; $i < sizeof ($matches[0]); $i++) { // each match
+                
+                if ($tags[$matches[1][$i]]) { // if <!-- if ? --> evals to true
+                    // replace whole thing with the true part:
+                    $this->contents = str_replace (
+                        $matches[0][$i], // search
+                        $matches[2][$i], // replace
+                        $this->contents  // subject
+                    );
+                
+                
+                // expand here when ready to do multiple elseif statements //
+                
+                
+                } elseif (strlen ($matches[5][$i]) > 0 && // if no <!-- elseif ? -->, this is empty
+                           $tags[$matches[5][$i]]) { // if <!-- elseif ? --> evals to true
+                    // replace whole thing with the true part:
+                    $this->contents = str_replace (
+                        $matches[0][$i], // search
+                        $matches[6][$i], // replace
+                        $this->contents  // subject
+                    );
+                } elseif (strlen ($matches[7][$i]) > 0) {// if no <!-- else -->?, this is empty
+                    // since this is else, replace whole thing with the true part:
+                    $this->contents = str_replace (
+                        $matches[0][$i], // search
+                        $matches[8][$i], // replace
+                        $this->contents  // subject
+                    );
+                } else { // you hit this if nothing is true and no <!-- else --> available
+                    $this->contents = str_replace (
+                        $matches[0][$i], // search
+                        '', // replace
+                        $this->contents  // subject
+                    );
+                }
+            }
+        }
+        
         public function replace_tags ($tags = array ()) {
             global $all_hooks;
             
@@ -130,7 +174,7 @@
                     'content' => '',
                     'root' => DOMAIN,
                     'subdir' => SUBDIR,
-                    'base' => DOMAIN . '/' . SUBDIR,
+                    'base' => DOMAIN . SUBDIR,
                     'handler' => "$_era.$_ert",
                     'memory_usage' => filesize_natural (memory_get_peak_usage ()),
                     'exec_time' => round (microtime(true) - EXEC_START_TIME, 2) . 's',
@@ -139,7 +183,9 @@
                     'day' => date ("d"),
                     'hour' => date ("G"),
                     'minute' => date ("i"),
-                    'second' => date ("s")
+                    'second' => date ("s"),
+                    'false' => false,
+                    
                 ), // "required" defaults
                 (array) $all_hooks, // how are you going to use these?
                 vars (), // environmental variables
@@ -155,14 +201,17 @@
             // replacing will stop when there are no more <!-- include "tags" -->.
             while (preg_match_multi (
                         array ($this->include_pattern, 
-                               $this->forloop_pattern), 
+                               $this->forloop_pattern,
+                               $this->if_pattern), 
                         $this->contents)) {
                 $this->include_snippets (); // recursively include files (resolves include tags)
                 $this->expand_page_loops ($tags);
+                $this->resolve_if_conditionals ($tags);
                 
                 // replace all variable tags
+                // remember, replacement may generate new include tags
                 $this->contents = preg_replace ($tags_processed, $values_processed, $this->contents);
-            } // remember, replacement may generate new include tags
+            }
             unset ($tags_processed, $values_processed); // free ram
             
             // then hide unmatched var tags

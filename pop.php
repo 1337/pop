@@ -26,8 +26,8 @@
         // init loop: load php files, get definitions, get urls (hooks)
         foreach ($modules as $module) { // modules is in (default_)vars.php
             $path = "modules/$module.php";
-            if (file_exists (dirname (__FILE__) . '/' . $path) && !class_exists ($module)) {
-                include_once (dirname (__FILE__) . '/' . $path); // modules are the php classes
+            if (@file_exists (dirname (__FILE__) . '/' . $path) && !class_exists ($module)) {
+                @include_once (dirname (__FILE__) . '/' . $path); // modules are the php classes
                 $get_urls = (array) get_class_vars ($module);
                 if (array_key_exists ('urls', $get_urls)) {
                     $hooks = $get_urls['urls'];
@@ -46,19 +46,14 @@
             $page->$handler (); // superclass function
             exit (); // load only one page...
         } catch (Exception $e) {
-            debug (sprintf (
-                /*"%s %s %d",
-                $e->getMessage (),
-                $e->getFile (),
-                $e->getLine ()*/
-                "%s", $e->getMessage ()
-            )); // you fail at life
+            // you fail at life
+            debug (sprintf ("%s", $e->getMessage ()));
         }
     } else { // use POP as library
         foreach ($modules as $module) { // modules is in (default_)vars.php
             $path = "modules/$module.php";
-            if (file_exists (dirname (__FILE__) . '/' . $path) && !class_exists ($module)) {
-                include_once (dirname (__FILE__) . '/' . $path); // modules are the php classes
+            if (@file_exists (dirname (__FILE__) . '/' . $path) && !class_exists ($module)) {
+                @include_once (dirname (__FILE__) . '/' . $path); // modules are the php classes
             }
         }
         @ob_start ();
