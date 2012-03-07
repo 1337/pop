@@ -1,0 +1,3 @@
+Handlers:
+  - css/?: css
+  - js/?: js

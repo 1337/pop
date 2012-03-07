@@ -1,10 +1,7 @@
 <?php
+    require_once (dirname (__FILE__) . '/Model.php');
+
     class Compressor {
-        public static $urls = array (
-            "css/?" => "css",
-            "js/?" => "js",
-        );
-        
         // compression functions
         
         private static function css_compress ($h) {

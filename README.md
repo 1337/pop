@@ -7,10 +7,11 @@ It is 100% compatible with [backbone.js](http://documentcloud.github.com/backbon
 
 ### Requirements
 * PHP 5.2+
+* JSON module (json_encode, json_decode)
 * Apache2, lighttpd, or similar web server with URL rewriting
 
 ### Install your web server
-If you use lighttpd, rewrite rules are as follows:
+If you use lighttpd and want POP to handle your website, rewrite rules are as follows:
 
 ```
 (/etc/lighttpd/lighttpd.conf)
@@ -19,7 +20,7 @@ url.rewrite-if-not-file = ( "(.*)" => "/pop/index.php?file=$0" )
 
 ```
 
-If you use apache2, your ```.htaccess``` file should have these rules:
+If you use apache2 and want POP to handle your website, your `.htaccess` file should have these rules:
 
 ```
 DirectoryIndex index.php
@@ -39,6 +40,17 @@ ErrorDocument 404 /index.php
 2. Run ```chmod -R 666 (install path)/pop/data``` to allow PHP write access to the data folder.
 
 ## Changelog
+
+### 2012-03-07
+* Modules now manage their own dependencies. Use `require_once (dirname (__FILE__) . '/Model.php');` to include the Model class, for example.
+* URLs are now managed by YAML, using [Spyc](http://code.google.com/p/spyc/). Here is an example (School.yaml) of how it works.
+
+```
+Handlers:
+  - /index.(htm|html|php): show_homepage
+  - /schools.(htm|html|php): show_schools
+```
+
 
 ### 2012-03-04
 * Added support for template conditional tags:
@@ -76,7 +88,7 @@ ErrorDocument 404 /index.php
 * Added recursive template inclusion. Also, you can now add template inclusion tags as part of an object.
 * Added support for template snippets in subfolders.
 * Simplified template tags: you can now use `<!-- property -->` in place of `<!-- self.property -->`.
-* Simplified template inclusion tag: you can now use `<!-- include "file.php" -->` in place of `<!-- inherit file="file.php" -->`.
+* Simplified template inclusion tag: you can now use `<!-- include "file.html" -->` in place of `<!-- inherit file="file.html" -->`.
 * Improved speed of template rendering, with ~10% memory savings.
 * Added tag properties: memory usage (`<!-- memory_usage -->`), subdirectories (`<!-- subdir -->`), and current handler (`<!-- handler -->`).
 

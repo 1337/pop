@@ -14,8 +14,8 @@
             $this->contents = $this->get_parsed ($template);
             
             // constants default to case-sensitive.
-            $ot = $this->ot = '(<!--|{%?)';       // opening tag
-            $ct = $this->ct = '(%?}|-->)';        // close tag
+            $ot = $this->ot = '(<!--|{[{%])';       // opening tag
+            $ct = $this->ct = '([}%]}|-->)';        // close tag
             $vf = $this->vf = '([a-zA-Z0-9-_]+)'; // variable format
 
             $this->include_pattern = "/$ot ?include ?\"([^\"]+)\" ?$ct/U";
@@ -72,7 +72,7 @@
 
         private function include_snippets () {
             /* replace tags that look like
-               <!-- include "header_and_footer.php" -->
+               <!-- include "header_and_footer.html" -->
                with their actual contents.
                
                replace_tags help recurse this function.
@@ -193,7 +193,7 @@
                     'base' => DOMAIN . SUBDIR,
                     'handler' => $_era ? "$_era.$_ert" : '',
                     'memory_usage' => filesize_natural (memory_get_peak_usage ()),
-                    'exec_time' => round (microtime(true) - EXEC_START_TIME, 2) . 's',
+                    'exec_time' => round (microtime(true) - EXEC_START_TIME, 4)*1000 . 'ms',
                     'year' => date ("Y"),
                 ), // "required" defaults
                 vars (), // environmental variables

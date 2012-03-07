@@ -118,7 +118,7 @@
             
             $this->render (array (
                 'styles' => '<!-- include "css/unit_test.css" -->',
-                'content' => '<!-- include "templates/unit_test.php" -->',
+                'content' => '<!-- include "templates/unit_test.html" -->',
                 'title' => 'Test run ' . date ('H:i:s'),
                 'tests' => (array) $tests
             ));

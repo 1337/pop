@@ -7,9 +7,10 @@
     }
     
     require_once (dirname (__FILE__) . '/lib.php');
+    require_once (dirname (__FILE__) . '/lib/spyc.php');
+
     // TODO: events, access levels, perm checks, relationships
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
-    // TODO: let core handle errors, not modules
     
     define ('EXEC_START_TIME', microtime (true));
     if (USE_POP_REDIRECTION === true) {
@@ -26,15 +27,22 @@
         // init loop: load php files, get definitions, get urls (hooks)
         foreach ($modules as $module) { // modules is in (default_)vars.php
             $path = "modules/$module.php";
-            if (@file_exists (dirname (__FILE__) . '/' . $path) && !class_exists ($module)) {
-                @include_once (dirname (__FILE__) . '/' . $path); // modules are the php classes
-                $get_urls = (array) get_class_vars ($module);
-                if (array_key_exists ('urls', $get_urls)) {
-                    $hooks = $get_urls['urls'];
-                } else {
-                    $hooks = array (); // also, a loop reset
+            $yaml_path = "modules/$module.yaml";
+            if (@file_exists (dirname (__FILE__) . '/' . $yaml_path) && !class_exists ($module)) {
+                try {
+                    $yaml = Spyc::YAMLLoad(dirname (__FILE__) . '/' . $yaml_path);
+                    if (array_key_exists ('Handlers', $yaml)) {
+                        foreach ($yaml['Handlers'] as $handler_array) {
+                            foreach ($handler_array as $hk => $hndl) {
+                                // this foreach just breaks keys from values.
+                                $all_hooks[$module][$hk] = $hndl;
+                            }
+                        }
+                    }
+                    unset ($yaml);
+                } catch (Exception $e) {
+                    debug (sprintf ("%s", $e->getMessage ()));
                 }
-                $all_hooks[$module] = $hooks;
             }
         }
 
@@ -42,6 +50,7 @@
         $url_parts = parse_url ($_SERVER['REQUEST_URI']);
         try {
             list ($module, $handler) = get_handler_by_url ($url_parts['path']);
+            include_once (MODULE_PATH . $module . '.php'); // modules are the php classes
             $page = new_object (null, $module);
             $page->$handler (); // superclass function
             exit (); // load only one page...

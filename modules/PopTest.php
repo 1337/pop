@@ -4,10 +4,6 @@
     class PopTest extends UnitTest {
         public $thing;
      
-        public static $urls = array (
-            "test/?" => "run_test",
-        );
-        
         function setup () {
             $this->thing = new Model();
             $this->thing2 = new Model();

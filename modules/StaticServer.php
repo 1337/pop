@@ -2,17 +2,6 @@
     require_once (dirname (__FILE__) . '/Model.php');
 
     class StaticServer {
-        public static $urls = array (
-            /*  typically place StaticServer at the end of the list
-                of includes to let it serve everything no one else matches.
-            */
-            "viewer/?" => "object_viewer",
-            "static/?" => "html_loader",
-            
-            
-            "(.)*" => "index",
-            // NO more rules under (.)* !
-        );
         
         function index () {
             // var_dump ($_GET);

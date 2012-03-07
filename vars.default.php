@@ -1,4 +1,16 @@
 <?php
+    /*
+        set USE_POP_REDIRECTION to false if using POP as persistance library:
+        <?php
+            define ("USE_POP_REDIRECTION", false);
+            include_once ('pop/index.php');
+            
+            $new_pop_model = new Model ();
+            
+            (the rest of your script)
+        ?>
+    */
+
     // set to false if using POP as persistance library
     if (!defined ('USE_POP_REDIRECTION')) {
         define ("USE_POP_REDIRECTION", true);
