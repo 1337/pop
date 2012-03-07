@@ -41,6 +41,19 @@ ErrorDocument 404 /index.php
 ## Changelog
 
 ### 2012-03-04
+* Added support for template conditional tags:
+
+```
+    <!-- if something -->
+        something
+    <!-- elseif something_else -->
+        something_else?
+    <!-- else -->
+        nothing else available!
+    <!-- endif -->
+```
+
+### 2012-03-04
 * Added Thing adaptor for [Things](http://github.com/1337/things). You can use `new Thing ($oid)` exactly the same way.
 * Improved UnitTest UI.
 * Improved Query class performance: filters are now only processed on-demand.
