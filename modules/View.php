@@ -29,20 +29,28 @@
         }
 
         function get_parsed ($file) {
-            ob_start();
             if (strpos ($file, VIEWS_PATH) === false) {
                 $file = VIEWS_PATH . $file;
             }
             
-            // open_basedir
-            if (@file_exists ($file)) {
-                @include ($file);
+            if (TEMPLATE_SAFE_MODE === false) { // PHP tags don't work in safe mode.
+                ob_start();
+                // open_basedir
+                if (@file_exists ($file)) {
+                    @include ($file);
+                } else {
+                    // file not found
+                    debug ("File $file not found");
+                }
+                $buffer = ob_get_contents();
+                ob_end_clean();
             } else {
-                // file not found
-                debug ("File $file not found");
+                try {
+                    $buffer = @file_get_contents ($file);
+                } catch (Exception $e) {
+                    $buffer = '';
+                }
             }
-            $buffer = ob_get_contents();
-            ob_end_clean();
             return $buffer;
         }
 
@@ -179,15 +187,7 @@
                     'memory_usage' => filesize_natural (memory_get_peak_usage ()),
                     'exec_time' => round (microtime(true) - EXEC_START_TIME, 2) . 's',
                     'year' => date ("Y"),
-                    'month' => date ("m"),
-                    'day' => date ("d"),
-                    'hour' => date ("G"),
-                    'minute' => date ("i"),
-                    'second' => date ("s"),
-                    'false' => false,
-                    
                 ), // "required" defaults
-                (array) $all_hooks, // how are you going to use these?
                 vars (), // environmental variables
                 $tags // custom tags
             );
