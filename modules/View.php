@@ -3,7 +3,7 @@
 
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
-        var $contents;
+        var $contents, $ot, $ct, $vf;
         var $include_pattern, $forloop_pattern, $if_pattern;
 
         function __construct ($special = '') {
@@ -14,9 +14,13 @@
             $this->contents = $this->get_parsed ($template);
             
             // constants default to case-sensitive.
-            $this->include_pattern = '/<!-- ?include ?"([^"]+)" ?-->/U';
-            $this->forloop_pattern = '/<!-- ?for ([a-zA-Z0-9-_]+), ?([a-zA-Z0-9-_]+) in ([a-zA-Z0-9-_]+) ?-->(.*)<!-- ?endfor ?-->/sU';
-            $this->if_pattern      = '/<!-- ?if ([a-zA-Z0-9-_]+) ?-->(.*)((<!-- ?elseif ([a-zA-Z0-9-_]+) ?-->(.*))*)(<!-- ?else ?-->(.*))*<!-- ?endif ?-->/sU';
+            $ot = $this->ot = '(<!--|{%?)';       // opening tag
+            $ct = $this->ct = '(%?}|-->)';        // close tag
+            $vf = $this->vf = '([a-zA-Z0-9-_]+)'; // variable format
+
+            $this->include_pattern = "/$ot ?include ?\"([^\"]+)\" ?$ct/U";
+            $this->forloop_pattern = "/$ot ?for $vf, ?$vf in $vf ?$ct(.*)$ot ?endfor ?$ct/sU";
+            $this->if_pattern      = "/$ot ?if $vf ?$ct(.*)(($ot ?elseif $vf ?$ct(.*))*)($ot ?else ?$ct(.*))*$ot ?endif ?$ct/sU";
         }
         
         function __toString () {
@@ -75,8 +79,8 @@
             */
             $matches = array (); // preg_match_all gives you an array of &$matches.
             if (preg_match_all ($this->include_pattern, $this->contents, $matches) > 0) {
-                if (sizeof ($matches) > 0 && sizeof ($matches[1]) > 0) {
-                    foreach ($matches[1] as $index => $filename) { // [1] because [0] is full line
+                if (sizeof ($matches) > 0 && sizeof ($matches[2]) > 0) {
+                    foreach ($matches[2] as $index => $filename) { // [1] because [0] is full line
                         try {
                             $nv = $this->get_parsed ($filename);
                         } catch (Exception $e) { // include fail? fail.
@@ -91,6 +95,8 @@
         }
 
         private function expand_page_loops ($tags = array ()) {
+            $ot = $this->ot;
+            $ct = $this->ct;
             $regex = $this->forloop_pattern;
             // e.g. <!-- for i in objects --> bla bla bla <!-- endfor -->
             
@@ -99,23 +105,23 @@
             for ($i = 0; $i < sizeof ($matches[0]); $i++) { // each match
                 $buffer = ''; // stuff to be printed
                 // replace tags within the inner loop, n times
-                if (array_key_exists ($matches[3][$i], $tags)) { // if such tag exists
-                    $match_keys = array_keys ($tags[$matches[3][$i]]);
-                    $match_vals = array_values ($tags[$matches[3][$i]]);
+                if (array_key_exists ($matches[4][$i], $tags)) { // if such tag exists
+                    $match_keys = array_keys ($tags[$matches[4][$i]]);
+                    $match_vals = array_values ($tags[$matches[4][$i]]);
                     
                     // number of times the specific match is to be repeated
-                    for ($lc = 0; $lc < sizeof ($tags[$matches[3][$i]]); $lc++) {
+                    for ($lc = 0; $lc < sizeof ($tags[$matches[4][$i]]); $lc++) {
                         // now, replace the key and value
                         $buffer .= preg_replace (
                             array ( // search
-                                "/<!-- ?" . preg_quote ($matches[1][$i], '/') . " ?-->/sU", // key
-                                "/<!-- ?" . preg_quote ($matches[2][$i], '/') . " ?-->/sU"  // value
+                                "/$ot ?" . preg_quote ($matches[2][$i], '/') . " ?$ct/sU", // key
+                                "/$ot ?" . preg_quote ($matches[3][$i], '/') . " ?$ct/sU"  // value
                             ), 
                             array ( // replace
                                 (string) $match_keys[$lc],
                                 (string) $match_vals[$lc]
                             ), 
-                            $matches[4][$i] // loop content
+                            $matches[6][$i] // loop content
                         );
                     }
                 } // else: even if value doesn't exist, remove the tag.
@@ -133,11 +139,11 @@
             preg_match_all ($regex, $this->contents, $matches);
             for ($i = 0; $i < sizeof ($matches[0]); $i++) { // each match
                 
-                if ($tags[$matches[1][$i]]) { // if <!-- if ? --> evals to true
+                if ($tags[$matches[2][$i]]) { // if <!-- if ? --> evals to true
                     // replace whole thing with the true part:
                     $this->contents = str_replace (
                         $matches[0][$i], // search
-                        $matches[2][$i], // replace
+                        $matches[4][$i], // replace
                         $this->contents  // subject
                     );
                 
@@ -145,26 +151,26 @@
                 // expand here when ready to do multiple elseif statements //
                 
                 
-                } elseif (strlen ($matches[5][$i]) > 0 && // if no <!-- elseif ? -->, this is empty
-                           $tags[$matches[5][$i]]) { // if <!-- elseif ? --> evals to true
+                } elseif (strlen ($matches[8][$i]) > 0 && // if no <!-- elseif ? -->, this is empty
+                           $tags[$matches[8][$i]]) { // if <!-- elseif ? --> evals to true
                     // replace whole thing with the true part:
                     $this->contents = str_replace (
-                        $matches[0][$i], // search
-                        $matches[6][$i], // replace
-                        $this->contents  // subject
+                        $matches[0][$i],  // search
+                        $matches[10][$i], // replace
+                        $this->contents   // subject
                     );
-                } elseif (strlen ($matches[7][$i]) > 0) {// if no <!-- else -->?, this is empty
+                } elseif (strlen ($matches[14][$i]) > 0) {// if no <!-- else -->?, this is empty
                     // since this is else, replace whole thing with the true part:
                     $this->contents = str_replace (
-                        $matches[0][$i], // search
-                        $matches[8][$i], // replace
-                        $this->contents  // subject
+                        $matches[0][$i],  // search
+                        $matches[14][$i], // replace
+                        $this->contents   // subject
                     );
                 } else { // you hit this if nothing is true and no <!-- else --> available
                     $this->contents = str_replace (
-                        $matches[0][$i], // search
-                        '', // replace
-                        $this->contents  // subject
+                        $matches[0][$i],  // search
+                        '',               // replace
+                        $this->contents   // subject
                     );
                 }
             }
@@ -172,6 +178,8 @@
         
         public function replace_tags ($tags = array ()) {
             global $all_hooks;
+            $ot = $this->ot;
+            $ct = $this->ct;
             
             // populate tags
             list ($_era, $_ert) = get_handler_by_url ($_SERVER['REQUEST_URI'], false);
@@ -183,7 +191,7 @@
                     'root' => DOMAIN,
                     'subdir' => SUBDIR,
                     'base' => DOMAIN . SUBDIR,
-                    'handler' => "$_era.$_ert",
+                    'handler' => $_era ? "$_era.$_ert" : '',
                     'memory_usage' => filesize_natural (memory_get_peak_usage ()),
                     'exec_time' => round (microtime(true) - EXEC_START_TIME, 2) . 's',
                     'year' => date ("Y"),
@@ -194,7 +202,7 @@
             
             // build tags array; replace tags with object props
             foreach ($tags as $tag => $data) {
-                $tags_processed[] = "/<!-- ?$tag ?-->/U";
+                $tags_processed[] = "/$ot ?$tag ?$ct/U";
                 $values_processed[] = (string) $data; // "abc", "true" or "array"
             }
 
@@ -215,7 +223,7 @@
             unset ($tags_processed, $values_processed); // free ram
             
             // then hide unmatched var tags
-            $this->contents = preg_replace ("/<!-- ?([a-z0-9-_])+ ?-->/U", '', $this->contents);
+            $this->contents = preg_replace ("/$ot ?([a-z0-9-_])+ ?$ct/U", '', $this->contents);
             return $this; // chaining
         }
     }
