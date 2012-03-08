@@ -1,6 +1,7 @@
-# Pop
+# POP (GPLv3)
 
-POP is a filesystem-based PHP database, allowing for object persistence without MySQL. 
+POP is a filesystem-based PHP database, allowing for object persistence without MySQL (i.e. NoSQL).
+
 It is 100% compatible with [backbone.js](http://documentcloud.github.com/backbone/).
 
 ## Installing
@@ -16,9 +17,11 @@ If you use lighttpd and want POP to handle your website, rewrite rules are as fo
 ```
 (/etc/lighttpd/lighttpd.conf)
 
-url.rewrite-if-not-file = ( "(.*)" => "/pop/index.php?file=$0" )
+url.rewrite-if-not-file = ( "(.*)" => "/pop/pop.php?file=$0" )
 
 ```
+
+Then run `/etc/init.d/lighttpd restart`.
 
 If you use apache2 and want POP to handle your website, your `.htaccess` file should have these rules:
 
@@ -30,12 +33,14 @@ DirectoryIndex index.php
 
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ index.php [L]
+  RewriteRule ^ pop.php [L]
 
 </IfModule>
 
 ErrorDocument 404 /index.php
 ```
+
+Then run `/etc/init.d/apache2 restart`.
 
 2. Run ```chmod -R 666 (install path)/pop/data``` to allow PHP write access to the data folder.
 
@@ -102,7 +107,3 @@ Handlers:
 
 ### 2012-02-12
 * Someone should go test the MySQLModel thingy.
-
-### 2012-02-08
-* Poop renamed to pop (Pop).
-* Pop licensed under GPLv3.

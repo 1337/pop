@@ -1,19 +1,25 @@
 <?php
     /*
-        set USE_POP_REDIRECTION to false if using POP as persistance library:
+        include pop.php if using POP as persistance library:
         <?php
-            define ("USE_POP_REDIRECTION", false);
-            include_once ('pop/index.php');
-            
-            $new_pop_model = new Model ();
-            
+            include_once ('pop/pop.php');
+
             (the rest of your script)
+            $new_pop_model = new Model ();
+        ?>
+
+        include index.php (typically not required) if using POP as website manager:
+        <?php
+            include_once ('pop/index.php');
+
+            (the rest of your script)
+            $new_pop_model = new Model ();
         ?>
     */
 
     // set to false if using POP as persistance library
     if (!defined ('USE_POP_REDIRECTION')) {
-        define ("USE_POP_REDIRECTION", true);
+        define ("USE_POP_REDIRECTION", false);
     }
 
     set_time_limit (3); // preferred; prevents DDoS?

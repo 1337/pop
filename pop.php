@@ -1,6 +1,7 @@
 <?php
     if (file_exists (dirname (__FILE__) . '/vars.php')) {
-        require_once (dirname (__FILE__) . '/vars.php'); // put your setup variables in this file
+        // put your setup variables in this file
+        require_once (dirname (__FILE__) . '/vars.php');
     } else {
         // defaults kick in only if you did not set up properly
         require_once (dirname (__FILE__) . '/vars.default.php');

@@ -37,13 +37,20 @@
             // false module name searches all modules.
             $this->found_objects = array (); // init var
             $this->filters = array ();
-            if (!$module_name) {
+            if ($module_name === false) {
+                // search all model types
+                $matches = glob (DATA_PATH . "*");
+            } elseif (is_string ($module_name)) {
+                $this->module_name = $module_name;
+                // all data are stored as DATA_PATH/class_name/id
                 $matches = glob (DATA_PATH . "$module_name/*");
             } elseif (is_object ($module_name)) {
                 $module_name = get_class ($module_name); // revert to its name
                 $this->module_name = $module_name;
                 // all data are stored as DATA_PATH/class_name/id
                 $matches = glob (DATA_PATH . "$module_name/*");
+            } else {
+                $matches = array ();
             }
             foreach ((array) $matches as $match) {
                 $this->found[] = basename ($match);
