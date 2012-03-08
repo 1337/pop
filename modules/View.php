@@ -4,7 +4,7 @@
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
         var $contents, $ot, $ct, $vf;
-        var $include_pattern, $forloop_pattern, $if_pattern;
+        var $include_pattern, $forloop_pattern, $if_pattern, $listcmp_pattern;
 
         function __construct ($special = '') {
             // if $special (file name) is specified, then that template will be used instead.
@@ -14,19 +14,20 @@
             $this->contents = $this->get_parsed ($template);
             
             // constants default to case-sensitive
-            if (defined ('EXTRA_TEMPLATE_TAG_FORMATS') === true) {
+            if (defined ('EXTRA_TEMPLATE_TAG_FORMATS') && EXTRA_TEMPLATE_TAG_FORMATS === true) {
                 $ot = $this->ot = '(<!--|{[{%])';       // opening tag
                 $ct = $this->ct = '([}%]}|-->)';        // close tag
             } else {
                 // limit to just html comment tags: slightly faster
-                $ot = $this->ot = '<!--';       // opening tag
-                $ct = $this->ct = '-->';        // close tag
+                $ot = $this->ot = '(<!--)';       // opening tag
+                $ct = $this->ct = '(-->)';        // close tag
             }
             $vf = $this->vf = '([a-zA-Z0-9-_\.]+)'; // variable format
 
             $this->include_pattern = "/$ot ?include ?\"([^\"]+)\" ?$ct/U";
             $this->forloop_pattern = "/$ot ?for $vf, ?$vf in $vf ?$ct(.*)$ot ?endfor ?$ct/sU";
             $this->if_pattern      = "/$ot ?if $vf ?$ct(.*)(($ot ?elseif $vf ?$ct(.*))*)($ot ?else ?$ct(.*))*$ot ?endif ?$ct/sU";
+            $this->listcmp_pattern = "/$ot ?$vf +in +$vf +$ct/sU";
         }
         
         function __toString () {
@@ -100,6 +101,11 @@
             }
         }
 
+        private function expand_list_comprehension () {
+            // e.g. <!-- object in objects -->
+            $this->contents = preg_replace ($this->listcmp_pattern, '<!-- for _lop,_$2 in $3 --><!-- _$2 --><!-- endfor -->', $this->contents);
+        }
+
         private function expand_page_loops ($tags = array ()) {
             $ot = $this->ot;
             $ct = $this->ct;
@@ -111,7 +117,8 @@
             for ($i = 0; $i < sizeof ($matches[0]); $i++) { // each match
                 $buffer = ''; // stuff to be printed
                 // replace tags within the inner loop, n times
-                if (array_key_exists ($matches[4][$i], $tags)) { // if such tag exists
+                if (array_key_exists ($matches[4][$i], $tags) && 
+                    is_array ($tags[$matches[4][$i]])) { // if such tag exists
                     $match_keys = array_keys ($tags[$matches[4][$i]]);
                     $match_vals = array_values ($tags[$matches[4][$i]]);
                     
@@ -219,9 +226,11 @@
             while (preg_match_multi (
                         array ($this->include_pattern, 
                                $this->forloop_pattern,
-                               $this->if_pattern), 
+                               $this->if_pattern,
+                               $this->listcmp_pattern), 
                         $this->contents)) {
                 $this->include_snippets (); // recursively include files (resolves include tags)
+                $this->expand_list_comprehension ();
                 $this->expand_page_loops ($tags);
                 $this->resolve_if_conditionals ($tags);
                 
