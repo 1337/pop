@@ -36,14 +36,15 @@
         function __construct ($module_name = false) {
             // false module name searches all modules.
             $this->found_objects = array (); // init var
+            $this->filters = array ();
             if (!$module_name) {
-                $module_name = '*'; // <-- gives you module types
+                $matches = glob (DATA_PATH . "$module_name/*");
             } elseif (is_object ($module_name)) {
                 $module_name = get_class ($module_name); // revert to its name
+                $this->module_name = $module_name;
+                // all data are stored as DATA_PATH/class_name/id
+                $matches = glob (DATA_PATH . "$module_name/*");
             }
-            $this->module_name = $module_name;
-            // all data are stored as DATA_PATH/class_name/id
-            $matches = glob (DATA_PATH . "$module_name/*");
             foreach ((array) $matches as $match) {
                 $this->found[] = basename ($match);
             }
@@ -96,7 +97,7 @@
             $this->found = array_map (array ($this, "_get_object_name"), (array) $this->found_objects);
             
             // reset the filters (doesn't matter no more)
-            unset ($this->filters);
+            $this->filters = array ();
             return $this;
         }
 
@@ -139,6 +140,12 @@
                     return ($haystack < $cond);
                 
                 case '=':
+                    if (is_string ($haystack) && is_string ($cond)) {
+                        // case-insensitive comparison
+                        return strcasecmp ($haystack, $cond);
+                    } else {
+                        return ($haystack == $cond);
+                    }
                 case '==':
                     return ($haystack == $cond);
                 case '!=':

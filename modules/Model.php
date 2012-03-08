@@ -5,6 +5,7 @@
         protected $properties = array ();
         
         public function __construct ($param = null) {
+            global $_models_cache_;
             // if no param (null): create (saved on first __set)
             // if param is array: create, with param = default values
             // if param is not array: get as param = id
@@ -104,7 +105,7 @@
                     throw new Exception ('Object type cannot be changed');
                     break;
                 default: // write props into a file if the object has an ID.
-                    if (array_key_exists ('id', $this->properties)) {
+                    if (isset ($this->properties['id'])) {
                         $this->put (); // record it into DB
                     }
                     break;                
@@ -184,7 +185,7 @@
         }
         
         private function _key () {
-            if (array_key_exists ('id', $this->properties)) {
+            if (isset ($this->properties['id'])) {
                 return 'db://' . get_class ($this) . '/' . $this->id;
             } else {
                 throw new Exception ('Cannot request DB key before ID assignment');
@@ -193,7 +194,7 @@
         
         function _path ($id = null) {
             if (!$id) {
-                if (array_key_exists ('id', $this->properties)) {
+                if (isset ($this->properties['id'])) {
                     // ID is not supplied, but object has it
                     $id = $this->properties['id'];
                 } else {
@@ -222,6 +223,7 @@
 
     // helpers
     function new_object ($param = null, $class_name = 'Model') {
+        global $_models_cache_;
         /*  
             retrieve existing object from memory... otherwise, load / make.
             this is something like get_or_create_object_by_name.
@@ -229,12 +231,10 @@
             $param can be ID or array of properties.
             if properties are supplied, this object is never retrived from mem.
         */
-        
         // attempt to include the module if it isn't already. scoped include!
         if (!class_exists ($class_name)) {
-            include_once (MODULE_PATH . $class_name . '.php');
+            @include_once (MODULE_PATH . $class_name . '.php');
         }
-        // die (MODULE_PATH . $class_name . '.php');
         try {
             if (is_string ($param) && isset ($_models_cache_["$class_name/$param"])) {
                 return $_models_cache_["$class_name/$param"];

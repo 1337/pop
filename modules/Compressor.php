@@ -40,7 +40,7 @@
             $files = vars('files', vars('file', false));
             if ($files !== false) {
                 header ('Content-type: text/css');
-                header ('Cache-Control: max-age=37739520, public');
+                header('Expires: ' . gmdate('D, d M Y H:i:s', strtotime('+10 years')) . ' GMT');
                 foreach (explode (',', $files) as $file) {
                     $filename = $this->safe_file_name (VIEWS_PATH . "css/$file.css");
                     echo $this->css_compress (file_get_contents ($filename));
@@ -52,7 +52,7 @@
             $files = vars('files', vars('file', false));
             if ($files !== false) {
                 header ('Content-type: text/javascript; charset: UTF-8');
-                header ('Cache-Control: max-age=37739520, public');
+                header('Expires: ' . gmdate('D, d M Y H:i:s', strtotime('+10 years')) . ' GMT');
                 foreach (explode (',', $files) as $file) {
                     $filename = $this->safe_file_name (VIEWS_PATH . "js/$file.js");
                     // JS compressor adds a ';' at the end of each script by default

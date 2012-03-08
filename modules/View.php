@@ -13,10 +13,16 @@
             $template = $this->resolve_template_name ($special); // returns full path
             $this->contents = $this->get_parsed ($template);
             
-            // constants default to case-sensitive.
-            $ot = $this->ot = '(<!--|{[{%])';       // opening tag
-            $ct = $this->ct = '([}%]}|-->)';        // close tag
-            $vf = $this->vf = '([a-zA-Z0-9-_]+)'; // variable format
+            // constants default to case-sensitive
+            if (defined ('EXTRA_TEMPLATE_TAG_FORMATS') === true) {
+                $ot = $this->ot = '(<!--|{[{%])';       // opening tag
+                $ct = $this->ct = '([}%]}|-->)';        // close tag
+            } else {
+                // limit to just html comment tags: slightly faster
+                $ot = $this->ot = '<!--';       // opening tag
+                $ct = $this->ct = '-->';        // close tag
+            }
+            $vf = $this->vf = '([a-zA-Z0-9-_\.]+)'; // variable format
 
             $this->include_pattern = "/$ot ?include ?\"([^\"]+)\" ?$ct/U";
             $this->forloop_pattern = "/$ot ?for $vf, ?$vf in $vf ?$ct(.*)$ot ?endfor ?$ct/sU";
@@ -139,7 +145,8 @@
             preg_match_all ($regex, $this->contents, $matches);
             for ($i = 0; $i < sizeof ($matches[0]); $i++) { // each match
                 
-                if ($tags[$matches[2][$i]]) { // if <!-- if ? --> evals to true
+                if (isset ($tags[$matches[2][$i]]) && 
+                    $tags[$matches[2][$i]]) { // if <!-- if ? --> evals to true
                     // replace whole thing with the true part:
                     $this->contents = str_replace (
                         $matches[0][$i], // search
@@ -151,7 +158,8 @@
                 // expand here when ready to do multiple elseif statements //
                 
                 
-                } elseif (strlen ($matches[8][$i]) > 0 && // if no <!-- elseif ? -->, this is empty
+                } elseif (isset ($tags[$matches[8][$i]]) && 
+                           strlen ($matches[8][$i]) > 0 && // if no <!-- elseif ? -->, this is empty
                            $tags[$matches[8][$i]]) { // if <!-- elseif ? --> evals to true
                     // replace whole thing with the true part:
                     $this->contents = str_replace (
@@ -159,7 +167,8 @@
                         $matches[10][$i], // replace
                         $this->contents   // subject
                     );
-                } elseif (strlen ($matches[14][$i]) > 0) {// if no <!-- else -->?, this is empty
+                } elseif (isset ($matches[14][$i]) && 
+                           strlen ($matches[14][$i]) > 0) {// if no <!-- else -->?, this is empty
                     // since this is else, replace whole thing with the true part:
                     $this->contents = str_replace (
                         $matches[0][$i],  // search

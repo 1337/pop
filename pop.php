@@ -21,7 +21,6 @@
             @ini_set ("zlib.output_compression", 4096);
         }
         @ob_start ();
-        header("Cache-Control: maxage=9999999");
 
         $all_hooks = array (); // accumulates hooks from all modules
         // init loop: load php files, get definitions, get urls (hooks)
@@ -31,7 +30,7 @@
             if (@file_exists (dirname (__FILE__) . '/' . $yaml_path) && !class_exists ($module)) {
                 try {
                     $yaml = Spyc::YAMLLoad(dirname (__FILE__) . '/' . $yaml_path);
-                    if (array_key_exists ('Handlers', $yaml)) {
+                    if (isset ($yaml['Handlers'])) {
                         foreach ($yaml['Handlers'] as $handler_array) {
                             foreach ($handler_array as $hk => $hndl) {
                                 // this foreach just breaks keys from values.

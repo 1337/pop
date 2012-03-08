@@ -27,6 +27,7 @@
     define ("STATIC_PATH", 'static/'); // cannot be changed
     define ("SITE_TEMPLATE", 'default.php');
     define ("DEFAULT_TEMPLATE", 'default.php');
+    define ("EXTRA_TEMPLATE_TAG_FORMATS", false); // allow {{ tags }} ?
     
     // SUBDIR: exclude prefix slash, include trailing slash.
     // define ("SUBDIR", substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
