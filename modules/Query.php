@@ -81,15 +81,16 @@
             // This class does NOT store or cache these results.
             // calling fetch more than once on the same Query object will reset its list of items found.
             $this->found_objects = array (); // reset var
-            $found_count = 0;
-            foreach ((array) $this->found as $file) {
+            $i = $found_count = 0;
+            // if the DB has fewer matching results than $limit, this will force
+            // fetch() to go through the entire store. Performance hit!!
+            // adjust FS_FETCH_HARD_LIMIT.
+            foreach ((array) $this->found as $index => $file) {
                 $object = $this->_create_object_from_filename ($file);
                 $include_this_object = true;
                 foreach ((array) $this->filters as $filter) {
                     // if any filter is not met, $include_this_object is false
-                    $include_this_object = $include_this_object && 
-                                           $this->_filter_function ($object, $filter);
-                    unset ($this->filter);
+                    $include_this_object &= $this->_filter_function ($object, $filter);
                 }
                 if ($include_this_object) {
                     $this->found_objects[] = $object;
@@ -99,11 +100,15 @@
                     // we have enough objects! quit looking immediately.
                     break;
                 }
+                if ($index > FS_FETCH_HARD_LIMIT) {
+                    break; // when should Query just give up?
+                }
             }
             // update filenames (count() uses it)
             $this->found = array_map (array ($this, "_get_object_name"), (array) $this->found_objects);
             
             // reset the filters (doesn't matter no more)
+            $object = null;
             $this->filters = array ();
             return $this;
         }

@@ -34,6 +34,7 @@
     define ("SITE_TEMPLATE", 'default.php');
     define ("DEFAULT_TEMPLATE", 'default.php');
     define ("EXTRA_TEMPLATE_TAG_FORMATS", false); // allow {{ tags }} ?
+    define ("FS_FETCH_HARD_LIMIT", PHP_INT_MAX); // when should Query give up?
     
     // SUBDIR: exclude prefix slash, include trailing slash.
     // define ("SUBDIR", substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
