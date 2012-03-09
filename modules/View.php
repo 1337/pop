@@ -1,5 +1,5 @@
 <?php
-    // require_once (dirname (__FILE__) . '/Model.php');
+    @include_once (dirname (__FILE__) . '/Compressor.php');
 
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
@@ -22,17 +22,17 @@
                 $ot = $this->ot = '(<!--)';       // opening tag
                 $ct = $this->ct = '(-->)';        // close tag
             }
-            $vf = $this->vf = '([a-zA-Z0-9-_\.]+)'; // variable format
+            $vf = $this->vf = '([_a-zA-Z0-9\.]+)'; // variable format
 
             $this->include_pattern = "/$ot ?include ?\"([^\"]+)\" ?$ct/U";
             $this->forloop_pattern = "/$ot ?for $vf, ?$vf in $vf ?$ct(.*)$ot ?endfor ?$ct/sU";
             $this->if_pattern      = "/$ot ?if $vf ?$ct(.*)(($ot ?elseif $vf ?$ct(.*))*)($ot ?else ?$ct(.*))*$ot ?endif ?$ct/sU";
-            $this->listcmp_pattern = "/$ot ?$vf +in +$vf +$ct/sU";
+            $this->listcmp_pattern = "/$ot ?$vf ?in ?$vf ?$ct/sU";
         }
         
         function __toString () {
             // GZ buffering is handled elsewhere.
-            if (class_exists ("Compressor")) {
+            if (class_exists ("Compressor") && TEMPLATE_COMPRESS === true) {
                 return (Compressor::html_compress ($this->contents));
             } else {
                 return ($this->contents);
@@ -47,7 +47,7 @@
             if (TEMPLATE_SAFE_MODE === false) { // PHP tags don't work in safe mode.
                 ob_start();
                 // open_basedir
-                if (@file_exists ($file)) {
+                if (@is_file ($file)) {
                     @include ($file);
                 } else {
                     // file not found
@@ -196,6 +196,7 @@
             global $all_hooks;
             $ot = $this->ot;
             $ct = $this->ct;
+            $vf = $this->vf;
             
             // populate tags
             list ($_era, $_ert) = get_handler_by_url ($_SERVER['REQUEST_URI'], false);
@@ -206,7 +207,7 @@
                     'content' => '',
                     'root' => DOMAIN,
                     'subdir' => SUBDIR,
-                    'base' => DOMAIN . SUBDIR,
+                    'base' => DOMAIN . SUBDIR, // so, pop dir
                     'handler' => $_era ? "$_era.$_ert" : '',
                     'memory_usage' => filesize_natural (memory_get_peak_usage ()),
                     'exec_time' => round (microtime(true) - EXEC_START_TIME, 4)*1000 . 'ms',
@@ -241,7 +242,7 @@
             unset ($tags_processed, $values_processed); // free ram
             
             // then hide unmatched var tags
-            $this->contents = preg_replace ("/$ot ?([a-z0-9-_])+ ?$ct/U", '', $this->contents);
+            $this->contents = preg_replace ("/$ot ?$vf ?$ct/U", '', $this->contents);
             return $this; // chaining
         }
     }
@@ -250,9 +251,14 @@
         function render ($options = array (), $template = '') {
             // that's why you ob_start at the beginning of Things.
             $content = ob_get_contents (); ob_end_clean ();
-            $options = array_merge ($options, array ('content'=>$content));
-            $pj = new_object ($options, 'Model');
-            $pj->render ();
+            $pj = new_object ('Model');
+            $pj->render (
+                $template, 
+                array_merge (
+                    $options, 
+                    array ('content' => $content)
+                )
+            );
         }
     }
 ?>

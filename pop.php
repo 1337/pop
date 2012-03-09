@@ -11,6 +11,8 @@
 
     // TODO: events, access levels, perm checks, relationships
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
+    // TODO: query indices
+    // TODO: non-random GUID hash object storage
     
     define ('EXEC_START_TIME', microtime (true));
     if (USE_POP_REDIRECTION === true) {
@@ -20,7 +22,7 @@
             // compress output if client likes that
             @ini_set ("zlib.output_compression", 4096);
         }
-        @ob_start ();
+        // @ob_start ();
 
         $all_hooks = array (); // accumulates hooks from all modules
         $url_cache = DATA_PATH . '_url_cache.json';
@@ -61,7 +63,8 @@
             list ($module, $handler) = get_handler_by_url ($url_parts['path']);
             @include_once (MODULE_PATH . $module . '.php'); // modules are the php classes
             $page = new_object (null, $module);
-            die ($page->$handler ()); // load only one page...
+            $page->$handler (); // load only one page...
+            die ();
         } catch (Exception $e) {
             // core error handler (not that it always works)
             debug ($e->getMessage ());
@@ -69,7 +72,7 @@
     } else { // use POP as library
         foreach ($modules as $module) { // modules is in (default_)vars.php
             $path = "$module.php";
-            if (@file_exists (MODULE_PATH . $path) && !class_exists ($module)) {
+            if (@file_exists (MODULE_PATH . $path)) {// && !class_exists ($module)) {
                 @include_once (MODULE_PATH . $path); // modules are the php classes
             }
         }

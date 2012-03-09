@@ -231,6 +231,91 @@
         }
     }
     
+    if (!function_exists ('async_curl')) {
+        function async_curl ($url, $params) {
+            // stackoverflow.com/questions/962915
+            foreach ($params as $key => &$val) {
+              if (is_array($val)) $val = implode (',', $val);
+                $post_params[] = $key . '=' . urlencode ($val);
+            }
+            $post_string = implode ('&', $post_params);
+
+            $parts = parse_url ($url);
+
+            $fp = fsockopen (
+                $parts['host'],
+                isset ($parts['port']) ? $parts['port'] : 80,
+                $errno,
+                $errstr,
+                30
+            );
+
+            $out = "POST ".$parts['path']." HTTP/1.1\r\n";
+            $out.= "Host: ".$parts['host']."\r\n";
+            $out.= "Content-Type: application/x-www-form-urlencoded\r\n";
+            $out.= "Content-Length: ".strlen($post_string)."\r\n";
+            $out.= "Connection: Close\r\n\r\n";
+            if (isset($post_string)) $out.= $post_string;
+
+            fwrite ($fp, $out);
+            fclose ($fp);
+        }
+    }
+    
+    if (!function_exists ('map_reduce')) {
+        function map_reduce ($array, $callback,
+                              $drop_results = false,
+                              $map_url = false, 
+                              $reduce_url = false) {
+            /*  maps the array an the operation to different PHP processes/threads
+                known as shards, then reduces them back to one array or value.
+                function referenced by callback just be present in all threads.
+                $drop_results = true issues calls to the map_url, but does not
+                wait for these functions to return.
+            */
+        }
+        
+        // function connects to an array of URLS at the same time
+        // and returns an array of results.
+
+        function multiHTTP ($urlArr) {
+         $sockets = Array(); // socket array!
+         $urlInfo = Array(); // info arr
+         $retDone = Array();
+         $retData = Array();
+         $errno   = Array();
+         $errstr  = Array();
+         for ($x=0;$x<count($urlArr);$x++) {
+          $urlInfo[$x] = parse_url($urlArr[$x]);
+          $urlInfo[$x][port] = ($urlInfo[$x][port]) ? $urlInfo[$x][port] : 80;
+          $urlInfo[$x][path] = ($urlInfo[$x][path]) ? $urlInfo[$x][path] : "/";
+          $sockets[$x] = fsockopen($urlInfo[$x][host], $urlInfo[$x][port],
+                                   $errno[$x], $errstr[$x], 30);
+          socket_set_blocking($sockets[$x],FALSE);
+          $query = ($urlInfo[$x][query]) ? "?" . $urlInfo[$x][query] : "";
+          fputs($sockets[$x],"GET " . $urlInfo[$x][path] . "$query HTTP/1.0\r\nHost: " .
+                $urlInfo[$x][host] . "\r\n\r\n");
+         }
+         // ok read the data from each one
+         $done = false;
+         while (!$done) {
+          for ($x=0; $x < count($urlArr);$x++) {
+           if (!feof($sockets[$x])) {
+            if ($retData[$x]) {
+             $retData[$x] .= fgets($sockets[$x],128);
+            } else {
+             $retData[$x] = fgets($sockets[$x],128);
+            }
+           } else {
+            $retDone[$x] = 1;
+           }
+          }
+          $done = (array_sum($retDone) == count($urlArr));
+         }
+         return $retData;
+        } 
+    }
+    
     if (!function_exists ('preg_match_multi')) {
         function preg_match_multi ($patterns, $contents) {
             // accept multiple preg patterrns on the same string.

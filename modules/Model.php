@@ -34,7 +34,7 @@
                             $this->properties['id'] = $param; // add ID
                             
                             // cache this object by reference; key being {class}/{id}
-                            // use function $ to get the object back.
+                            // use function new_object to get the object back.
                             $_models_cache_[get_class ($this) . '/' . $this->properties['id']] =& $this;
                             
                         } catch (Exception $e) {

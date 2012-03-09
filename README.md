@@ -17,7 +17,7 @@ If you use lighttpd and want POP to handle your website, rewrite rules are as fo
 ```
 (/etc/lighttpd/lighttpd.conf)
 
-url.rewrite-if-not-file = ( "(.*)" => "/pop/pop.php?file=$0" )
+url.rewrite-if-not-file = ( "(.*)" => "/pop/index.php" )
 
 ```
 
@@ -33,7 +33,7 @@ DirectoryIndex index.php
 
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ pop.php [L]
+  RewriteRule ^ /pop/index.php [L]
 
 </IfModule>
 

@@ -17,6 +17,9 @@
                     var_dump (
                         $a->filter('id ==', 123)->get (1)
                     );
+            
+            reusing a Query object has unexpected results.
+            always create a new Query object.
         */
         
         var $found; // public array of matching filenames. need this to overload $this->found[]
@@ -119,6 +122,29 @@
                 $this->fetch ($limit); // if nothing, try fetch again just to be sure
             }
             return $this->found_objects;
+        }
+        
+        function iterate () {
+            // return one result at a time; FALSE for no more rows
+            // (same behaviour as mysql_fetch_???)
+            if ($this->found) {
+                while ($found = array_shift ($this->found)) {
+                    $object = $this->_create_object_from_filename ($found);
+                    
+                    // same code from fetch ()
+                    $include_this_object = true;
+                    foreach ((array) $this->filters as $filter) {
+                        // if any filter is not met, $include_this_object is false
+                        $include_this_object &= $this->_filter_function ($object, $filter);
+                    }
+                    // $include_this_object = array_reduce ($this->filters, array ($this, '_filter_function'), true);
+                    if ($include_this_object) {
+                        return $object;
+                    }
+                    unset ($object);
+                }
+            }
+            return false;
         }
         
         function count () {

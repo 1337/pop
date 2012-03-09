@@ -6,6 +6,8 @@
 
             (the rest of your script)
             $new_pop_model = new Model ();
+            
+            render ();
         ?>
 
         include index.php (typically not required) if using POP as website manager:
@@ -35,11 +37,14 @@
     define ("DEFAULT_TEMPLATE", 'default.php');
     define ("EXTRA_TEMPLATE_TAG_FORMATS", false); // allow {{ tags }} ?
     define ("FS_FETCH_HARD_LIMIT", PHP_INT_MAX); // when should Query give up?
+    define ("TEMPLATE_COMPRESS", true); // use compressor = more CPU, less bandwidth
     
     // SUBDIR: exclude prefix slash, include trailing slash.
     // define ("SUBDIR", substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
     define ("SUBDIR", substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
 
+    // you CAN store this info elsewhere by including an external file
+    // e.g. include ('/var/etc/my_folder/mysql_info.php');
     define ("MYSQL_USER", '');
     define ("MYSQL_PASSWORD", '');
     define ("MYSQL_HOST", 'localhost');
