@@ -168,8 +168,16 @@
             // $filter = e.g. ['name ==', 'brian']
             // returns true if object meets filter criteria.
             $cond = $filter[1]; // e.g. '5'
-            $mode = trim (substr ($filter[0], -2)); // should be >, <, ==, !=, <=, >=, or IN
-            $field = trim (substr ($filter[0], 0, strlen ($filter[0]) - strlen ($mode)));
+            if (strpos ($filter[0], ' ') !== false) {
+                // if space is found in 'name ==', then split by it
+                $spl = explode (' ', $filter[0]);
+                $mode = $spl[1]; // should be >, <, ==, !=, <=, >=, or IN
+                $field = $spl[0];
+            } else {
+                // else guess by getting last two characters or something
+                $mode = trim (substr ($filter[0], -2)); // should be >, <, ==, !=, <=, >=, or IN
+                $field = trim (substr ($filter[0], 0, strlen ($filter[0]) - strlen ($mode)));
+            }
             $haystack = $object->{$field}; // good name
             switch ($mode) {
                 case '>':
@@ -186,6 +194,8 @@
                     }
                 case '==':
                     return ($haystack == $cond);
+                case '===':
+                    return ($haystack === $cond);
                 case '!=':
                 case '<>': // because vb.
                     return ($haystack != $cond);
@@ -194,12 +204,14 @@
                 case '<=':
                     return ($haystack <= $cond);
                 case '><': // within; $cond must be [min, max]
+                case 'WITHIN':
                     return ($haystack >= $cond[0] && $haystack <= $cond[1]);
-                case 'IN':
+                case 'IN': // list of criteria supplied contains this field's value
                     return (in_array ($haystack, $cond));
-                case 'NI': // reverse IN
+                case 'NI': // reverse IN; this field's value is an array that contains the criterion
+                case 'CONTAINS':
                     return (in_array ($cond, $haystack));
-                case '!%': // 'is within the condition'
+                case '!%': // 'is found in the condition'
                     return (strpos ($cond, $haystack) >= 0);
                 case '%': // 'contains condition'
                     return (strpos ($haystack, $cond) >= 0);

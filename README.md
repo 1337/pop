@@ -18,7 +18,6 @@ If you use lighttpd and want POP to handle your website, rewrite rules are as fo
 (/etc/lighttpd/lighttpd.conf)
 
 url.rewrite-if-not-file = ( "(.*)" => "/pop/index.php" )
-
 ```
 
 Then run `/etc/init.d/lighttpd restart`.
@@ -45,6 +44,19 @@ Then run `/etc/init.d/apache2 restart`.
 2. Run ```chmod -R 666 (install path)/pop/data``` to allow PHP write access to the data folder.
 
 ## Changelog
+
+### 2012-03-09
+* Query can now be called iteratively. With this pattern, the Query class can fetch thousands of objects without memory shortage.
+
+```
+while ($object = $query->iterate ()) {
+    do_something_with ($object);
+    unset ($object);
+}
+```
+
+* Several template shorthands have been added. For example, `<!-- tag in tags -->` is equivalent to `<!-- for i,tag in tags --><!-- tag --><!-- endfor -->`.
+* Added absolute file system fetch limit. If a given Model type has thousands of instances and you want just the top 5, this might be a good idea.
 
 ### 2012-03-07
 * Modules now manage their own dependencies. Use `require_once (dirname (__FILE__) . '/Model.php');` to include the Model class, for example.

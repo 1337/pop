@@ -22,7 +22,7 @@
             // compress output if client likes that
             @ini_set ("zlib.output_compression", 4096);
         }
-        // @ob_start ();
+        @ob_start ();
 
         $all_hooks = array (); // accumulates hooks from all modules
         $url_cache = DATA_PATH . '_url_cache.json';
@@ -76,6 +76,7 @@
                 @include_once (MODULE_PATH . $path); // modules are the php classes
             }
         }
+        @ob_start (); // prevent "failed to delete buffer" errors
     }
     
     // if not USE_POP_REDIRECTION, the rest of the page can be coded as usual.

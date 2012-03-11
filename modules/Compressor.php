@@ -6,17 +6,19 @@
         
         private static function css_compress ($h) {
             /* remove comments */
-            $h = preg_replace ('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $h);
-            /* remove tabs, spaces, newlines, etc. */
-            $h = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '), '', $h);
-         
+            if (TEMPLATE_COMPRESS === true) {
+                $h = preg_replace ('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $h);
+                /* remove tabs, spaces, newlines, etc. */
+                $h = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '), '', $h);
+            }
             return $h;
         }
 
         public static function js_compress ($h) {
             /* remove comments */
-            $h = preg_replace ('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $h);
-         
+            if (TEMPLATE_COMPRESS === true) {
+                $h = preg_replace ('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $h);
+            }
             return $h;
         }
 
