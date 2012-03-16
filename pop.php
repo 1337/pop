@@ -25,16 +25,17 @@
         @ob_start ();
 
         $all_hooks = array (); // accumulates hooks from all modules
-        $url_cache = DATA_PATH . '_url_cache.json';
+        $url_cache = CACHE_PATH . '_url_cache.json';
         
-        if (@file_exists ($url_cache)) { // because Spyc is slow, we cache URLs
+        if (@file_exists ($url_cache) && 
+            time () - filemtime ($url_cache) < 3600) { // because Spyc is slow, we cache URLs
             try { // because
                 $all_hooks = json_decode (file_get_contents ($url_cache), true);
             } catch (Exception $e) {
                 debug (sprintf ("URL cache is corrupted: %s", $e->getMessage ()));
             }
         } else { // load URLs from all handlers... and cache them.
-            require_once (LIBRARY_PATH . '/spyc.php');
+            require_once (LIBRARY_PATH . 'spyc.php');
             // init loop: load php files, get definitions, get urls (hooks)
             foreach ($modules as $module) { // modules is in (default_)vars.php
                 $path = "/$module.php";
