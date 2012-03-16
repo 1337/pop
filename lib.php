@@ -1,5 +1,9 @@
 <?php
-
+    include_once (dirname (__FILE__) . '/lib/async.php');
+    include_once (dirname (__FILE__) . '/lib/core.php');
+    include_once (dirname (__FILE__) . '/lib/datetime.php');
+    include_once (dirname (__FILE__) . '/lib/strings.php');
+    
     if (!function_exists ('kwargs')) {
         function kwargs () { // come on, short round.
             $url_parts = parse_url ($_SERVER['REQUEST_URI']);
@@ -270,9 +274,6 @@
         }
     }
     
-    if (!function_exists ('map_reduce')) {
-    }
-    
     if (!function_exists ('preg_match_multi')) {
         function preg_match_multi ($patterns, $contents) {
             // accept multiple preg patterrns on the same string.
@@ -280,6 +281,74 @@
                 if (preg_match ($pattern, $contents) > 0) {
                     return true;
                 }
+            }
+        }
+    }
+
+    if (!function_exists ('default_to')) {
+        function default_to () {
+            // successively checks all supplied variables and returns the
+            // first one that isn't null or empty or false or not set
+            // (but 0 is valid and will be returned)
+            $args = func_get_args ();
+            $argv = func_num_args ();
+            for ($i = 0; $i < $argv; $i ++) {
+                if (! (is_null ($args[$i]) ||
+                       $args[$i] === '' ||
+                       $args[$i] === false ||
+                       !isset ($args[$i]))) {
+                    return $args[$i];
+                }
+            }
+            return (!isset ($wat) || $wat == '' || $wat == null) ? $wut : $wat;
+        }
+    }
+ 
+    if (!function_exists ('array_value_key')) {
+        function array_value_key ($array, $lookup) {
+            // given a 1-to-1 dictionary, find the index of $value.
+            foreach ((array) $array as $key => $value) {
+                if ($value == $lookup) {
+                    return $key;
+                }
+            }
+            return null;
+        }
+    }
+    
+    if (!function_exists ('array_remove_values')) {
+        function array_remove_values ($array, $values) {
+            if (!is_array ($values)) {
+                $values = array ($values);
+            }
+            return array_diff ($array, $values);
+        }
+    }
+    
+    if (!function_exists ('ack_r3')) {
+        function ack_r3 (&$array, $case=CASE_LOWER, $flag_rec=false) {
+            // found here, no owner: http://php.net/manual/en/function.array-change-key-case.php
+            $array = array_change_key_case ($array, $case);
+            if ($flag_rec) {
+                foreach ($array as $key => $value) {
+                    if (is_array ($value)) {
+                        ack_r3 ($array[$key], $case, true);
+                    }
+                }
+            }
+        }
+    }
+
+    if (!function_exists ('escape_data')) {
+        function escape_data ($data) { 
+            global $slink;
+            if (ini_get('magic_quotes_gpc')) {
+                $data = stripslashes($data);
+            }
+            if ($slink) {
+                return mysql_real_escape_string (trim ($data), $slink);
+            } else {
+                return addslashes (trim ($data));
             }
         }
     }
