@@ -13,6 +13,23 @@
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
     // TODO: query indices
     // TODO: non-random GUID hash object storage
+
+    // Experimental ETag caching.
+    // if (isset ($_SERVER['HTTP_IF_NONE_MATCH'])) {
+        // $etag = trim ($_SERVER['HTTP_IF_NONE_MATCH']);
+        // if (glob (CACHE_PATH . $etag) !== false) { // if thing was deemed static
+            // header ("HTTP/1.1 304 Not Modified");
+            // exit;
+        // }
+    // }
+    
+    // Static caching.
+    $etag = create_etag ($_SERVER['REQUEST_URI']);
+    if (glob (CACHE_PATH . $etag)) {
+        // header ("Cache-Control: public, max-age=290304000");
+        echo file_get_contents (CACHE_PATH . $etag);
+        exit;
+    }
     
     define ('EXEC_START_TIME', microtime (true));
     if (USE_POP_REDIRECTION === true) {

@@ -46,12 +46,12 @@
                     $filename = $this->safe_file_name (VIEWS_PATH . "css/$file.css");
                     echo $this->css_compress (file_get_contents ($filename));
                 }
-                $fc = ob_get_contents ();
-                $etag = create_etag ($fc);
-                @file_put_contents (CACHE_PATH . $etag, $fc);
+                // $fc = ob_get_contents ();
+                // $etag = create_etag ($_SERVER['REQUEST_URI']);
+                // @file_put_contents (CACHE_PATH . $etag, $fc);
                 header ('Content-type: text/css');
                 header ('Expires: ' . gmdate('D, d M Y H:i:s', strtotime('+10 years')) . ' GMT');
-                header ('ETag: "' . $etag . '"');
+                // header ('ETag: "' . $etag . '"');
             }
         }
         
@@ -64,12 +64,12 @@
                     // JS compressor adds a ';' at the end of each script by default
                     echo $this->js_compress (file_get_contents ($filename) . ';');
                 }
-                $fc = ob_get_contents ();
-                $etag = create_etag ($fc);
-                @file_put_contents (CACHE_PATH . $etag, $fc);
+                // $fc = ob_get_contents ();
+                // $etag = create_etag ($_SERVER['REQUEST_URI']);
+                // @file_put_contents (CACHE_PATH . $etag, $fc);
                 header ('Content-type: text/javascript; charset: UTF-8');
                 header ('Expires: ' . gmdate('D, d M Y H:i:s', strtotime('+10 years')) . ' GMT');
-                header ('ETag: "' . $etag . '"');
+                // header ('ETag: "' . $etag . '"');
             }
         }
         

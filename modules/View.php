@@ -202,6 +202,7 @@
             list ($_era, $_ert) = get_handler_by_url ($_SERVER['REQUEST_URI'], false);
             $tags = array_merge (
                 array (
+                    '__cacheable' => false,
                     'title' => '',
                     'styles' => '',
                     'content' => '',
@@ -251,6 +252,10 @@
         function render ($options = array (), $template = '') {
             // that's why you ob_start at the beginning of Things.
             $content = ob_get_contents (); ob_end_clean ();
+            
+            // $etag = create_etag ($_SERVER['REQUEST_URI']);
+            // @file_put_contents (CACHE_PATH . $etag, $content);
+
             $pj = new_object ('Model');
             $pj->render (
                 $template, 

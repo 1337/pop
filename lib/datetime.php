@@ -133,5 +133,4 @@
             return "on " . date("F j, Y", strtotime($datetime));
         }
     }
-
 ?>

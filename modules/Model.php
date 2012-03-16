@@ -171,11 +171,21 @@
                 $pj->replace_tags (
                     array_merge ($this->properties, $more_options)
                 );
-                echo $pj->__toString ();
-                unset ($pj);
+                $fc = $pj->__toString ();
+                echo $fc;
+                // unset ($pj);
+                // cache this thing?
+                if (array_key_exists ('__cacheable', $more_options) &&
+                    $more_options['__cacheable'] == true) {
+                    @file_put_contents (
+                        CACHE_PATH . create_etag ($_SERVER['REQUEST_URI']), 
+                        $fc
+                    );
+                }
             } else {
                 print_r ($this->properties ());
             }
+            
             $this->onRender (); // trigger event
         }
         
