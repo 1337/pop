@@ -39,6 +39,7 @@
     define ("EXTRA_TEMPLATE_TAG_FORMATS", false); // allow {{ tags }} ?
     define ("FS_FETCH_HARD_LIMIT", PHP_INT_MAX); // when should Query give up?
     define ("TEMPLATE_COMPRESS", true); // use compressor = more CPU, less bandwidth
+    define ("SITE_SECRET", '5ubraNa2'); // for ajax 
     
     // SUBDIR: exclude prefix slash, include trailing slash.
     // define ("SUBDIR", substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));

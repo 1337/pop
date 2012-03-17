@@ -62,7 +62,11 @@
                 foreach (explode (',', $files) as $file) {
                     $filename = $this->safe_file_name (VIEWS_PATH . "js/$file.js");
                     // JS compressor adds a ';' at the end of each script by default
-                    echo $this->js_compress (file_get_contents ($filename) . ';');
+                    echo str_replace (
+                        array ('<!-- domain -->', '<!-- subdir -->'),
+                        array (      DOMAIN,            SUBDIR     ),
+                        $this->js_compress (file_get_contents ($filename) . ';')
+                    );
                 }
                 // $fc = ob_get_contents ();
                 // $etag = create_etag ($_SERVER['REQUEST_URI']);

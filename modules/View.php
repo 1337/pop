@@ -1,10 +1,11 @@
 <?php
     @include_once (dirname (__FILE__) . '/Compressor.php');
+    @include_once (dirname (__FILE__) . '/AjaxField.php');
 
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
         var $contents, $ot, $ct, $vf;
-        var $include_pattern, $forloop_pattern, $if_pattern, $listcmp_pattern;
+        var $include_pattern, $forloop_pattern, $if_pattern, $listcmp_pattern, $field_pattern;
 
         function __construct ($special = '') {
             // if $special (file name) is specified, then that template will be used instead.
@@ -28,6 +29,7 @@
             $this->forloop_pattern = "/$ot ?for $vf, ?$vf in $vf ?$ct(.*)$ot ?endfor ?$ct/sU";
             $this->if_pattern      = "/$ot ?if $vf ?$ct(.*)(($ot ?elseif $vf ?$ct(.*))*)($ot ?else ?$ct(.*))*$ot ?endif ?$ct/sU";
             $this->listcmp_pattern = "/$ot ?$vf ?in ?$vf ?$ct/sU";
+            $this->field_pattern = "/$ot ?field $vf +$vf +$vf ?$ct/sU";
         }
         
         function __toString () {
@@ -73,7 +75,7 @@
             } elseif (is_file (VIEWS_PATH . DEFAULT_TEMPLATE)) {
                 return VIEWS_PATH . DEFAULT_TEMPLATE;
             } else {
-                throw new Exception ('nope');
+                throw new Exception ('Template file cannot be found to render this page.');
             }
         }
 
@@ -96,6 +98,41 @@
                         // replace tags in this contents with that contents
                         $this->contents = str_replace ($matches[0][$index], $nv, $this->contents);
                         unset ($nv); // free memory
+                    }
+                }
+            }
+        }
+
+        private function create_field_tags () {
+            /* replace tags that look like
+               <!-- field [id] [type] [prop] --> (without the square brackets)
+               with an AJAX html tag. requires jQuery Transmission on the same page.
+               
+               replace_tags help recurse this function.
+            */
+            if (class_exists ('AjaxField')) {
+                $af = new_object (null, 'AjaxField');
+
+                $matches = array (); // preg_match_all gives you an array of &$matches.
+                if (preg_match_all ($this->field_pattern, $this->contents, $matches) > 0) {
+                    if (sizeof ($matches) > 0 && sizeof ($matches[2]) > 0) {
+                        foreach ($matches[2] as $index => $id) { // [1] because [0] is full line
+                            // try {
+                                $type = $matches[3][$index];
+                                $prop = $matches[4][$index];
+                                $obj = new_object ($id, $type);
+                                if ($obj) {
+                                    // replace tags in this contents with that contents
+                                    $this->contents = str_replace (
+                                        $matches[0][$index], 
+                                        $af->make ($obj, $matches[4][$index]), 
+                                        $this->contents
+                                    );
+                                }
+                            // } except (Exception $e) {
+                                // meh
+                            // }
+                        }
                     }
                 }
             }
@@ -229,12 +266,14 @@
                         array ($this->include_pattern, 
                                $this->forloop_pattern,
                                $this->if_pattern,
-                               $this->listcmp_pattern), 
+                               $this->listcmp_pattern,
+                               $this->field_pattern), 
                         $this->contents)) {
                 $this->include_snippets (); // recursively include files (resolves include tags)
                 $this->expand_list_comprehension ();
                 $this->expand_page_loops ($tags);
                 $this->resolve_if_conditionals ($tags);
+                $this->create_field_tags ($tags);
                 
                 // replace all variable tags
                 // remember, replacement may generate new include tags

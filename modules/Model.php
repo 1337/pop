@@ -121,6 +121,60 @@
             return $this->__toString ();
         }
         
+        public function ajax_handler () {
+            // depending on what the request is like, it will either
+            // serve JSON data or modify a Model with the supplied request.
+            
+            // to request information, send in these fields:
+            // - id (object id)
+            // - type (object type)
+            // - prop (data field)
+            // - key (id-type-field-specific read key)
+            // returns: (string) val
+            
+            // to update information, send in these fields, too:
+            // - key (id-type-field-specific write key)
+            // - val (field value)
+            // returns: (string) val
+
+            $id = vars ('id', false);
+            $type = vars ('type', false);
+            $prop = vars ('prop', false);
+            $val = vars ('val', false);
+            $key = vars ('key', false);
+
+            try {
+                if ($id && $type && $prop) {
+                    $obj = new_object ($id, $type);
+                    if ($val && $key) { // write
+                        $hash = $obj->get_hash ('write');
+                        if ($key === $hash) { // key is correct -> update object
+                            $obj->$prop = $val;
+                        } else { // key is incorrect
+                            header ("HTTP/1.1 403 Forbidden");
+                            // die (var_export ($this, true));
+                            die (); // do not serve the json
+                        }
+                    } else { // read
+                        $hash = $obj->get_hash ('read');
+                        if ($key !== $hash) { // key is incorrect
+                            header ("HTTP/1.1 403 Forbidden");
+                            die (); // do not serve the json
+                        }
+                    }
+                    // output info
+                    $resp = array (
+                        'value' => $obj->$prop
+                    );
+                    echo (json_encode ($resp));
+                } else { // minimum request params not yet
+                    header ("HTTP/1.1 400 Bad Request");
+                }
+            } catch (Exception $e) {
+                header ("HTTP/1.1 500 Internal Server Error");
+            }
+        }
+        
         public static function _get ($id = null, $class_name = null) {
             // allows calls like Model::_get(id)
             if (is_null ($class_name) && function_exists('get_called_class')) {
@@ -194,6 +248,10 @@
             return $this->_key ();
         }
         
+        function get_hash ($type = 'read') {
+            return md5 ($this->id . $this->type . $this->field . SITE_SECRET . $type);
+        }
+
         private function _key () {
             if (isset ($this->properties['id'])) {
                 return 'db://' . get_class ($this) . '/' . $this->id;
