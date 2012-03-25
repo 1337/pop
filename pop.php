@@ -9,10 +9,11 @@
     
     require_once (dirname (__FILE__) . '/lib.php');
 
-    // TODO: events, access levels, perm checks, relationships
+    // TODO: access levels, perm checks, relationships
     // TODO: loose coupling (allow modules to only notify the core to induce custom-named events)
     // TODO: query indices
     // TODO: non-random GUID hash object storage
+    // TODO: http://stackoverflow.com/questions/3849415
 
     // Experimental ETag caching.
     // if (isset ($_SERVER['HTTP_IF_NONE_MATCH'])) {
@@ -72,7 +73,7 @@
                     }
                 }
             }
-            file_put_contents ($url_cache, json_encode ($all_hooks));
+            @file_put_contents ($url_cache, json_encode ($all_hooks));
         }
 
         // serve loop: load responsible controller

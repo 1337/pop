@@ -46,7 +46,11 @@ Then run `/etc/init.d/apache2 restart`.
 ## Changelog
 
 ### 2012-03-17
-* New `AjaxField` class renders a HTML input/textarea tag corresponding to a given object's field.
+* New `AjaxField` class renders a HTML input/textarea tag corresponding to a given object's field:
+
+```
+<!-- field (object id) (object class) (object property) -->
+```
 
 ### 2012-03-09
 * Query can now be called iteratively. With this pattern, the Query class can fetch thousands of objects without memory shortage.
