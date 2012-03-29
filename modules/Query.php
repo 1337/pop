@@ -97,7 +97,7 @@
                 }
                 if ($include_this_object) {
                     $this->found_objects[] = $object;
-                    $found_count++;
+                    ++$found_count;
                 }
                 if ($found_count >= $limit) {
                     // we have enough objects! quit looking immediately.
@@ -197,24 +197,25 @@
                 case '===':
                     return ($haystack === $cond);
                 case '!=':
-                case '<>': // because vb.
                     return ($haystack != $cond);
                 case '>=':
                     return ($haystack >= $cond);
                 case '<=':
                     return ($haystack <= $cond);
-                case '><': // within; $cond must be [min, max]
-                case 'WITHIN':
+                case 'WITHIN': // within; $cond must be [min, max]
                     return ($haystack >= $cond[0] && $haystack <= $cond[1]);
                 case 'IN': // list of criteria supplied contains this field's value
-                    return (in_array ($haystack, $cond));
-                case 'NI': // reverse IN; this field's value is an array that contains the criterion
-                case 'CONTAINS':
-                    return (in_array ($cond, $haystack));
-                case '!%': // 'is found in the condition'
-                    return (strpos ($cond, $haystack) >= 0);
-                case '%': // 'contains condition'
-                    return (strpos ($haystack, $cond) >= 0);
+                    if (is_string ($cond)) {
+                        return (strpos ($cond, $haystack) >= 0); // 'is found in the condition'
+                    } else { // compare as array
+                        return (in_array ($haystack, $cond));
+                    }
+                case 'CONTAINS': // reverse IN; this field's value is an array that contains the criterion
+                    if (is_string ($cond)) {
+                        return (strpos ($haystack, $cond) >= 0); // 'condition is found in db field'
+                    } else { // compare as array
+                        return (in_array ($cond, $haystack));
+                    }
                 default:
                     throw new Exception ("'$mode' is not a recognized filter mode");
                     break;

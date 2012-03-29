@@ -61,29 +61,26 @@
         public function __get ($property) {
             $property = strtolower ($property); // case-insensitive
             
-            switch ($property) { // manage special cases
-                case 'type':
-                    return get_class ($this);
-                    break;
-                default: // write props into a file if the object has an ID.
-                    if (array_key_exists ($property, $this->properties)) {
-                        if (is_string ($this->properties[$property]) && 
-                            substr ($this->properties[$property], 0, 5) === "db://") {
-                            // notation means "this thing is a Model"
-                            // db://ClassName/ID
-                            $class = substr ($this->properties[$property],
-                                             5,
-                                             strpos ($this->properties[$property], '/', 5) - 5);
-                            $id = substr($db, strpos ($db, '/', 5) + 1);
-                            return new_object ($id, $class);
-                        } else {
-                            return $this->properties[$property];
-                        }
-                        break;
+            if ($property == 'type') { // manage special cases
+                return get_class ($this);
+            } else { // write props into a file if the object has an ID
+                if (array_key_exists ($property, $this->properties)) {
+                    if (is_string ($this->properties[$property]) && 
+                        substr ($this->properties[$property], 0, 5) === "db://") {
+                        // notation means "this thing is a Model"
+                        // db://ClassName/ID
+                        $class = substr ($this->properties[$property],
+                                         5,
+                                         strpos ($this->properties[$property], '/', 5) - 5);
+                        $id = substr($db, strpos ($db, '/', 5) + 1);
+                        return new_object ($id, $class);
                     } else {
-                        // throw new Exception ('accessing invalid property');
-                        return null;
+                        return $this->properties[$property];
                     }
+                } else {
+                    // throw new Exception ('accessing invalid property');
+                    return null;
+                }
             }
             $this->onRead (); // trigger event
         }
@@ -97,18 +94,14 @@
             
             $this->properties[$property] = $value;
             
-            switch ($property) { // manage special cases
-                case 'id': // if id is being set, load other props.
-                    $this->__construct ($value);
-                    break;
-                case 'type': // type is immutable
-                    throw new Exception ('Object type cannot be changed');
-                    break;
-                default: // write props into a file if the object has an ID.
-                    if (isset ($this->properties['id'])) {
-                        $this->put (); // record it into DB
-                    }
-                    break;                
+            if ($property == 'id') { // manage special cases
+                $this->__construct ($value);
+            } elseif ($property == 'type') {
+                throw new Exception ('Object type cannot be changed');
+            } else { // write props into a file if the object has an ID.
+                if (isset ($this->properties['id'])) {
+                    $this->put (); // record it into DB
+                }
             }
             $this->onWrite (); // trigger event
         }

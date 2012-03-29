@@ -60,7 +60,7 @@
     }
  
     function last_day_of_month($month, $year) {
-        for ($i = 1; $i < 32; $i++) {
+        for ($i = 1; $i < 32; ++$i) {
             // loop until the day number decreases ("new month")
             $newj = date("d", smktime($month, $i, $year));
             if ($newj < $oldj) {

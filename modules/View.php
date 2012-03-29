@@ -151,7 +151,7 @@
             
             $matches = array ();
             preg_match_all ($regex, $this->contents, $matches);
-            for ($i = 0; $i < sizeof ($matches[0]); $i++) { // each match
+            for ($i = 0; $i < sizeof ($matches[0]); ++$i) { // each match
                 $buffer = ''; // stuff to be printed
                 // replace tags within the inner loop, n times
                 if (array_key_exists ($matches[4][$i], $tags) && 
@@ -160,7 +160,7 @@
                     $match_vals = array_values ($tags[$matches[4][$i]]);
                     
                     // number of times the specific match is to be repeated
-                    for ($lc = 0; $lc < sizeof ($tags[$matches[4][$i]]); $lc++) {
+                    for ($lc = 0; $lc < sizeof ($tags[$matches[4][$i]]); ++$lc) {
                         // now, replace the key and value
                         $buffer .= preg_replace (
                             array ( // search
@@ -187,7 +187,7 @@
             
             $matches = array ();
             preg_match_all ($regex, $this->contents, $matches);
-            for ($i = 0; $i < sizeof ($matches[0]); $i++) { // each match
+            for ($i = 0; $i < sizeof ($matches[0]); ++$i) { // each match
                 
                 if (isset ($tags[$matches[2][$i]]) && 
                     $tags[$matches[2][$i]]) { // if <!-- if ? --> evals to true
