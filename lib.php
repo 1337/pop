@@ -1,6 +1,7 @@
 <?php
     include_once (dirname (__FILE__) . '/lib/datetime.php');
     include_once (dirname (__FILE__) . '/lib/strings.php');
+    include_once (dirname (__FILE__) . '/lib/header.php');
     
     if (!function_exists ('kwargs')) {
         function kwargs () { // come on, short round.

@@ -14,12 +14,29 @@
     // TODO: query indices
     // TODO: non-random GUID hash object storage
     // TODO: http://stackoverflow.com/questions/3849415
+    // TODO: declare all vars; undeclared ones 10 times slower
+    // TODO: check for function calls in for loops
+    // TODO: remove @s (reportedly slow) -> harmless errors should be hidden with 0 or E_NONE
+    // TODO: minimize magics
+    // TODO: check full paths for includes
+    // TODO: static functions are 4 times faster
+    // TODO: switch to singleton (faster / saves memory)
+    // TODO: sprintf is 10x faster than echo("$ $ $")
+    // TODO: echo(1,2,3) instead of echo(1 . 2 . 3)
+    // TODO: add unset()s
+    // TODO: use $_SERVER[’REQUEST_TIME’] instead of microtime for start time
+    // TODO: change switch to else if (faster)
+    // TODO: move templating to client-side
+    // TODO: ++$i is faster than $ i++
+    // TODO: Use ip2long() and long2ip() to store IP addresses as integers instead of strings
+    // TODO: avoid global variable changes; cache using local-scope vars first
+    // TODO: isset($foo[5]) is faster than strlen($foo) > 5
 
     // Experimental ETag caching.
     // if (isset ($_SERVER['HTTP_IF_NONE_MATCH'])) {
         // $etag = trim ($_SERVER['HTTP_IF_NONE_MATCH']);
         // if (glob (CACHE_PATH . $etag) !== false) { // if thing was deemed static
-            // header ("HTTP/1.1 304 Not Modified");
+            // Header::status(304);
             // exit;
         // }
     // }
