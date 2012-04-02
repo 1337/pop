@@ -61,7 +61,7 @@
             return $this; // chaining for php 5
         }
     
-        function filter ($filter, $condition) {
+        public function filter ($filter, $condition) {
             // adds a filter to the Query.
             // $filter = field name followed by an operator, e.g. 'name =='
             // comparison operators allowed: <, >, ==, !=, <=, >=, IN
@@ -70,7 +70,7 @@
             return $this; // chaining for php 5
         }
         
-        function order ($by, $asc = true) {
+        public function order ($by, $asc = true) {
             // EXTREMELY slow.
             $this->sort_field = $by;
             usort ($t = (array) $this->found_objects, array ($this, "_sort_function")); // php automagic
@@ -80,7 +80,7 @@
             return $this; // chaining for php 5
         }
 
-        function fetch ($limit = PHP_INT_MAX) {
+        public function fetch ($limit = PHP_INT_MAX) {
             // This class does NOT store or cache these results.
             // calling fetch more than once on the same Query object will reset its list of items found.
             $this->found_objects = array (); // reset var
@@ -116,7 +116,7 @@
             return $this;
         }
 
-        function get ($limit = PHP_INT_MAX) {
+        public function get ($limit = PHP_INT_MAX) {
             // throw objects out.
             if (sizeof ($this->found_objects) <= 0) {
                 $this->fetch ($limit); // if nothing, try fetch again just to be sure
@@ -124,7 +124,7 @@
             return $this->found_objects;
         }
         
-        function iterate () {
+        public function iterate () {
             // return one result at a time; FALSE for no more rows
             // (same behaviour as mysql_fetch_???)
             if ($this->found) {
@@ -147,8 +147,10 @@
             return false;
         }
         
-        function count () {
-            // fast enough
+        public function count () {
+            /*  Returns the size of the resultset.
+                It WILL recount if pending filters are present in the Query object.
+            */
             if (sizeof ($this->filters) > 0) {
                 $this->fetch (); // gotta recount...
             }
@@ -182,26 +184,26 @@
             switch ($mode) {
                 case '>':
                     return ($haystack > $cond);
+                case '>=':
+                    return ($haystack >= $cond);
                 case '<':
                     return ($haystack < $cond);
-                
+                case '<=':
+                    return ($haystack <= $cond);
+
                 case '=':
+                case '==':
                     if (is_string ($haystack) && is_string ($cond)) {
                         // case-insensitive comparison
                         return strcasecmp ($haystack, $cond);
                     } else {
                         return ($haystack == $cond);
                     }
-                case '==':
-                    return ($haystack == $cond);
                 case '===':
                     return ($haystack === $cond);
+                
                 case '!=':
                     return ($haystack != $cond);
-                case '>=':
-                    return ($haystack >= $cond);
-                case '<=':
-                    return ($haystack <= $cond);
                 case 'WITHIN': // within; $cond must be [min, max]
                     return ($haystack >= $cond[0] && $haystack <= $cond[1]);
                 case 'IN': // list of criteria supplied contains this field's value

@@ -9,7 +9,7 @@
             $req = trim (substr ($url, strpos ($url, STATIC_PATH) + strlen (STATIC_PATH)), '/?');
             $filename = DATA_PATH . STATIC_PATH . $req;
             if (file_exists ($filename)) {
-                echo (file_get_contents ($filename));
+                echo file_get_contents ($filename);
             } else {
                 throw new Exception("404 not found $filename");
             }

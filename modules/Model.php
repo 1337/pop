@@ -4,15 +4,16 @@
     class Model {
         protected $properties = array ();
         
+        // Extended by subclasses.
+        // Example $_memcache_fields: [guid, id, other_unique_keys]
+        protected $_memcache_fields = array ();
+        
         public function __construct ($param = null) {
             global $_models_cache_;
             // if no param (null): create (saved on first __set)
             // if param is array: create, with param = default values
             // if param is not array: get as param = id
-            if (!is_null ($param)) {
-                // will be overwritten if object loads with existing guid property
-                $this->properties['guid'] = create_guid ();
-
+            if ($param !== null) {
                 if (is_array ($param)) {
                     // param is default values.
                     foreach ($param as $key => $value) {
@@ -25,7 +26,7 @@
                             $file_contents = file_get_contents ($path);
                             // json_decode: true = array, false = object
                             $props = json_decode ($file_contents, true);
-                            if ($props == null) { // if fails
+                            if ($props === null) { // if fails
                                 $props = unserialize ($file_contents);
                             }
                             if ($props) {
@@ -33,9 +34,8 @@
                             }
                             $this->properties['id'] = $param; // add ID
                             
-                            // cache this object by reference; key being {class}/{id}
-                            // use function new_object to get the object back.
-                            $_models_cache_[get_class ($this) . '/' . $this->properties['id']] =& $this;
+                            // cache this object by reference; multi-level key being [{class}][{id}]
+                            $this->_memcache ();
                             
                         } catch (Exception $e) {
                             throw new Exception ('Read error');
@@ -43,45 +43,52 @@
                     } else {
                         // not an existing object... create object ONLY IF WE
                         // HAVE EXISTING PROPERTIES IN THE BAG
-                        if (sizeof ($this->properties) >= 2 &&
-                            isset ($this->properties['id'])) {
+                        if (isset ($this->properties['id']) && sizeof ($this->properties) >= 2) {
                             $this->put ();
                         }
                     }
                 }
             }
+            
+            if (!isset ($this->properties['guid'])) {
+                // if the object does not have a GUID already, assign one to it.
+                $this->__set ('guid', create_guid ());
+            }
+
             $this->onLoad ();
             return $this;
         }
         
         public function __get ($property) {
+            $this->onRead (); // trigger event
             $property = strtolower ($property); // case-insensitive
             
             if ($property == 'type') { // manage special cases
                 return get_class ($this);
-            } else { // write props into a file if the object has an ID
-                if (array_key_exists ($property, $this->properties)) {
-                    if (is_string ($this->properties[$property]) && 
-                        substr ($this->properties[$property], 0, 5) === 'db://') {
-                        // notation means 'this thing is a Model'
-                        // db://ClassName/ID
-                        $class = substr ($this->properties[$property],
-                                         5,
-                                         strpos ($this->properties[$property], '/', 5) - 5);
-                        $id = substr($db, strpos ($db, '/', 5) + 1);
-                        return new_object ($id, $class);
-                    } else {
-                        return $this->properties[$property];
-                    }
+            }
+            
+            // else
+            if (isset ($this->properties[$property])) {
+                if (is_string ($this->properties[$property]) && 
+                    substr ($this->properties[$property], 0, 5) === 'db://') {
+                    // The db://ClassName/ID notation means 'this thing is a Model'
+                    $class = substr (
+                        $this->properties[$property],
+                        5, // after 'db://'
+                        strpos ($this->properties[$property], '/', 5) - 5
+                    );
+                    $id = substr($db, strpos ($db, '/', 5) + 1);
+                    return new_object ($id, $class);
                 } else {
-                    // throw new Exception ('accessing invalid property');
-                    return null;
+                    return $this->properties[$property];
                 }
             }
-            $this->onRead (); // trigger event
+            return null;
         }
         
         public function __set ($property, $value) {
+            $this->onWrite (); // trigger event
+
             $property = strtolower ($property); // case-insensitive
             
             if ($value instanceof Model && !is_null ($value->id)) {
@@ -99,15 +106,35 @@
                     $this->put (); // record it into DB
                 }
             }
-            $this->onWrite (); // trigger event
         }
         
-        private function __toString () {
+        public function __toString () {
             return json_encode ($this->properties);
         }
         
         public function to_string () {
             return $this->__toString ();
+        }
+        
+        private function _memcache ($secondary_keys = true) {
+            // add to "memcache" by indexing this object's properties.
+            // this form of cache is erased after every page load, so it only benefits cases where
+            // an object is being read multiple times by different properties.
+            
+            // store by primary key.
+            $_models_cache_[get_class ($this)][$this->properties['id']] =& $this;
+            
+            // store by unique secondary keys.
+            if ($secondary_keys) {
+                foreach ($this->_memcache_fields as $idx => $field) {
+                    try {
+                        $key = $field . '=' . (string) $this->__get($field);
+                        $_models_cache_[get_class ($this)][$key] =& $this;
+                    } catch (Exception $e) {
+                        // memcache fail
+                    }
+                }
+            }
         }
         
         public function ajax_handler () {
@@ -154,7 +181,7 @@
                     $resp = array (
                         'value' => $obj->$prop
                     );
-                    echo (json_encode ($resp));
+                    echo json_encode ($resp);
                 } else { // minimum request params not yet
                     Header::status (400);
                 }
@@ -182,7 +209,8 @@
             
             // Model checks for its required permission.
             if (!is_writable (DATA_PATH)) {
-                die ('data path ' . DATA_PATH . ' not writable');
+                debug ('data path ' . DATA_PATH . ' not writable');
+                die ();
             }
             
             $blob = json_encode ($this->properties);
@@ -218,8 +246,8 @@
                 echo $fc;
                 // unset ($pj);
                 // cache this thing?
-                if (array_key_exists ('__cacheable', $more_options) &&
-                    $more_options['__cacheable'] == true) {
+                if (array_key_exists ('_cacheable', $more_options) &&
+                    $more_options['_cacheable'] == true) {
                     file_put_contents (
                         CACHE_PATH . create_etag ($_SERVER['REQUEST_URI']), 
                         $fc
@@ -257,13 +285,14 @@
                 } else {
                     // ID is neither supplied nor an existing object property
                     $id = uniqid ('');
-                    // throw new Exception ('Attempting to access object with no ID');
                 }
             }
-            return sprintf ('%s%s/%s', // data/obj_class/obj_id
-                             DATA_PATH, // paths include trailing slash
-                             get_class ($this),
-                             $id);
+            return sprintf (
+                '%s%s/%s', // data/obj_class/obj_id
+                 DATA_PATH, // paths include trailing slash
+                 get_class ($this),
+                 $id
+            );
         }
 
 
@@ -278,29 +307,32 @@
         public function onWrite () { }
     }
 
-    // helpers
+    // helper
     function new_object ($param = null, $class_name = 'Model') {
-        global $_models_cache_;
         /*  
-            retrieve existing object from memory... otherwise, load / make.
-            this is something like get_or_create_object_by_name.
+            Singleton helper
             
-            $param can be ID or array of properties.
-            if properties are supplied, this object is never retrived from mem.
+            $param can be any of the following:
+                - Object ID (string; looks in memcache)
+                - 'field=value' (string; looks in memcache)
+                - array of properties (creates new object)
         */
-        // attempt to include the module if it isn't already. scoped include!
-        if (!class_exists ($class_name)) {
-            include_once (MODULE_PATH . $class_name . '.php');
-        }
+        global $_models_cache_;
+
         try {
-            if (is_string ($param) && isset ($_models_cache_[$class_name . '/' . $param])) {
-                return $_models_cache_[$class_name . '/' . $param];
+            if (!class_exists ($class_name)) {
+                // attempt to include the module if it isn't already. scoped include!
+                include_once (MODULE_PATH . $class_name . '.php');
+            }
+            
+            if (is_string ($param) && isset ($_models_cache_[$class_name][$param])) {
+                return $_models_cache_[$class_name][$param];
             } else {
                 // Model::__construct() adds itself to $_models_cache_.
                 return new $class_name ($param);
             }
         } catch (Exception $e) {
-            die ('Cannot create object: ' . $e->getMessage ());
+            debug ('Cannot create object: ' . $e->getMessage ());
         }
     } $_models_cache_ = array (); // cache variable
 

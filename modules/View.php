@@ -29,16 +29,23 @@
             }
             $vf = $this->vf = '([_a-zA-Z0-9\.]+)'; // variable format
 
+            /*
             $this->include_pattern = "/$ot ?include ?\"([^\"]+)\" ?$ct/U";
             $this->forloop_pattern = "/$ot ?for $vf, ?$vf in $vf ?$ct(.*)$ot ?endfor ?$ct/sU";
             $this->if_pattern      = "/$ot ?if $vf ?$ct(.*)(($ot ?elseif $vf ?$ct(.*))*)($ot ?else ?$ct(.*))*$ot ?endif ?$ct/sU";
             $this->listcmp_pattern = "/$ot ?$vf ?in ?$vf ?$ct/sU";
             $this->field_pattern = "/$ot ?field $vf +$vf +$vf ?$ct/sU";
+            */
+            $this->include_pattern = '/' . $ot . ' ?include ?"([^"]+)" ?' . $ct . '/U';
+            $this->forloop_pattern = '/' . $ot . ' ?for ' . $vf . ', ?' . $vf . ' in ' . $vf . ' ?' . $ct . '(.*)' . $ot . ' ?endfor ?' . $ct . '/sU';
+            $this->if_pattern      = '/' . $ot . ' ?if ' .  $vf . ' ?' . $ct . '(.*)((' . $ot . ' ?elseif ' . $vf . ' ?' . $ct . '(.*))*)(' . $ot . ' ?else ?' . $ct . '(.*))*' . $ot . ' ?endif ?' . $ct . '/sU';
+            $this->listcmp_pattern = '/' . $ot . ' ?' . $vf . ' ?in ?' . $vf . ' ?' . $ct . '/sU';
+            $this->field_pattern = '/' . $ot . ' ?field ' . $vf . ' +' . $vf . ' +' . $vf . ' ?' . $ct . '/sU';
         }
         
         function __toString () {
             // GZ buffering is handled elsewhere.
-            if (class_exists ("Compressor") && TEMPLATE_COMPRESS === true) {
+            if (class_exists ('Compressor') && TEMPLATE_COMPRESS === true) {
                 return (Compressor::html_compress ($this->contents));
             } else {
                 return ($this->contents);

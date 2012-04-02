@@ -199,22 +199,22 @@
             // provide the name of the handler that serves a given url.
             // caution! function will DIE if matching fails.
             global $all_hooks;
-            if (isset ($all_hooks) && is_array ($all_hooks)) {
-                foreach ($all_hooks as $module => $hooks) {
-                    foreach ($hooks as $hook => $handler) {
-                        $url_parts = parse_url ($url);
-                        if ($url_parts) { // On malformed URLs, parse_url() may return FALSE
-                            $match = preg_match (
-                                '#^/' . SUBDIR . '?' . $hook . '$#i', 
-                                $url_parts['path']
-                            );
-                            if ($match) { // 1 = match
-                                return array ($module, $handler); // superclass function
-                            }
+
+            foreach ((array) $all_hooks as $module => $hooks) {
+                foreach ((array) $hooks as $hook => $handler) {
+                    $url_parts = parse_url ($url);
+                    if ($url_parts) { // On malformed URLs, parse_url() may return FALSE
+                        $match = preg_match (
+                            '#^/' . SUBDIR . '?' . $hook . '$#i', 
+                            $url_parts['path']
+                        );
+                        if ($match) { // 1 = match
+                            return array ($module, $handler); // superclass function
                         }
                     }
                 }
             }
+
             if ($verbose) {
                 throw new Exception('We have nothing to serve at ' . $url);
             } else {
@@ -345,14 +345,11 @@
             $args = func_get_args ();
             $argv = func_num_args ();
             for ($i = 0; $i < $argv; $i ++) {
-                if (! (is_null ($args[$i]) ||
-                       $args[$i] === '' ||
-                       $args[$i] === false ||
-                       !isset ($args[$i]))) {
+                if (! (!isset ($args[$i]) || $args[$i] === null || $args[$i] === '' || $args[$i] === false)) {
                     return $args[$i];
                 }
             }
-            return (!isset ($wat) || $wat == '' || $wat == null) ? $wut : $wat;
+            return (!isset ($wat) || $wat === '' || $wat === null) ? $wut : $wat;
         }
     }
  
