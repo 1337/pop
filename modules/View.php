@@ -1,7 +1,11 @@
 <?php
-    @include_once (MODULE_PATH . 'Compressor.php');
-    @include_once (MODULE_PATH . 'AjaxField.php');
-
+    if (file_exists (MODULE_PATH . 'Compressor.php')) {
+        include_once (MODULE_PATH . 'Compressor.php');
+    }
+    if (file_exists (MODULE_PATH . 'AjaxField.php')) {
+        include_once (MODULE_PATH . 'AjaxField.php');
+    }
+    
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
         var $contents, $ot, $ct, $vf;
@@ -148,7 +152,8 @@
             
             $matches = array ();
             preg_match_all ($regex, $this->contents, $matches);
-            for ($i = 0; $i < sizeof ($matches[0]); ++$i) { // each match
+            $len = sizeof ($matches[0]);
+            for ($i = 0; $i < $len; ++$i) { // each match
                 $buffer = ''; // stuff to be printed
                 // replace tags within the inner loop, n times
                 if (array_key_exists ($matches[4][$i], $tags) && 
@@ -287,9 +292,6 @@
         function render ($options = array (), $template = '') {
             // that's why you ob_start at the beginning of Things.
             $content = ob_get_contents (); ob_end_clean ();
-            
-            // $etag = create_etag ($_SERVER['REQUEST_URI']);
-            // @file_put_contents (CACHE_PATH . $etag, $content);
 
             $pj = new_object ('Model');
             $pj->render (

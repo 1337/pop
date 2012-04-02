@@ -181,13 +181,12 @@
             // $blob = serialize ($this->properties);
             
             // Model checks for its required permission.
-            @chmod (DATA_PATH, 0777);
             if (!is_writable (DATA_PATH)) {
                 die ('data path ' . DATA_PATH . ' not writable');
             }
             
             $blob = json_encode ($this->properties);
-            if (@mkdir (dirname ($this->_path ()))) {
+            if (!mkdir (dirname ($this->_path ()))) {
                 throw new Exception ('Cannot create data directory!');
             }
             return file_put_contents ($this->_path (), $blob, LOCK_EX);
@@ -210,7 +209,7 @@
             $this->onBeforeRender (); // trigger event
             
             // open_basedir
-            if (@file_exists (VIEWS_PATH . $template)) {
+            if (file_exists (VIEWS_PATH . $template)) {
                 $pj = new View ($template);
                 $pj->replace_tags (
                     array_merge ($this->properties, $more_options)
@@ -221,7 +220,7 @@
                 // cache this thing?
                 if (array_key_exists ('__cacheable', $more_options) &&
                     $more_options['__cacheable'] == true) {
-                    @file_put_contents (
+                    file_put_contents (
                         CACHE_PATH . create_etag ($_SERVER['REQUEST_URI']), 
                         $fc
                     );
@@ -291,7 +290,7 @@
         */
         // attempt to include the module if it isn't already. scoped include!
         if (!class_exists ($class_name)) {
-            @include_once (MODULE_PATH . $class_name . '.php');
+            include_once (MODULE_PATH . $class_name . '.php');
         }
         try {
             if (is_string ($param) && isset ($_models_cache_[$class_name . '/' . $param])) {

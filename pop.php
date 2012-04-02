@@ -15,8 +15,8 @@
     // TODO: non-random GUID hash object storage
     // TODO: http://stackoverflow.com/questions/3849415
     // TODO: declare all vars; undeclared ones 10 times slower
-    // TODO: check for function calls in for loops
-    // TODO: remove @s (reportedly slow) -> harmless errors should be hidden with 0 or E_NONE
+    // check for function calls in for loops
+    // remove @s (reportedly slow) -> harmless errors should be hidden with 0 or E_NONE
     // TODO: minimize magics
     // TODO: check full paths for includes
     // TODO: static functions are 4 times faster
