@@ -115,7 +115,7 @@
         function create_etag ($entity_contents) {
             // supply file contents and this will generate a tag.
             // http://rd2inc.com/blog/2005/03/making-dynamic-php-pages-cacheable/
-            return "ci-" . dechex (crc32 ($entity_contents));
+            return 'ci-' . dechex (crc32 ($entity_contents));
         }
     }
     
@@ -129,7 +129,7 @@
         function first ($str, $fit = 100) {
             // wrapper for left with ellipses 
             if (strlen ($str) > $fit) {
-                $str = left ($str, $fit - 3) . "...";
+                $str = left ($str, $fit - 3) . '...';
             } 
             return $str;
         }
@@ -168,14 +168,18 @@
 
     if (!function_exists ('debug')) {
         function debug ($msg) {
-            echo ("<div style='border:1px #ccc solid;
-                               padding:2ex;
-                               color:#000;
-                               box-shadow: 3px 3px 5px #ddd;
-                               border-radius:8px;
-                               font:1em monospace;'>
-                       Error<hr />$msg
-                   </div>");
+            // debug() accepts the same parameters as printf() typically does.
+            $format_string_args = array_slice (func_get_args(), 1);
+            echo 
+                '<div style="border:1px #ccc solid;
+                             padding:2ex;
+                             color:#000;
+                             box-shadow: 3px 3px 5px #ddd;
+                             border-radius:8px;
+                             font:1em monospace;">
+                     Error<hr />',
+                     vsprintf ($msg, $format_string_args),
+                '</div>';
         }
     }
     
@@ -186,7 +190,7 @@
             } else {
                 $heading = $hdng;
             }     
-            echo("<$heading>$what</$heading>\n");
+            echo '<',$heading,'>',$what,'</',$heading,">\n";
         }
     }
 
@@ -212,7 +216,7 @@
                 }
             }
             if ($verbose) {
-                throw new Exception("We have nothing to serve at $url");
+                throw new Exception('We have nothing to serve at ' . $url);
             } else {
                 return false;
             }
@@ -223,14 +227,14 @@
         function auth_curl ($url, $user, $pass, $protocol = 'http') {
             // stackoverflow.com/questions/2140419
             // $protocol doesn't work
-            if (!function_exists('curl_init')) die("Error: cURL does not exist! Please install cURL.");
+            if (!function_exists('curl_init')) die('Error: cURL does not exist! Please install cURL.');
             $process = curl_init ($url);
 
             $options = array (
                 CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
                 CURLOPT_HEADER => 0,
                 CURLOPT_RETURNTRANSFER => 1,
-                CURLOPT_USERPWD => "$user:$pass",
+                CURLOPT_USERPWD => $user . ':' . $pass,
                 CURLOPT_URL => $url,
             );
 
@@ -261,10 +265,10 @@
                 30
             );
 
-            $out = "POST ".$parts['path']." HTTP/1.1\r\n";
-            $out.= "Host: ".$parts['host']."\r\n";
+            $out = 'POST '.$parts['path']." HTTP/1.1\r\n";
+            $out.= 'Host: '.$parts['host']."\r\n";
             $out.= "Content-Type: application/x-www-form-urlencoded\r\n";
-            $out.= "Content-Length: ".strlen($post_string)."\r\n";
+            $out.= 'Content-Length: '.strlen($post_string)."\r\n";
             $out.= "Connection: Close\r\n\r\n";
             if (isset($post_string)) $out.= $post_string;
 
@@ -296,11 +300,11 @@
             for ($x = 0; $x < count ($urlArr); $x++) {
                 $urlInfo[$x] = parse_url($urlArr[$x]);
                 $urlInfo[$x][port] = ($urlInfo[$x][port]) ? $urlInfo[$x][port] : 80;
-                $urlInfo[$x][path] = ($urlInfo[$x][path]) ? $urlInfo[$x][path] : "/";
+                $urlInfo[$x][path] = ($urlInfo[$x][path]) ? $urlInfo[$x][path] : '/';
                 $sockets[$x] = fsockopen ($urlInfo[$x][host], $urlInfo[$x][port], $errno[$x], $errstr[$x], 30);
                 socket_set_blocking ($sockets[$x], false);
-                $query = ($urlInfo[$x][query]) ? "?" . $urlInfo[$x][query] : "";
-                fputs ($sockets[$x],"GET " . $urlInfo[$x][path] . "$query HTTP/1.0\r\nHost: " . $urlInfo[$x][host] . "\r\n\r\n");
+                $query = ($urlInfo[$x][query]) ? '?' . $urlInfo[$x][query] : '';
+                fputs ($sockets[$x],'GET ' . $urlInfo[$x][path] . "$query HTTP/1.0\r\nHost: " . $urlInfo[$x][host] . "\r\n\r\n");
             }
             // ok read the data from each one
             $done = false;

@@ -21,13 +21,12 @@
     // TODO: check full paths for includes
     // TODO: static functions are 4 times faster
     // TODO: switch to singleton (faster / saves memory)
-    // TODO: sprintf is 10x faster than echo("$ $ $")
-    // TODO: echo(1,2,3) instead of echo(1 . 2 . 3)
+    // [v]p[s]rintf is 10x faster than echo("$ $ $"); echo (1,2,3) is also faster
     // TODO: add unset()s
-    // TODO: use $_SERVER[’REQUEST_TIME’] instead of microtime for start time
-    // TODO: change switch to else if (faster)
+    // use $_SERVER[’REQUEST_TIME’] instead of microtime for start time
+    // change switch to else if (faster)
     // TODO: move templating to client-side
-    // TODO: ++$i is faster than $ i++
+    // ++$i is faster than $ i++
     // TODO: Use ip2long() and long2ip() to store IP addresses as integers instead of strings
     // TODO: avoid global variable changes; cache using local-scope vars first
     // TODO: isset($foo[5]) is faster than strlen($foo) > 5
@@ -44,39 +43,37 @@
     // Static caching.
     $etag = create_etag ($_SERVER['REQUEST_URI']);
     if (glob (CACHE_PATH . $etag)) {
-        // header ("Cache-Control: public, max-age=290304000");
+        // header ('Cache-Control: public, max-age=290304000');
         echo file_get_contents (CACHE_PATH . $etag);
         exit;
     }
     
     define ('EXEC_START_TIME', microtime (true));
     if (USE_POP_REDIRECTION === true) {
-        // "Also note that using zlib.output_compression is preferred over ob_gzhandler()."
+        // 'Also note that using zlib.output_compression is preferred over ob_gzhandler().'
         if (isset ($_SERVER['HTTP_ACCEPT_ENCODING']) &&
             strpos ($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') >= 0) {
             // compress output if client likes that
-            @ini_set ("zlib.output_compression", 4096);
+            @ini_set ('zlib.output_compression', 4096);
         }
         @ob_start ();
 
         $all_hooks = array (); // accumulates hooks from all modules
         $url_cache = CACHE_PATH . '_url_cache.json';
         
+        // init loop: load php files, get definitions, get urls (hooks)
         if (@file_exists ($url_cache) && 
             time () - filemtime ($url_cache) < 3600) { // because Spyc is slow, we cache URLs
             try { // because
                 $all_hooks = json_decode (file_get_contents ($url_cache), true);
             } catch (Exception $e) {
-                debug (sprintf ("URL cache is corrupted: %s", $e->getMessage ()));
+                debug ('URL cache is corrupted: %s', $e->getMessage ());
             }
         } else { // load URLs from all handlers... and cache them.
             require_once (LIBRARY_PATH . 'spyc.php');
-            // init loop: load php files, get definitions, get urls (hooks)
             foreach ($modules as $module) { // modules is in (default_)vars.php
-                $path = "/$module.php";
-                $yaml_path = "/$module.yaml";
-                if (@file_exists (MODULE_PATH . $yaml_path) && 
-                    !class_exists ($module)) {
+                $yaml_path = $module . '.yaml';
+                if (@file_exists (MODULE_PATH . $yaml_path) && !class_exists ($module)) {
                     try {
                         $yaml = Spyc::YAMLLoad (MODULE_PATH . $yaml_path);
                         foreach ((array) $yaml['Handlers'] as $handler_array) {
@@ -86,7 +83,7 @@
                             }
                         }
                     } catch (Exception $e) {
-                        debug (sprintf ("%s", $e->getMessage ()));
+                        debug ($e->getMessage ());
                     }
                 }
             }
@@ -107,7 +104,7 @@
         }
     } else { // use POP as library
         foreach ($modules as $module) { // modules is in (default_)vars.php
-            $path = "$module.php";
+            $path = $module . '.php';
             if (@file_exists (MODULE_PATH . $path)) {// && !class_exists ($module)) {
                 @include_once (MODULE_PATH . $path); // modules are the php classes
             }

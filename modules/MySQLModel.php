@@ -1,5 +1,5 @@
 <?php
-    require_once (dirname (__FILE__) . '/Model.php');
+    require_once (MODULE_PATH . 'Model.php');
 
     class MySQLModel extends Model {
         /* 

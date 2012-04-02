@@ -1,6 +1,6 @@
 <?php
-    require_once (dirname (__FILE__) . '/Model.php');
-    require_once (dirname (__FILE__) . '/Query.php');
+    require_once (MODULE_PATH . 'Model.php');
+    require_once (MODULE_PATH . 'Query.php');
 
     class UnitTest extends Model { 
         /*  How to use:

@@ -1,5 +1,5 @@
 <?php
-    require_once (dirname (__FILE__) . '/View.php');
+    require_once (MODULE_PATH . 'View.php');
 
     class Model {
         protected $properties = array ();
@@ -54,10 +54,6 @@
             return $this;
         }
         
-        public function __invoke () {
-            // doesn't do anything
-        }
-        
         public function __get ($property) {
             $property = strtolower ($property); // case-insensitive
             
@@ -66,8 +62,8 @@
             } else { // write props into a file if the object has an ID
                 if (array_key_exists ($property, $this->properties)) {
                     if (is_string ($this->properties[$property]) && 
-                        substr ($this->properties[$property], 0, 5) === "db://") {
-                        // notation means "this thing is a Model"
+                        substr ($this->properties[$property], 0, 5) === 'db://') {
+                        // notation means 'this thing is a Model'
                         // db://ClassName/ID
                         $class = substr ($this->properties[$property],
                                          5,
@@ -106,7 +102,7 @@
             $this->onWrite (); // trigger event
         }
         
-        public function __toString () {
+        private function __toString () {
             return json_encode ($this->properties);
         }
         
@@ -144,14 +140,13 @@
                         if ($key === $hash) { // key is correct -> update object
                             $obj->$prop = $val;
                         } else { // key is incorrect
-                            header ("HTTP/1.1 403 Forbidden");
-                            // die (var_export ($this, true));
+                            Header::code(403);
                             die (); // do not serve the json
                         }
                     } else { // read
                         $hash = $obj->get_hash ('read');
                         if ($key !== $hash) { // key is incorrect
-                            header ("HTTP/1.1 403 Forbidden");
+                            Header::code(403);
                             die (); // do not serve the json
                         }
                     }
@@ -161,10 +156,10 @@
                     );
                     echo (json_encode ($resp));
                 } else { // minimum request params not yet
-                    header ("HTTP/1.1 400 Bad Request");
+                    Header::status (400);
                 }
             } catch (Exception $e) {
-                header ("HTTP/1.1 500 Internal Server Error");
+                    Header::status (500);
             }
         }
         
@@ -180,7 +175,7 @@
             return array_keys ($this->properties);
         }
         
-        function put () {
+        public function put () {
             // put is automatically called when a variable is assigned
             // to the object.
             // $blob = serialize ($this->properties);
@@ -188,7 +183,7 @@
             // Model checks for its required permission.
             @chmod (DATA_PATH, 0777);
             if (!is_writable (DATA_PATH)) {
-                die ("data path " . DATA_PATH . " not writable");
+                die ('data path ' . DATA_PATH . ' not writable');
             }
             
             $blob = json_encode ($this->properties);
@@ -198,12 +193,14 @@
             return file_put_contents ($this->_path (), $blob, LOCK_EX);
         }
         
-        function handler () {
+        public static function handler () {
+            // returns the current handler, not the ones 
+            // for which this module is responsible.
             list ($module, $handler) = get_handler_by_url ($_SERVER['REQUEST_URI']);
             return $handler;
         }
         
-        function render ($template = null, $more_options = array ()) {
+        public function render ($template = null, $more_options = array ()) {
             // shows object structure by default.
             if (is_array ($template)) {
                 // swap parameters if template is not given.
@@ -264,7 +261,7 @@
                     // throw new Exception ('Attempting to access object with no ID');
                 }
             }
-            return sprintf ("%s%s/%s", // data/obj_class/obj_id
+            return sprintf ('%s%s/%s', // data/obj_class/obj_id
                              DATA_PATH, // paths include trailing slash
                              get_class ($this),
                              $id);
@@ -297,8 +294,8 @@
             @include_once (MODULE_PATH . $class_name . '.php');
         }
         try {
-            if (is_string ($param) && isset ($_models_cache_["$class_name/$param"])) {
-                return $_models_cache_["$class_name/$param"];
+            if (is_string ($param) && isset ($_models_cache_[$class_name . '/' . $param])) {
+                return $_models_cache_[$class_name . '/' . $param];
             } else {
                 // Model::__construct() adds itself to $_models_cache_.
                 return new $class_name ($param);

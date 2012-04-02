@@ -1,6 +1,6 @@
 <?php
-    @include_once (dirname (__FILE__) . '/Compressor.php');
-    @include_once (dirname (__FILE__) . '/AjaxField.php');
+    @include_once (MODULE_PATH . 'Compressor.php');
+    @include_once (MODULE_PATH . 'AjaxField.php');
 
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
@@ -53,7 +53,7 @@
                     @include ($file);
                 } else {
                     // file not found
-                    debug ("File $file not found");
+                    debug ('File %s not found', $file);
                 }
                 $buffer = ob_get_contents();
                 ob_end_clean();
@@ -114,24 +114,21 @@
                 $af = new_object (null, 'AjaxField');
 
                 $matches = array (); // preg_match_all gives you an array of &$matches.
-                if (preg_match_all ($this->field_pattern, $this->contents, $matches) > 0) {
-                    if (sizeof ($matches) > 0 && sizeof ($matches[2]) > 0) {
-                        foreach ($matches[2] as $index => $id) { // [1] because [0] is full line
-                            // try {
-                                $type = $matches[3][$index];
-                                $prop = $matches[4][$index];
-                                $obj = new_object ($id, $type);
-                                if ($obj) {
-                                    // replace tags in this contents with that contents
-                                    $this->contents = str_replace (
-                                        $matches[0][$index], 
-                                        $af->make ($obj, $matches[4][$index]), 
-                                        $this->contents
-                                    );
-                                }
-                            // } except (Exception $e) {
-                                // meh
-                            // }
+                if (preg_match_all ($this->field_pattern, $this->contents, $matches) <= 0) {
+                    return;
+                }
+                if (sizeof ($matches) > 0 && sizeof ($matches[2]) > 0) {
+                    foreach ($matches[2] as $index => $id) { // [1] because [0] is full line
+                        $type = $matches[3][$index];
+                        $prop = $matches[4][$index];
+                        $obj = new_object ($id, $type);
+                        if ($obj) {
+                            // replace tags in this contents with that contents
+                            $this->contents = str_replace (
+                                $matches[0][$index], 
+                                $af->make ($obj, $matches[4][$index]), 
+                                $this->contents
+                            );
                         }
                     }
                 }
@@ -234,7 +231,6 @@
             $ot = $this->ot;
             $ct = $this->ct;
             $vf = $this->vf;
-            
             // populate tags
             list ($_era, $_ert) = get_handler_by_url ($_SERVER['REQUEST_URI'], false);
             $tags = array_merge (
@@ -248,7 +244,7 @@
                     'base' => DOMAIN . SUBDIR, // so, pop dir
                     'handler' => $_era ? "$_era.$_ert" : '',
                     'memory_usage' => filesize_natural (memory_get_peak_usage ()),
-                    'exec_time' => round (microtime(true) - EXEC_START_TIME, 4)*1000 . 'ms',
+                    'exec_time' => (time() - $_SERVER['REQUEST_TIME']) . ' s',
                     'year' => date ("Y"),
                 ), // "required" defaults
                 vars (), // environmental variables

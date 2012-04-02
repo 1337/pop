@@ -1,5 +1,5 @@
 <?php
-    require_once (dirname (__FILE__) . '/Model.php');
+    require_once (MODULE_PATH . 'Model.php');
 
     class Query {
         /*  extends Model to get property bags. Don't assign an ID!
@@ -211,7 +211,7 @@
                         return (in_array ($haystack, $cond));
                     }
                 case 'CONTAINS': // reverse IN; this field's value is an array that contains the criterion
-                    if (is_string ($cond)) {
+                    if (is_string ($haystack)) {
                         return (strpos ($haystack, $cond) >= 0); // 'condition is found in db field'
                     } else { // compare as array
                         return (in_array ($cond, $haystack));
