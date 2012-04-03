@@ -1,0 +1,5 @@
+Handlers:
+  - user/log/?: user_tracker
+  - user/log/view/?: user_viewer
+  - user/log/clear/?: clear_user_log
+

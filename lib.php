@@ -1,12 +1,13 @@
 <?php
-    include_once (dirname (__FILE__) . '/lib/datetime.php');
-    include_once (dirname (__FILE__) . '/lib/strings.php');
-    include_once (dirname (__FILE__) . '/lib/header.php');
+    include_once (LIBRARY_PATH . 'datetime.php');
+    if (!class_exists ('Header')) {
+        include (LIBRARY_PATH . 'header.php');
+    }
     
     if (!function_exists ('kwargs')) {
         function kwargs () { // come on, short round.
             $url_parts = parse_url ($_SERVER['REQUEST_URI']);
-            if (array_key_exists ('query', $url_parts)) {
+            if (isset ($url_parts['query'])) {
                 return (array) $url_parts['query'];
             } else {
                 return array ();
@@ -20,42 +21,34 @@
             // gathers everything from the request.
             global $_vars_cache_; // store once, use forever
 
-            if (sizeof ($_vars_cache_) > 0) {
-                if ($index) {
-                    if (array_key_exists ($index, $_vars_cache_)) {
-                        return $_vars_cache_[$index];
-                    } else {
-                        return $default;
-                    }
-                } else {
+            if (!sizeof ($_vars_cache_)) { // build cache no matter what
+                @session_start ();
+                if (!isset ($_SESSION)) {
+                    $_SESSION = array (); // can this be omitted?
+                }
+                $str_GET = parse_url ($_SERVER['REQUEST_URI']); // $str_GET = sad byproduct of mod_rewrite
+                if (isset ($str_GET['query'])) {
+                    parse_str ($str_GET['query'], $REAL_GET);
+                }
+                $_vars_cache_ = array_merge (
+                    $_COOKIE, 
+                    (isset ($_SESSION)? $_SESSION : array ()),
+                    (isset ($_POST)   ? $_POST    : array ()),
+                    (isset ($_GET)    ? $_GET     : array ()),
+                    (isset ($REAL_GET)? $REAL_GET : array ())
+                );
+            }
+            
+            if (sizeof ($_vars_cache_)) {
+                if ($index === false) {
                     return $_vars_cache_; // return cache if it exists
                 }
-            } else {
-                // $str_GET = sad byproduct of mod_rewrite
-                $str_GET = parse_url ($_SERVER['REQUEST_URI']);
-                if (array_key_exists ('query', $str_GET)) {
-                    parse_str($str_GET['query'], $REAL_GET);
-                } else {
-                    $REAL_GET = array ();
+                if (isset ($_vars_cache_[$index])) {
+                    return $_vars_cache_[$index];
                 }
-                @session_start ();
-                if (isset ($_SESSION)) {
-                    $vars = array_merge ($_COOKIE, $_SESSION, $_POST, $_GET, $REAL_GET);
-                } else {
-                    $vars = array_merge ($_COOKIE, $_POST, $_GET, $REAL_GET);
-                }
-
-                $_vars_cache_ = $vars; // cache the variables
-                if ($index) {
-                    if (array_key_exists ($index, $vars)) {
-                        return $vars[$index];
-                    } else { // ono...
-                        return $default;
-                    }
-                } else {
-                    // die(var_export($vars, true));
-                    return $vars;
-                }
+                
+                // everyone else would have returned by now
+                return $default;
             }
         }
     }
@@ -63,14 +56,11 @@
     if (!function_exists ('is_assoc')) {
         function is_assoc ($array) {
             // JTS on http://php.net/manual/en/function.is-array.php
-            return (is_array ($array) &&
-                (count ($array) == 0 ||
-                    0 !== count (array_diff_key (
-                        $array,
-                        array_keys (array_keys ($array))
-                    ))
-                )
-            );
+            return 
+                is_array ($array) && (!count ($array) ||
+                    !count (array_diff_key (
+                        $array, array_keys (array_keys ($array))
+                    )));
         }
     }
 
@@ -83,7 +73,7 @@
             }
             
             $common_keys = array_intersect (array_keys ($array), $required_keys);
-            if (sizeof ($common_keys) == sizeof ($required_keys)) {
+            if (sizeof ($common_keys) === sizeof ($required_keys)) {
                 return true;
             } else {
                 throw new Exception('Not all arguments present; needed ' . sizeof ($required_keys));
@@ -267,9 +257,9 @@
 
             $out = 'POST '.$parts['path']." HTTP/1.1\r\n";
             $out.= 'Host: '.$parts['host']."\r\n";
-            $out.= "Content-Type: application/x-www-form-urlencoded\r\n";
+            $out.= 'Content-Type: application/x-www-form-urlencoded' . "\r\n";
             $out.= 'Content-Length: '.strlen($post_string)."\r\n";
-            $out.= "Connection: Close\r\n\r\n";
+            $out.= 'Connection: Close' . "\r\n\r\n";
             if (isset($post_string)) $out.= $post_string;
 
             fwrite ($fp, $out);
@@ -320,7 +310,7 @@
                         $retDone[$x] = 1;
                     }
                 }
-                $done = (array_sum ($retDone) == count ($urlArr));
+                $done = (array_sum ($retDone) === count ($urlArr));
             }
             return $retData;
         }
@@ -357,7 +347,7 @@
         function array_value_key ($array, $lookup) {
             // given a 1-to-1 dictionary, find the index of $value.
             foreach ((array) $array as $key => $value) {
-                if ($value == $lookup) {
+                if ($value === $lookup) {
                     return $key;
                 }
             }

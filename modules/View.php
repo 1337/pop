@@ -36,11 +36,11 @@
             $this->listcmp_pattern = "/$ot ?$vf ?in ?$vf ?$ct/sU";
             $this->field_pattern = "/$ot ?field $vf +$vf +$vf ?$ct/sU";
             */
-            $this->include_pattern = '/' . $ot . ' ?include ?"([^"]+)" ?' . $ct . '/U';
-            $this->forloop_pattern = '/' . $ot . ' ?for ' . $vf . ', ?' . $vf . ' in ' . $vf . ' ?' . $ct . '(.*)' . $ot . ' ?endfor ?' . $ct . '/sU';
-            $this->if_pattern      = '/' . $ot . ' ?if ' .  $vf . ' ?' . $ct . '(.*)((' . $ot . ' ?elseif ' . $vf . ' ?' . $ct . '(.*))*)(' . $ot . ' ?else ?' . $ct . '(.*))*' . $ot . ' ?endif ?' . $ct . '/sU';
-            $this->listcmp_pattern = '/' . $ot . ' ?' . $vf . ' ?in ?' . $vf . ' ?' . $ct . '/sU';
-            $this->field_pattern = '/' . $ot . ' ?field ' . $vf . ' +' . $vf . ' +' . $vf . ' ?' . $ct . '/sU';
+            $this->include_pattern = '/'.$ot.' ?include ?"([^"]+)" ?'.$ct.'/U';
+            $this->forloop_pattern = '/'.$ot.' ?for '.$vf.', ?'.$vf.' in '.$vf.' ?'.$ct.'(.*)'.$ot.' ?endfor ?'.$ct.'/sU';
+            $this->if_pattern      = '/'.$ot.' ?if '. $vf.' ?'.$ct.'(.*)(('.$ot.' ?elseif '.$vf.' ?'.$ct.'(.*))*)('.$ot.' ?else ?'.$ct.'(.*))*'.$ot.' ?endif ?'.$ct.'/sU';
+            $this->listcmp_pattern = '/'.$ot.' ?'.$vf.' ?in ?'.$vf.' ?'.$ct.'/sU';
+            $this->field_pattern =   '/'.$ot.' ?field '.$vf.' +'.$vf.' +'.$vf.' ?'.$ct.'/sU';
         }
         
         function __toString () {
@@ -81,16 +81,16 @@
         function resolve_template_name ($special = '') {
             if (is_file (VIEWS_PATH . $special)) {
                 return VIEWS_PATH . $special;
-            } elseif (is_file (VIEWS_PATH . SITE_TEMPLATE)) {
+            } else if (is_file (VIEWS_PATH . SITE_TEMPLATE)) {
                 return VIEWS_PATH . SITE_TEMPLATE;
-            } elseif (is_file (VIEWS_PATH . DEFAULT_TEMPLATE)) {
+            } else if (is_file (VIEWS_PATH . DEFAULT_TEMPLATE)) {
                 return VIEWS_PATH . DEFAULT_TEMPLATE;
             } else {
                 throw new Exception ('Template file cannot be found to render this page.');
             }
         }
 
-        private function include_snippets () {
+        private function include_snippets (&$contents) {
             /* replace tags that look like
                <!-- include "header_and_footer.html" -->
                with their actual contents.
@@ -98,7 +98,7 @@
                replace_tags help recurse this function.
             */
             $matches = array (); // preg_match_all gives you an array of &$matches.
-            if (preg_match_all ($this->include_pattern, $this->contents, $matches) > 0) {
+            if (preg_match_all ($this->include_pattern, $contents, $matches) > 0) {
                 if (sizeof ($matches) > 0 && sizeof ($matches[2]) > 0) {
                     foreach ($matches[2] as $index => $filename) { // [1] because [0] is full line
                         try {
@@ -107,14 +107,14 @@
                             $nv = '';
                         }
                         // replace tags in this contents with that contents
-                        $this->contents = str_replace ($matches[0][$index], $nv, $this->contents);
+                        $contents = str_replace ($matches[0][$index], $nv, $contents);
                         unset ($nv); // free memory
                     }
                 }
             }
         }
 
-        private function create_field_tags () {
+        private function create_field_tags (&$contents) {
             /* replace tags that look like
                <!-- field [id] [type] [prop] --> (without the square brackets)
                with an AJAX html tag. requires jQuery Transmission on the same page.
@@ -125,7 +125,7 @@
                 $af = new_object (null, 'AjaxField');
 
                 $matches = array (); // preg_match_all gives you an array of &$matches.
-                if (preg_match_all ($this->field_pattern, $this->contents, $matches) <= 0) {
+                if (preg_match_all ($this->field_pattern, $contents, $matches) <= 0) {
                     return;
                 }
                 if (sizeof ($matches) > 0 && sizeof ($matches[2]) > 0) {
@@ -135,10 +135,10 @@
                         $obj = new_object ($id, $type);
                         if ($obj) {
                             // replace tags in this contents with that contents
-                            $this->contents = str_replace (
+                            $contents = str_replace (
                                 $matches[0][$index], 
                                 $af->make ($obj, $matches[4][$index]), 
-                                $this->contents
+                                $contents
                             );
                         }
                     }
@@ -146,24 +146,24 @@
             }
         }
 
-        private function expand_list_comprehension () {
+        private function expand_list_comprehension ($contents) {
             // e.g. <!-- object in objects -->
-            $this->contents = preg_replace ($this->listcmp_pattern, '<!-- for _lop,_$2 in $3 --><!-- _$2 --><!-- endfor -->', $this->contents);
+            $contents = preg_replace ($this->listcmp_pattern, '<!-- for _lop,_$2 in $3 --><!-- _$2 --><!-- endfor -->', $contents);
         }
 
-        private function expand_page_loops ($tags = array ()) {
+        private function expand_page_loops (&$contents, $tags = array ()) {
             $ot = $this->ot;
             $ct = $this->ct;
             $regex = $this->forloop_pattern;
             // e.g. <!-- for i in objects --> bla bla bla <!-- endfor -->
             
             $matches = array ();
-            preg_match_all ($regex, $this->contents, $matches);
+            preg_match_all ($regex, $contents, $matches);
             $len = sizeof ($matches[0]);
             for ($i = 0; $i < $len; ++$i) { // each match
                 $buffer = ''; // stuff to be printed
                 // replace tags within the inner loop, n times
-                if (array_key_exists ($matches[4][$i], $tags) && 
+                if (isset ($tags[$matches[4][$i]]) &&
                     is_array ($tags[$matches[4][$i]])) { // if such tag exists
                     $match_keys = array_keys ($tags[$matches[4][$i]]);
                     $match_vals = array_values ($tags[$matches[4][$i]]);
@@ -173,8 +173,8 @@
                         // now, replace the key and value
                         $buffer .= preg_replace (
                             array ( // search
-                                "/$ot ?" . preg_quote ($matches[2][$i], '/') . " ?$ct/sU", // key
-                                "/$ot ?" . preg_quote ($matches[3][$i], '/') . " ?$ct/sU"  // value
+                                '/' . $ot . ' ?' . preg_quote ($matches[2][$i], '/') . ' ?' . $ct . '/sU', // key
+                                '/' . $ot . ' ?' . preg_quote ($matches[3][$i], '/') . ' ?' . $ct . '/sU'  // value
                             ), 
                             array ( // replace
                                 (string) $match_keys[$lc],
@@ -186,16 +186,16 @@
                 } // else: even if value doesn't exist, remove the tag.
 
                 // str_replace is faster
-                $this->contents = str_replace ($matches[0][$i], $buffer, $this->contents);
+                $contents = str_replace ($matches[0][$i], $buffer, $contents);
             }
         }
         
-        private function resolve_if_conditionals ($tags = array ()) {
+        private function resolve_if_conditionals (&$contents, $tags = array ()) {
             $regex = $this->if_pattern;
             // e.g. <!-- if a -->b<!-- elseif c -->d<!-- elseif e -->f<!-- else g -->h<!-- endif -->
             
             $matches = array ();
-            preg_match_all ($regex, $this->contents, $matches);
+            preg_match_all ($regex, $contents, $matches);
             for ($i = 0; $i < sizeof ($matches[0]); ++$i) { // each match
                 
                 if (isset ($tags[$matches[2][$i]]) && 
@@ -204,35 +204,35 @@
                     $this->contents = str_replace (
                         $matches[0][$i], // search
                         $matches[4][$i], // replace
-                        $this->contents  // subject
+                        $contents        // subject
                     );
                 
                 
                 // expand here when ready to do multiple elseif statements //
                 
                 
-                } elseif (isset ($tags[$matches[8][$i]]) && 
+                } else if (isset ($tags[$matches[8][$i]]) && 
                            strlen ($matches[8][$i]) > 0 && // if no <!-- elseif ? -->, this is empty
                            $tags[$matches[8][$i]]) { // if <!-- elseif ? --> evals to true
                     // replace whole thing with the true part:
-                    $this->contents = str_replace (
+                    $contents = str_replace (
                         $matches[0][$i],  // search
                         $matches[10][$i], // replace
-                        $this->contents   // subject
+                        $contents         // subject
                     );
-                } elseif (isset ($matches[14][$i]) && 
+                } else if (isset ($matches[14][$i]) && 
                            strlen ($matches[14][$i]) > 0) {// if no <!-- else -->?, this is empty
                     // since this is else, replace whole thing with the true part:
-                    $this->contents = str_replace (
+                    $contents = str_replace (
                         $matches[0][$i],  // search
                         $matches[14][$i], // replace
-                        $this->contents   // subject
+                        $contents         // subject
                     );
                 } else { // you hit this if nothing is true and no <!-- else --> available
-                    $this->contents = str_replace (
+                    $contents = str_replace (
                         $matches[0][$i],  // search
                         '',               // replace
-                        $this->contents   // subject
+                        $contents         // subject
                     );
                 }
             }
@@ -265,23 +265,24 @@
             
             // build tags array; replace tags with object props
             foreach ($tags as $tag => $data) {
-                $tags_processed[] = "/$ot ?$tag ?$ct/U";
+                $tags_processed[] = '/' . $ot . ' ?' . $tag . ' ?' . $ct . '/U';
                 $values_processed[] = (string) $data; // "abc", "true" or "array"
             }
 
             // replacing will stop when there are no more <!-- include "tags" -->.
-            while (preg_match_multi (
-                        array ($this->include_pattern, 
-                               $this->forloop_pattern,
-                               $this->if_pattern,
-                               $this->listcmp_pattern,
-                               $this->field_pattern), 
-                        $this->contents)) {
-                $this->include_snippets (); // recursively include files (resolves include tags)
-                $this->expand_list_comprehension ();
-                $this->expand_page_loops ($tags);
-                $this->resolve_if_conditionals ($tags);
-                $this->create_field_tags ($tags);
+            while (
+                preg_match_multi (
+                    array (
+                        $this->include_pattern, 
+                        $this->forloop_pattern,
+                        $this->if_pattern,
+                        $this->listcmp_pattern,
+                        $this->field_pattern), $this->contents)) {
+                $this->include_snippets ($this->contents); // recursively include files (resolves include tags)
+                $this->expand_list_comprehension ($this->contents);
+                $this->expand_page_loops ($this->contents, $tags);
+                $this->resolve_if_conditionals ($this->contents, $tags);
+                $this->create_field_tags ($this->contents);
                 
                 // replace all variable tags
                 // remember, replacement may generate new include tags
@@ -290,7 +291,7 @@
             unset ($tags_processed, $values_processed); // free ram
             
             // then hide unmatched var tags
-            $this->contents = preg_replace ("/$ot ?$vf ?$ct/U", '', $this->contents);
+            $this->contents = preg_replace ('/' . $ot . ' ?' . $vf . ' ?' . $ct . '/U', '', $this->contents);
             return $this; // chaining
         }
     }

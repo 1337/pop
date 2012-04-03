@@ -585,8 +585,8 @@ class Spyc {
     }
 
     if ( is_numeric($value) && preg_match ('/^(-|)[1-9]+[0-9]*$/', $value) ){
-      $intvalue = (int)$value;
-      if ($intvalue != PHP_INT_MAX)
+      $intvalue = (int) $value;
+      if ($intvalue !== PHP_INT_MAX)
         $value = $intvalue;
       return $value;
     }

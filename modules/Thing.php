@@ -27,7 +27,7 @@
         }
 
         function Type ($type_id = 0) { // gsetter
-            if ($type_id == 0) { // no type ID is supplied
+            if ($type_id === 0) { // no type ID is supplied
                 return $this->GetType ();
             } else { // a type ID is supplied
                 return $this->SetType ($type_id);
@@ -191,7 +191,7 @@
                                 WHERE `parent_oid`='$parent'
                                   AND `child_oid`='$oid'";
                     $sql = mysql_query ($query) or die (mysql_error ());
-                    if (mysql_num_rows ($sql) == 0) { // no existing key
+                    if (mysql_num_rows ($sql) === 0) { // no existing key
                         $query = "INSERT INTO `hierarchy` (`parent_oid`,`child_oid`)
                                                      VALUES ('$parent','$oid')";
                         $sql = mysql_query ($query) or die (mysql_error ());

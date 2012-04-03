@@ -43,7 +43,7 @@
                         $sql = "SELECT `properties` FROM `objects` WHERE `id`='$id' LIMIT 1";
                         $ss = mysql_query ($sql, $this->link);
                         if ($ss) {
-                            if (mysql_num_rows ($ss) == 1) { // limit 1, 1 result!
+                            if (mysql_num_rows ($ss) === 1) { // limit 1, 1 result!
                                 $row = mysql_fetch_assoc ($ss);
                                 // cache result; save to FS cache. line below should call put()
                                 $prop_str = $row['properties'];

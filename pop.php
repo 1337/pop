@@ -53,9 +53,9 @@
         foreach as &var is 3x faster if loop involves writing to var.
         recursion is 3x slower than not
         it is faster to strtolower+strpos than to stripos.
-        TODO: (int) is faster than intval
+        (int) is faster than intval
         TODO: array() is marginally faster than (array)
-        TODO: === is up to 12 times faster than == in all comparisons
+        === is up to 12 times faster than == in all comparisons
     */
 
     // Experimental ETag caching.
@@ -97,12 +97,12 @@
             }
         } else { // load URLs from all handlers... and cache them.
             require_once (LIBRARY_PATH . 'spyc.php');
-            foreach ($modules as $module) { // modules is in (default_)vars.php
+            foreach ($modules as $idx => $module) { // modules is in (default_)vars.php
                 $yaml_path = $module . '.yaml';
                 if (@file_exists (MODULE_PATH . $yaml_path) && !class_exists ($module)) {
                     try {
                         $yaml = Spyc::YAMLLoad (MODULE_PATH . $yaml_path);
-                        foreach ((array) $yaml['Handlers'] as $handler_array) {
+                        foreach ((array) $yaml['Handlers'] as $idx => $handler_array) {
                             foreach ($handler_array as $hk => $hndl) {
                                 // this foreach just breaks keys from values.
                                 $all_hooks[$module][$hk] = $hndl;
@@ -129,7 +129,7 @@
             debug ($e->getMessage ());
         }
     } else { // use POP as library
-        foreach ($modules as $module) { // modules is in (default_)vars.php
+        foreach ($modules as $idx => $module) { // modules is in (default_)vars.php
             $path = $module . '.php';
             if (@file_exists (MODULE_PATH . $path)) {// && !class_exists ($module)) {
                 @include_once (MODULE_PATH . $path); // modules are the php classes

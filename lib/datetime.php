@@ -23,43 +23,35 @@
         // returns unix timestamp.
         return alt_date($date, 0, 0, 0, $mon, $day, $year);
     }
- 
-    function second ($date) {
-        return date('s', $date);
-    }
-
-    function minute ($date) {
-        return date('i', $date);
-    }
-
-    function hour ($date) {
-        return date('G', $date);
-    }
-
-    function day($date) {
-        return date('d', $date);
-    }
- 
-    function month($date) {
-        return date('m', $date);
-    }
- 
-    function month_name($date) {
-        return date('F', $date);
-    }
- 
-    function year($date) {
-        return date ('Y', $date);
+    
+    function _date ($component = 'second', $date) {
+        // date() with even more formats.
+        $conversion_table = array (
+            'second'     => 's',
+            'minute'     => 'i',
+            'hour'       => 'G',
+            'day'        => 'd',
+            'month'      => 'm',
+            'month_name' => 'F',
+            'year'       => 'Y'
+        );
+        $v = $component; // compat with date()
+        if (isset ($conversion_table[$component])) {
+            $v = $conversion_table[$component];
+        }
+        return date ($v, $date);
     }
  
     function break_date ($date) {
         // date breakdown.
-        return array ('year' => year ($date),
-                      'month' => month ($date),
-                      'day' => day ($date));
+        return array (
+            'year'  => _date ('year',  $date),
+            'month' => _date ('month', $date),
+            'day'   => _date ('day',   $date)
+        );
     }
  
-    function last_day_of_month($month, $year) {
+    function last_day_of_month ($month, $year) {
         for ($i = 1; $i < 32; ++$i) {
             // loop until the day number decreases ("new month")
             $newj = date("d", smktime($month, $i, $year));
@@ -87,12 +79,14 @@
         // get time now in unix seconds since epoch.
         $now_u = date ("U");
         // get time (datetime) in unix seconds since epoch.
-        $datetime_u = mktime (hour ($datetime), 
-                            minute ($datetime), 
-                            second ($datetime), 
-                             month ($datetime), 
-                               day ($datetime), 
-                              year ($datetime));
+        $datetime_u = mktime (
+            _date ('hour',   $datetime), 
+            _date ('minute', $datetime), 
+            _date ('second', $datetime), 
+            _date ('month',  $datetime), 
+            _date ('day',    $datetime), 
+            _date ('year',   $datetime)
+        );
         return $now_u - $datetime_u;
     }
  
@@ -110,23 +104,23 @@
             $datetime2 = time ();
         }
         $diff = abs ($datetime2 - $datetime);
-        if ($diff<60) {
+        if ($diff < 60) {
             return $diff . " second" . plural($diff) . $suffix;
         }
         $diff = round($diff/60);
-        if ($diff<60) {
+        if ($diff < 60) {
             return $diff . " minute" . plural($diff) . $suffix;
         }
         $diff = round($diff/60);
-        if ($diff<24) {
+        if ($diff < 24) {
             return $diff . " hour" . plural($diff) . $suffix;
         }
         $diff = round($diff/24);
-        if ($diff<7) {
+        if ($diff < 7) {
             return $diff . " day" . plural($diff) . $suffix;
         }
         $diff = round($diff/7);
-        if ($diff<4) {
+        if ($diff < 4) {
             return $diff . " week" . plural($diff) . $suffix;
         }
         if ($datetime > 0) { // it'll return the epoch if not

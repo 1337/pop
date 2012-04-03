@@ -13,39 +13,38 @@
             // if no param (null): create (saved on first __set)
             // if param is array: create, with param = default values
             // if param is not array: get as param = id
-            if ($param !== null) {
-                if (is_array ($param)) {
-                    // param is default values.
-                    foreach ($param as $key => $value) {
-                        $this->__set ($key, $value);
+            
+            if (is_array ($param)) {
+                // param is default values.
+                foreach ($param as $key => $value) {
+                    $this->__set ($key, $value);
+                }
+            } else if (is_string ($param)) { // param is ID.
+                $path = $this->_path ($param);
+                if (is_file ($path)) {
+                    try {
+                        $file_contents = file_get_contents ($path);
+                        // json_decode: true = array, false = object
+                        $props = json_decode ($file_contents, true);
+                        if ($props === null) { // if fails
+                            $props = unserialize ($file_contents);
+                        }
+                        if ($props) {
+                            $this->properties = $props;
+                        }
+                        $this->properties['id'] = $param; // add ID
+                        
+                        // cache this object by reference; multi-level key being [{class}][{id}]
+                        $this->_memcache ();
+                        
+                    } catch (Exception $e) {
+                        throw new Exception ('Read error');
                     }
-                } else { // param is ID.
-                    $path = $this->_path ($param);
-                    if (is_file ($path)) {
-                        try {
-                            $file_contents = file_get_contents ($path);
-                            // json_decode: true = array, false = object
-                            $props = json_decode ($file_contents, true);
-                            if ($props === null) { // if fails
-                                $props = unserialize ($file_contents);
-                            }
-                            if ($props) {
-                                $this->properties = $props;
-                            }
-                            $this->properties['id'] = $param; // add ID
-                            
-                            // cache this object by reference; multi-level key being [{class}][{id}]
-                            $this->_memcache ();
-                            
-                        } catch (Exception $e) {
-                            throw new Exception ('Read error');
-                        }
-                    } else {
-                        // not an existing object... create object ONLY IF WE
-                        // HAVE EXISTING PROPERTIES IN THE BAG
-                        if (isset ($this->properties['id']) && sizeof ($this->properties) >= 2) {
-                            $this->put ();
-                        }
+                } else {
+                    // not an existing object... create object ONLY IF WE
+                    // HAVE EXISTING PROPERTIES IN THE BAG
+                    if (isset ($this->properties['id']) && sizeof ($this->properties) >= 2) {
+                        $this->put ();
                     }
                 }
             }
@@ -97,9 +96,9 @@
             
             $this->properties[$property] = $value;
             
-            if ($property == 'id') { // manage special cases
+            if ($property === 'id') { // manage special cases
                 $this->__construct ($value);
-            } elseif ($property == 'type') {
+            } else if ($property === 'type') {
                 throw new Exception ('Object type cannot be changed');
             } else { // write props into a file if the object has an ID.
                 if (isset ($this->properties['id'])) {
@@ -247,7 +246,7 @@
                 // unset ($pj);
                 // cache this thing?
                 if (array_key_exists ('_cacheable', $more_options) &&
-                    $more_options['_cacheable'] == true) {
+                    $more_options['_cacheable'] === true) {
                     file_put_contents (
                         CACHE_PATH . create_etag ($_SERVER['REQUEST_URI']), 
                         $fc

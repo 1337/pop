@@ -42,20 +42,20 @@
             $this->filters = array ();
             if ($module_name === false) {
                 // search all model types
-                $matches = glob (DATA_PATH . "*");
+                $matches = glob (DATA_PATH . '*');
             } elseif (is_string ($module_name)) {
                 $this->module_name = $module_name;
                 // all data are stored as DATA_PATH/class_name/id
-                $matches = glob (DATA_PATH . "$module_name/*");
+                $matches = glob (DATA_PATH . $module_name . '/*');
             } elseif (is_object ($module_name)) {
                 $module_name = get_class ($module_name); // revert to its name
                 $this->module_name = $module_name;
                 // all data are stored as DATA_PATH/class_name/id
-                $matches = glob (DATA_PATH . "$module_name/*");
+                $matches = glob (DATA_PATH . $module_name . '/*');
             } else {
                 $matches = array ();
             }
-            foreach ((array) $matches as $match) {
+            foreach ((array) $matches as $idx => $match) {
                 $this->found[] = basename ($match);
             }
             return $this; // chaining for php 5
@@ -91,7 +91,7 @@
             foreach ((array) $this->found as $index => $file) {
                 $object = $this->_create_object_from_filename ($file);
                 $include_this_object = true;
-                foreach ((array) $this->filters as $filter) {
+                foreach ((array) $this->filters as $idx => $filter) {
                     // if any filter is not met, $include_this_object is false
                     $include_this_object &= $this->_filter_function ($object, $filter);
                 }
@@ -108,7 +108,7 @@
                 }
             }
             // update filenames (count() uses it)
-            $this->found = array_map (array ($this, "_get_object_name"), (array) $this->found_objects);
+            $this->found = array_map (array ($this, '_get_object_name'), (array) $this->found_objects);
             
             // reset the filters (doesn't matter no more)
             $object = null;
@@ -133,11 +133,10 @@
                     
                     // same code from fetch ()
                     $include_this_object = true;
-                    foreach ((array) $this->filters as $filter) {
+                    foreach ((array) $this->filters as $idx => $filter) {
                         // if any filter is not met, $include_this_object is false
                         $include_this_object &= $this->_filter_function ($object, $filter);
                     }
-                    // $include_this_object = array_reduce ($this->filters, array ($this, '_filter_function'), true);
                     if ($include_this_object) {
                         return $object;
                     }
