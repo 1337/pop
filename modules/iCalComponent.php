@@ -14,9 +14,6 @@
             
         # note: in Poop, iCalComponent::__construct does not accept Model parameters.
     */
-    
-    require_once (MODULE_PATH . 'Model.php');
-
     class iCalComponent extends Model {
         // event, to-do, journal, or...
         // see "Objects" in http://goo.gl/klqvs (as per RFC 2445 p.9)

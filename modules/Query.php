@@ -1,6 +1,4 @@
 <?php
-    require_once (MODULE_PATH . 'Model.php');
-
     class Query {
         /*  extends Model to get property bags. Don't assign an ID!
             usage:

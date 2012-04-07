@@ -1,6 +1,4 @@
 <?php
-    require_once (MODULE_PATH . 'Model.php');
-
     class DOM extends Model {
         var $id; // prevent writing object into DB
         

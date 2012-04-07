@@ -1,6 +1,4 @@
 <?php
-    require_once (MODULE_PATH . 'Model.php');
-
     class AjaxField extends Model {
     
         public function make ($object, $property, $mode = 'text') {

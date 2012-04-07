@@ -1,11 +1,4 @@
 <?php
-    if (file_exists (MODULE_PATH . 'Compressor.php')) {
-        include_once (MODULE_PATH . 'Compressor.php');
-    }
-    if (file_exists (MODULE_PATH . 'AjaxField.php')) {
-        include_once (MODULE_PATH . 'AjaxField.php');
-    }
-    
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
         var $contents, $ot, $ct, $vf;

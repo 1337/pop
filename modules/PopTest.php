@@ -1,6 +1,4 @@
 <?php 
-    require_once (MODULE_PATH . 'UnitTest.php');
-
     class PopTest extends UnitTest {
         public $thing;
      

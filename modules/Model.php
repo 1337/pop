@@ -215,7 +215,8 @@
             }
             
             $blob = json_encode ($this->properties);
-            if (!mkdir (dirname ($this->_path ()))) {
+            $class_dir = dirname ($this->_path ());
+            if (!file_exists ($class_dir) && !mkdir ($class_dir)) {
                 throw new Exception ('Cannot create data directory!');
             }
             return file_put_contents ($this->_path (), $blob, LOCK_EX);
@@ -243,7 +244,8 @@
                 $pj->replace_tags (
                     array_merge ($this->properties, $more_options)
                 );
-                if ($more_options ['_json'] === true) {
+                if (isset($more_options['_json']) &&
+                    $more_options['_json'] === true) {
                     // if a 'json' tag is set to true, the content shall be myself
                     $fc = $this->__toString ();
                 } else {

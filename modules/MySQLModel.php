@@ -1,6 +1,4 @@
 <?php
-    require_once (MODULE_PATH . 'Model.php');
-
     class MySQLModel extends Model {
         /* 
             Lets pop use MySQL databases.

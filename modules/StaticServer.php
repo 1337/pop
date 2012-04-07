@@ -1,6 +1,4 @@
 <?php
-    require_once (MODULE_PATH . 'Model.php');
-
     class StaticServer {
         
         function index () {

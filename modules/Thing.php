@@ -1,6 +1,4 @@
 <?php
-    require_once (MODULE_PATH . 'Model.php');
-
     class Thing extends Model {
         // Standard adapter for a Things Thing. PHP 5 only.
         public $oid;
