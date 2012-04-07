@@ -91,7 +91,8 @@
             $property = strtolower ($property); // case-insensitive
             
             if ($value instanceof Model && !is_null ($value->id)) {
-                $value = $value->get_db_key (); // replace object by a reference to it, so we can serialize THIS object
+                // replace object by a reference to it, so we can serialize THIS object
+                $value = $value->get_db_key ();
             }
             
             $this->properties[$property] = $value;
@@ -127,6 +128,7 @@
             if ($secondary_keys) {
                 foreach ($this->_memcache_fields as $idx => $field) {
                     try {
+                        // so, key = 'fieldname=value'
                         $key = $field . '=' . (string) $this->__get($field);
                         $_models_cache_[get_class ($this)][$key] =& $this;
                     } catch (Exception $e) {
@@ -241,7 +243,12 @@
                 $pj->replace_tags (
                     array_merge ($this->properties, $more_options)
                 );
-                $fc = $pj->__toString ();
+                if ($more_options ['_json'] === true) {
+                    // if a 'json' tag is set to true, the content shall be myself
+                    $fc = $this->__toString ();
+                } else {
+                    $fc = $pj->__toString ();
+                }
                 echo $fc;
                 // unset ($pj);
                 // cache this thing?
