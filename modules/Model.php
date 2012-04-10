@@ -9,7 +9,6 @@
         protected $_memcache_fields = array ();
         
         public function __construct ($param = null) {
-            global $_models_cache_;
             // if no param (null): create (saved on first __set)
             // if param is array: create, with param = default values
             // if param is not array: get as param = id
@@ -122,7 +121,7 @@
             // an object is being read multiple times by different properties.
             
             // store by primary key.
-            $_models_cache_[get_class ($this)][$this->properties['id']] =& $this;
+            Pop::$models_cache[get_class ($this)][$this->properties['id']] =& $this;
             
             // store by unique secondary keys.
             if ($secondary_keys) {
@@ -130,7 +129,7 @@
                     try {
                         // so, key = 'fieldname=value'
                         $key = $field . '=' . (string) $this->__get($field);
-                        $_models_cache_[get_class ($this)][$key] =& $this;
+                        Pop::$models_cache[get_class ($this)][$key] =& $this;
                     } catch (Exception $e) {
                         // memcache fail
                     }
@@ -225,7 +224,7 @@
         public static function handler () {
             // returns the current handler, not the ones 
             // for which this module is responsible.
-            list ($module, $handler) = Pop::url ($_SERVER['REQUEST_URI']);
+            list ($module, $handler) = Pop::url ();
             return $handler;
         }
         

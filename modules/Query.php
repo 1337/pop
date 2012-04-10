@@ -192,7 +192,7 @@
                 case '==':
                     if (is_string ($haystack) && is_string ($cond)) {
                         // case-insensitive comparison
-                        return strcasecmp ($haystack, $cond);
+                        return (strcasecmp ($haystack, $cond) === 0);
                     } else {
                         return ($haystack == $cond);
                     }

@@ -1,6 +1,6 @@
-# POP (GPLv3)
+# Pop (GPLv3)
 
-POP is a filesystem-based PHP database, allowing for object persistence without MySQL (i.e. NoSQL).
+Pop is a filesystem-based PHP database, allowing for object persistence without MySQL (i.e. NoSQL).
 
 It is 100% compatible with [backbone.js](http://documentcloud.github.com/backbone/).
 
@@ -12,7 +12,7 @@ It is 100% compatible with [backbone.js](http://documentcloud.github.com/backbon
 * Apache2, lighttpd, or similar web server with URL rewriting
 
 ### Install your web server
-If you use lighttpd and want POP to handle your website, rewrite rules are as follows:
+If you use lighttpd and want Pop to handle your website, rewrite rules are as follows:
 
 ```
 (/etc/lighttpd/lighttpd.conf)
@@ -22,7 +22,7 @@ url.rewrite-if-not-file = ( "(.*)" => "/pop/index.php" )
 
 Then run `/etc/init.d/lighttpd restart`.
 
-If you use apache2 and want POP to handle your website, your `.htaccess` file should have these rules:
+If you use apache2 and want Pop to handle your website, your `.htaccess` file should have these rules:
 
 ```
 DirectoryIndex index.php
@@ -44,6 +44,12 @@ Then run `/etc/init.d/apache2 restart`.
 2. Run ```chmod -R 666 (install path)/pop/data``` to allow PHP write access to the data folder.
 
 ## Changelog
+
+### 2012-04-10
+* Changed core to use the Standard PHP Library (SPL), because it seems to be available everywhere.
+* Moved core to become a module; closed many Pop-specific functions into it.
+* Fixed bug associated with `strcasecmp`.
+* Misc improvements.
 
 ### 2012-03-17
 * New `AjaxField` class renders a HTML input/textarea tag corresponding to a given object's field:

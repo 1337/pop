@@ -114,26 +114,24 @@
                
                replace_tags help recurse this function.
             */
-            if (class_exists ('AjaxField')) {
-                $af = Pop::obj ('AjaxField', null);
+            $af = Pop::obj ('AjaxField', null);
 
-                $matches = array (); // preg_match_all gives you an array of &$matches.
-                if (preg_match_all ($this->field_pattern, $contents, $matches) <= 0) {
-                    return;
-                }
-                if (sizeof ($matches) > 0 && sizeof ($matches[2]) > 0) {
-                    foreach ($matches[2] as $index => $id) { // [1] because [0] is full line
-                        $type = $matches[3][$index];
-                        $prop = $matches[4][$index];
-                        $obj = Pop::obj ($type, $id);
-                        if ($obj) {
-                            // replace tags in this contents with that contents
-                            $contents = str_replace (
-                                $matches[0][$index], 
-                                $af->make ($obj, $matches[4][$index]), 
-                                $contents
-                            );
-                        }
+            $matches = array (); // preg_match_all gives you an array of &$matches.
+            if (preg_match_all ($this->field_pattern, $contents, $matches) <= 0) {
+                return;
+            }
+            if (sizeof ($matches) > 0 && sizeof ($matches[2]) > 0) {
+                foreach ($matches[2] as $index => $id) { // [1] because [0] is full line
+                    $type = $matches[3][$index];
+                    $prop = $matches[4][$index];
+                    $obj = Pop::obj ($type, $id);
+                    if ($obj) {
+                        // replace tags in this contents with that contents
+                        $contents = str_replace (
+                            $matches[0][$index], 
+                            $af->make ($obj, $matches[4][$index]), 
+                            $contents
+                        );
                     }
                 }
             }
@@ -237,7 +235,7 @@
             $ct = $this->ct;
             $vf = $this->vf;
             // populate tags
-            list ($_era, $_ert) = Pop::url ($_SERVER['REQUEST_URI'], false);
+            list ($_era, $_ert) = Pop::url ();
             $tags = array_merge (
                 array (
                     '__cacheable' => false,

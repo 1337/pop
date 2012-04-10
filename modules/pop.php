@@ -3,7 +3,7 @@
 // variables
         private static $loaded_modules;
         private static $all_hooks = array ();
-        private static $models_cache = array ();
+        public static $models_cache = array ();
         
 // magics
         public function __construct () {
@@ -26,8 +26,8 @@
                 self::_load_handlers(); // $all_hooks
                 try { // load responsible controller
                     $url_parts = parse_url ($_SERVER['REQUEST_URI']);
-                    list ($module, $handler) = self::url ($url_parts['path']);
-                    $page = Pop::obj ($module, null);
+                    list ($mod, $handler) = self::url ($url_parts['path'], 1);
+                    $page = Pop::obj ($mod, null);
                     $page->$handler (); // load only one page...
                     die ();
                 } catch (Exception $err) {
@@ -64,9 +64,12 @@
             return new $class_name ($args[1]);
         }
 
-        public static function url ($url, $verbose = true) {
+        public static function url ($url = '', $verbose = false) {
             // provide the name of the handler that serves a given url.
-            // caution! function will DIE if matching fails.
+            if (!$url) {
+                $url = $_SERVER['REQUEST_URI'];
+            }
+
             foreach ((array) self::$all_hooks as $module => $hooks) {
                 foreach ((array) $hooks as $hook => $handler) {
                     // On malformed URLs, parse_url() may return FALSE
@@ -93,9 +96,12 @@
 // private functions
         private static function _load_handlers () {
             // because Spyc is slow, we cache handler-URL maps
+            global $modules;
             $url_cache = CACHE_PATH . '_url_cache.json';
-            $file_age = time () - filemtime ($url_cache);
-            if (file_exists ($url_cache) && $file_age < 3600) {
+
+            // filemtime will fail if file does not exist!
+            if (file_exists ($url_cache) && 
+                (time () - filemtime ($url_cache)) < 3600) {
                 try { // because
                     self::$all_hooks = json_decode (file_get_contents ($url_cache), true);
                 } catch (Exception $err) {
