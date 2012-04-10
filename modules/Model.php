@@ -77,7 +77,7 @@
                         strpos ($this->properties[$property], '/', 5) - 5
                     );
                     $id = substr($db, strpos ($db, '/', 5) + 1);
-                    return new_object ($id, $class);
+                    return Pop::obj ($class, $id);
                 } else {
                     return $this->properties[$property];
                 }
@@ -162,7 +162,7 @@
 
             try {
                 if ($id && $type && $prop) {
-                    $obj = new_object ($id, $type);
+                    $obj = Pop::obj ($type, $id);
                     if ($val && $key) { // write
                         $hash = $obj->get_hash ('write');
                         if ($key === $hash) { // key is correct -> update object
@@ -196,7 +196,7 @@
             if (is_null ($class_name) && function_exists('get_called_class')) {
                 $class_name = get_called_class ();
             }
-            return new_object ($id, $class_name);
+            return Pop::obj ($class_name, $id);
         }
         
         public function properties () { // read-only prop keys
@@ -210,7 +210,7 @@
             
             // Model checks for its required permission.
             if (!is_writable (DATA_PATH)) {
-                debug ('data path ' . DATA_PATH . ' not writable');
+                Pop::debug ('data path ' . DATA_PATH . ' not writable');
                 die ();
             }
             
@@ -225,7 +225,7 @@
         public static function handler () {
             // returns the current handler, not the ones 
             // for which this module is responsible.
-            list ($module, $handler) = get_handler_by_url ($_SERVER['REQUEST_URI']);
+            list ($module, $handler) = Pop::url ($_SERVER['REQUEST_URI']);
             return $handler;
         }
         
@@ -307,41 +307,11 @@
 
 
 
-        // 
+        // extendable events
         public function onLoad () { }
         public function onBeforeRender () { }
         public function onRender () { }
         public function onRead () { }
         public function onWrite () { }
     }
-
-    // helper
-    function new_object ($param = null, $class_name = 'Model') {
-        /*  
-            Singleton helper
-            
-            $param can be any of the following:
-                - Object ID (string; looks in memcache)
-                - 'field=value' (string; looks in memcache)
-                - array of properties (creates new object)
-        */
-        global $_models_cache_;
-
-        try {
-            if (!class_exists ($class_name)) {
-                // attempt to include the module if it isn't already. scoped include!
-                include_once (MODULE_PATH . $class_name . '.php');
-            }
-            
-            if (is_string ($param) && isset ($_models_cache_[$class_name][$param])) {
-                return $_models_cache_[$class_name][$param];
-            } else {
-                // Model::__construct() adds itself to $_models_cache_.
-                return new $class_name ($param);
-            }
-        } catch (Exception $e) {
-            debug ('Cannot create object: ' . $e->getMessage ());
-        }
-    } $_models_cache_ = array (); // cache variable
-
 ?>

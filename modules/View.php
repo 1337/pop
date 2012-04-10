@@ -57,7 +57,7 @@
                     @include ($file);
                 } else {
                     // file not found
-                    debug ('File %s not found', $file);
+                    Pop::debug ('File %s not found', $file);
                 }
                 $buffer = ob_get_contents();
                 ob_end_clean();
@@ -115,7 +115,7 @@
                replace_tags help recurse this function.
             */
             if (class_exists ('AjaxField')) {
-                $af = new_object (null, 'AjaxField');
+                $af = Pop::obj ('AjaxField', null);
 
                 $matches = array (); // preg_match_all gives you an array of &$matches.
                 if (preg_match_all ($this->field_pattern, $contents, $matches) <= 0) {
@@ -125,7 +125,7 @@
                     foreach ($matches[2] as $index => $id) { // [1] because [0] is full line
                         $type = $matches[3][$index];
                         $prop = $matches[4][$index];
-                        $obj = new_object ($id, $type);
+                        $obj = Pop::obj ($type, $id);
                         if ($obj) {
                             // replace tags in this contents with that contents
                             $contents = str_replace (
@@ -237,7 +237,7 @@
             $ct = $this->ct;
             $vf = $this->vf;
             // populate tags
-            list ($_era, $_ert) = get_handler_by_url ($_SERVER['REQUEST_URI'], false);
+            list ($_era, $_ert) = Pop::url ($_SERVER['REQUEST_URI'], false);
             $tags = array_merge (
                 array (
                     '__cacheable' => false,
@@ -294,7 +294,7 @@
             // that's why you ob_start at the beginning of Things.
             $content = ob_get_contents (); ob_end_clean ();
 
-            $pj = new_object ('Model');
+            $pj = Pop::obj ('Model');
             $pj->render (
                 $template, 
                 array_merge (

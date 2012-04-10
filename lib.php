@@ -49,6 +49,8 @@
                 
                 // everyone else would have returned by now
                 return $default;
+            } else {
+                return array (); // return nothing
             }
         }
     }
@@ -156,23 +158,6 @@
         }
     }
 
-    if (!function_exists ('debug')) {
-        function debug ($msg) {
-            // debug() accepts the same parameters as printf() typically does.
-            $format_string_args = array_slice (func_get_args(), 1);
-            echo 
-                '<div style="border:1px #ccc solid;
-                             padding:2ex;
-                             color:#000;
-                             box-shadow: 3px 3px 5px #ddd;
-                             border-radius:8px;
-                             font:1em monospace;">
-                     Error<hr />',
-                     vsprintf ($msg, $format_string_args),
-                '</div>';
-        }
-    }
-    
     if (!function_exists ('println')) {
         function println ($what, $hdng = 'p') {
             if ($hdng >= 1 && $hdng <= 6) {
@@ -184,35 +169,6 @@
         }
     }
 
-    if (!function_exists ('get_handler_by_url')) {
-        function get_handler_by_url ($url, $verbose = true) {
-            // provide the name of the handler that serves a given url.
-            // caution! function will DIE if matching fails.
-            global $all_hooks;
-
-            foreach ((array) $all_hooks as $module => $hooks) {
-                foreach ((array) $hooks as $hook => $handler) {
-                    $url_parts = parse_url ($url);
-                    if ($url_parts) { // On malformed URLs, parse_url() may return FALSE
-                        $match = preg_match (
-                            '#^/' . SUBDIR . '?' . $hook . '$#i', 
-                            $url_parts['path']
-                        );
-                        if ($match) { // 1 = match
-                            return array ($module, $handler); // superclass function
-                        }
-                    }
-                }
-            }
-
-            if ($verbose) {
-                throw new Exception('We have nothing to serve at ' . $url);
-            } else {
-                return false;
-            }
-        }
-    }
-    
     if (!function_exists ('auth_curl')) {
         function auth_curl ($url, $user, $pass, $protocol = 'http') {
             // stackoverflow.com/questions/2140419
@@ -384,7 +340,7 @@
             if (ini_get('magic_quotes_gpc')) {
                 $data = stripslashes($data);
             }
-            if ($slink) {
+            if ($slink && function_exists ('mysql_real_escape_string')) {
                 return mysql_real_escape_string (trim ($data), $slink);
             } else {
                 return addslashes (trim ($data));

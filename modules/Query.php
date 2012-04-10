@@ -7,11 +7,11 @@
                     var_dump ($a->found);
                 
                 get all objects of a certain type as an array of objects:
-                    $a = new_object ('ModuleName', 'Query');
+                    $a = Pop::obj ('Query', 'ModuleName');
                     var_dump ($a->get ());
                 
                 sort by a property:
-                    $a = new_object ('ModuleName', 'Query');
+                    $a = Pop::obj ('Query', 'ModuleName');
                     var_dump (
                         $a->filter('id ==', 123)->get (1)
                     );
@@ -228,11 +228,7 @@
         
         private function _create_object_from_filename ($file) {
             // output: object of Id.Type
-            if (function_exists ('new_object')) {
-                return new_object ($file, $this->module_name);
-            } else {
-                return new $this->module_name ($file); // new TYPE (FILENAME)        
-            }
+            return Pop::obj ($this->module_name, $file);
         }
     }
     
