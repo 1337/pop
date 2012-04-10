@@ -3,6 +3,7 @@
 
     class Model {
         protected $properties = array ();
+        protected $methods = array ();
         
         // Extended by subclasses.
         // Example $_memcache_fields: [guid, id, other_unique_keys]
@@ -57,6 +58,19 @@
             return $this;
         }
         
+        public function __call ($name, $args) {
+            // $methods is an array storing callbacks to functions.
+            // if this object is registered with extra, object-bound methods, 
+            // it will be called like this.
+            // if you want to register methods for all instances of the same
+            // class, then you might want to write a private function.
+            if (isset ($this->methods[$name])) {
+                return call_user_func_array ($this->methods[$name], $args);
+            } else {
+                throw new Exception ("Method '$name' not registered");
+            }
+        }
+
         public function __get ($property) {
             $this->onRead (); // trigger event
             $property = strtolower ($property); // case-insensitive

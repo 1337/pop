@@ -46,6 +46,15 @@ Then run `/etc/init.d/apache2 restart`.
 ## Changelog
 
 ### 2012-04-10
+* Added object instance prototyping: you can now add functions to individual objects:
+
+```
+$a = new Model();
+$a->methods['foo'] = function (arg) {
+    echo 'bar';
+};
+```
+
 * Changed core to use the Standard PHP Library (SPL), because it seems to be available everywhere.
 * Moved core to become a module; closed many Pop-specific functions into it.
 * Fixed bug associated with `strcasecmp`.
