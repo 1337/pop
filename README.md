@@ -7,7 +7,7 @@ It is 100% compatible with [backbone.js](http://documentcloud.github.com/backbon
 ## Installing
 
 ### Requirements
-* PHP 5.2+
+* PHP 5.3+, or PHP 5.2 + SPL (Standard PHP library; usually built-in)
 * JSON module (json_encode, json_decode)
 * Apache2, lighttpd, or similar web server with URL rewriting
 

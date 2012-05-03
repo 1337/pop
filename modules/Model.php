@@ -72,6 +72,8 @@
         }
 
         public function __get ($property) {
+            // Pop uses this method to read all unavailable properties from the
+            // $properties variable.
             $this->onRead (); // trigger event
             $property = strtolower ($property); // case-insensitive
             
@@ -103,7 +105,7 @@
 
             $property = strtolower ($property); // case-insensitive
             
-            if ($value instanceof Model && !is_null ($value->id)) {
+            if ($value instanceof Model && $value->id !== null) {
                 // replace object by a reference to it, so we can serialize THIS object
                 $value = $value->get_db_key ();
             }
@@ -206,7 +208,7 @@
         
         public static function _get ($id = null, $class_name = null) {
             // allows calls like Model::_get(id)
-            if (is_null ($class_name) && function_exists('get_called_class')) {
+            if ($class_name === null && function_exists('get_called_class')) {
                 $class_name = get_called_class ();
             }
             return Pop::obj ($class_name, $id);

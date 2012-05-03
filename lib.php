@@ -1,9 +1,7 @@
 <?php
-    include_once (LIBRARY_PATH . 'datetime.php');
-    if (!class_exists ('Header')) {
-        include (LIBRARY_PATH . 'header.php');
-    }
-    
+    include_once (LIBRARY_PATH . 'import.php');
+    import ('datetime', 'header');
+
     if (!function_exists ('kwargs')) {
         function kwargs () { // come on, short round.
             $url_parts = parse_url ($_SERVER['REQUEST_URI']);
@@ -31,14 +29,14 @@
                     parse_str ($str_GET['query'], $REAL_GET);
                 }
                 $_vars_cache_ = array_merge (
-                    $_COOKIE, 
+                    $_COOKIE,
                     (isset ($_SESSION)? $_SESSION : array ()),
                     (isset ($_POST)   ? $_POST    : array ()),
                     (isset ($_GET)    ? $_GET     : array ()),
                     (isset ($REAL_GET)? $REAL_GET : array ())
                 );
             }
-            
+
             if (sizeof ($_vars_cache_)) {
                 if ($index === false) {
                     return $_vars_cache_; // return cache if it exists
@@ -46,7 +44,7 @@
                 if (isset ($_vars_cache_[$index])) {
                     return $_vars_cache_[$index];
                 }
-                
+
                 // everyone else would have returned by now
                 return $default;
             } else {
@@ -54,11 +52,11 @@
             }
         }
     }
-    
+
     if (!function_exists ('is_assoc')) {
         function is_assoc ($array) {
             // JTS on http://php.net/manual/en/function.is-array.php
-            return 
+            return
                 is_array ($array) && (!count ($array) ||
                     !count (array_diff_key (
                         $array, array_keys (array_keys ($array))
@@ -73,7 +71,7 @@
             if (!is_assoc ($array)) {
                 $array = array_combine($array, $array); // stackoverflow.com/questions/1066850/
             }
-            
+
             $common_keys = array_intersect (array_keys ($array), $required_keys);
             if (sizeof ($common_keys) === sizeof ($required_keys)) {
                 return true;
@@ -102,7 +100,7 @@
             );
         }
     }
-    
+
     if (!function_exists ('create_etag')) {
         function create_etag ($entity_contents) {
             // supply file contents and this will generate a tag.
@@ -110,7 +108,7 @@
             return 'ci-' . dechex (crc32 ($entity_contents));
         }
     }
-    
+
     if (!function_exists ('left')) {
         function left ($str,$pos) {
             return substr($str,0,$pos);
@@ -119,10 +117,10 @@
 
     if (!function_exists ('first')) {
         function first ($str, $fit = 100) {
-            // wrapper for left with ellipses 
+            // wrapper for left with ellipses
             if (strlen ($str) > $fit) {
                 $str = left ($str, $fit - 3) . '...';
-            } 
+            }
             return $str;
         }
     }
@@ -142,7 +140,7 @@
             return $bytes;
         }
     }
-    
+
     if (!function_exists ('fast_glob')) {
         function fast_glob ($path) {
             // mod: http://www.phparch.com/2010/04/putting-glob-to-the-test/
@@ -164,7 +162,7 @@
                 $heading = 'h' . $hdng;
             } else {
                 $heading = $hdng;
-            }     
+            }
             echo '<',$heading,'>',$what,'</',$heading,">\n";
         }
     }
@@ -191,7 +189,7 @@
             return $data;
         }
     }
-    
+
     if (!function_exists ('async_curl')) {
         function async_curl ($url, $params) {
             // stackoverflow.com/questions/962915
@@ -226,7 +224,7 @@
     if (!function_exists ('map_reduce')) {
         function map_reduce ($array, $callback,
                               $drop_results = false,
-                              $map_url = false, 
+                              $map_url = false,
                               $reduce_url = false) {
             /*  maps the array an the operation to different PHP processes/threads
                 known as shards, then reduces them back to one array or value.
@@ -271,7 +269,7 @@
             return $retData;
         }
     }
-    
+
     if (!function_exists ('preg_match_multi')) {
         function preg_match_multi ($patterns, $contents) {
             // accept multiple preg patterrns on the same string.
@@ -298,7 +296,7 @@
             return (!isset ($wat) || $wat === '' || $wat === null) ? $wut : $wat;
         }
     }
- 
+
     if (!function_exists ('array_value_key')) {
         function array_value_key ($array, $lookup) {
             // given a 1-to-1 dictionary, find the index of $value.
@@ -310,7 +308,7 @@
             return null;
         }
     }
-    
+
     if (!function_exists ('array_remove_values')) {
         function array_remove_values ($array, $values) {
             if (!is_array ($values)) {
@@ -319,7 +317,7 @@
             return array_diff ($array, $values);
         }
     }
-    
+
     if (!function_exists ('ack_r3')) {
         function ack_r3 (&$array, $case=CASE_LOWER, $flag_rec=false) {
             // found here, no owner: http://php.net/manual/en/function.array-change-key-case.php
@@ -335,7 +333,7 @@
     }
 
     if (!function_exists ('escape_data')) {
-        function escape_data ($data) { 
+        function escape_data ($data) {
             global $slink;
             if (ini_get('magic_quotes_gpc')) {
                 $data = stripslashes($data);
@@ -347,4 +345,3 @@
             }
         }
     }
-?>
