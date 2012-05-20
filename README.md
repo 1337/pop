@@ -2,7 +2,8 @@
 
 Pop is a filesystem-based PHP database, allowing for object persistence without MySQL (i.e. NoSQL).
 
-It is 100% compatible with [backbone.js](http://documentcloud.github.com/backbone/).
+It allows for static object relational mapping.
+Pop is 100% compatible with [backbone.js](http://documentcloud.github.com/backbone/).
 
 ## Installing
 

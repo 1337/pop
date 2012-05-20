@@ -26,8 +26,7 @@
             $this->contents = $output;
         }
 
-        function __toString () {
+        function __toString() {
             return $this->contents;
         }
     }
-?>

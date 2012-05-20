@@ -12,11 +12,11 @@
                 }
             }
 
-            $output = "";
+            $output = '';
             foreach ($array_of_arrays as &$row) {
-                $row = array_pad ($row, $max_cols, "");
+                $row = array_pad ($row, $max_cols, '');
                 $rtr = str_replace (
-                    array ( ",", "\""),
+                    array ( ',', "\""),
                     array ('\,',  '"'),
                     $row // accepts array $rows
                 );
@@ -25,8 +25,7 @@
             $this->contents = $output;
         }
 
-        function __toString () {
+        function __toString() {
             return $this->contents;
         }
     }
-?>

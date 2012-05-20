@@ -1,10 +1,10 @@
 <?php
-    function import () {
+    function import() {
         // import files into the global namespace.
         // imoprt('a','b.c','d.e.f') imports a.php, b/c.php, and d/e/f.php
         // from either LIBRARY_PATH, MODULE_PATH, or PATH, in descending
         // order or precedence.
-        
+
         // of cascading precedence
         $search_roots = array(LIBRARY_PATH, MODULE_PATH, PATH);
 
@@ -24,4 +24,3 @@
             }
         }
     }
-?>

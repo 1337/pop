@@ -44,14 +44,13 @@
             504 => 'Gateway Timeout',
             505 => 'HTTP Version Not Supported'
         );
-        
+
         public static function status ($code, $serious = false) {
             // call this function to send a header by number: Header::status(500);
             if (isset ($this->codes[$code])) {
-                header ("HTTP/1.1 $code " . $this->codes[$code] );
+                header ('HTTP/1.1 ' . $code . ' ' . $this->codes[$code] );
             } else if ($serious) {
-                throw new Exception ("Could not send header $code");
+                throw new Exception ('Could not send header ' . $code);
             }
         }
     }
-?>

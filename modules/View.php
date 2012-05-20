@@ -5,11 +5,12 @@
         var $include_pattern, $forloop_pattern, $if_pattern, $listcmp_pattern, $field_pattern;
 
         function __construct ($special = '') {
-            // if $special (file name) is specified, then that template will be used instead.
+            // if $special (file name without file path) is specified, then 
+            // that template will be used instead.
             // note that user pref take precedence over those in page, post, etc.
 
-            $template = $this->resolve_template_name ($special); // returns full path
-            $this->contents = $this->get_parsed ($template);
+            $template = $this->resolve_template_name($special); // returns full path
+            $this->contents = $this->get_parsed($template);
             
             // constants default to case-sensitive
             if (defined ('EXTRA_TEMPLATE_TAG_FORMATS') && EXTRA_TEMPLATE_TAG_FORMATS === true) {

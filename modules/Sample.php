@@ -1,7 +1,7 @@
 <?php
     class Sample extends Model {
-        
-        function handler_007 () {
+
+        function handler_007() {
             $this->FirstName = "James";
             $this->LastName = "Bond";
             $this->render (null, array (
@@ -9,4 +9,3 @@
             ));
         }
     }
-?>

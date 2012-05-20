@@ -5,9 +5,9 @@
             include_once ('pop/pop.php');
 
             (the rest of your script)
-            $new_pop_model = new Model ();
-            
-            render ();
+            $new_pop_model = new Model();
+
+            render();
         ?>
 
         include index.php (typically not required) if using POP as website manager:
@@ -15,7 +15,7 @@
             include_once ('pop/index.php');
 
             (the rest of your script)
-            $new_pop_model = new Model ();
+            $new_pop_model = new Model();
         ?>
     */
 
@@ -39,7 +39,7 @@
     define ('FS_FETCH_HARD_LIMIT', PHP_INT_MAX); // when should Query give up?
     define ('TEMPLATE_COMPRESS', true); // use compressor = more CPU, less bandwidth
     define ('SITE_SECRET', 'password123'); // for ajax. Change immediately!
-    
+
     // SUBDIR: exclude prefix slash, include trailing slash.
     // define ('SUBDIR', substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
     define ('SUBDIR', substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
@@ -62,4 +62,3 @@
         'Query',
         'Sample',
     );
-?>

@@ -1,54 +1,53 @@
 <?php
     include_once (LIBRARY_PATH . 'import.php');
-    import ('datetime', 'header');
+    import('datetime', 'header');
 
     if (!function_exists ('kwargs')) {
-        function kwargs () { // come on, short round.
+        function kwargs() { // come on, short round.
             $url_parts = parse_url ($_SERVER['REQUEST_URI']);
             if (isset ($url_parts['query'])) {
                 return (array) $url_parts['query'];
             } else {
-                return array ();
+                return array();
             }
         }
     }
 
-    if (!function_exists ('vars')) {
-        $_vars_cache_ = array ();
+    if (!function_exists('vars')) {
         function vars ($index = false, $default = null) {
             // gathers everything from the request.
-            global $_vars_cache_; // store once, use forever
+            static $_vars_cache_ = array(); // store once, use forever
 
-            if (!sizeof ($_vars_cache_)) { // build cache no matter what
-                @session_start ();
-                if (!isset ($_SESSION)) {
-                    $_SESSION = array (); // can this be omitted?
+            if (!sizeof($_vars_cache_)) { // build cache no matter what
+                @session_start();
+                if (!isset($_SESSION)) {
+                    $_SESSION = array(); // can this be omitted?
                 }
-                $str_GET = parse_url ($_SERVER['REQUEST_URI']); // $str_GET = sad byproduct of mod_rewrite
-                if (isset ($str_GET['query'])) {
+                $str_GET = parse_url($_SERVER['REQUEST_URI']); // $str_GET = sad byproduct of mod_rewrite
+                if (isset($str_GET['query'])) {
                     parse_str ($str_GET['query'], $REAL_GET);
                 }
                 $_vars_cache_ = array_merge (
                     $_COOKIE,
-                    (isset ($_SESSION)? $_SESSION : array ()),
-                    (isset ($_POST)   ? $_POST    : array ()),
-                    (isset ($_GET)    ? $_GET     : array ()),
-                    (isset ($REAL_GET)? $REAL_GET : array ())
+                    (isset ($_SESSION)? $_SESSION : array()),
+                    (isset ($_POST)   ? $_POST    : array()),
+                    (isset ($_GET)    ? $_GET     : array()),
+                    (isset ($REAL_GET)? $REAL_GET : array())
                 );
             }
 
-            if (sizeof ($_vars_cache_)) {
+            if (sizeof($_vars_cache_)) {
                 if ($index === false) {
                     return $_vars_cache_; // return cache if it exists
                 }
-                if (isset ($_vars_cache_[$index])) {
+                if (isset($_vars_cache_[$index])) {
                     return $_vars_cache_[$index];
                 }
 
                 // everyone else would have returned by now
                 return $default;
             } else {
-                return array (); // return nothing
+                return array(); // return nothing
             }
         }
     }
@@ -82,10 +81,10 @@
     }
 
     if (!function_exists ('create_guid')) {
-        function create_guid () {
+        function create_guid() {
             // http://php.net/manual/en/function.com-create-guid.php
             if (function_exists ('com_create_guid')) {
-                return trim (com_create_guid (), '{}');
+                return trim (com_create_guid(), '{}');
             }
             return sprintf (
                 '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
@@ -144,7 +143,7 @@
     if (!function_exists ('fast_glob')) {
         function fast_glob ($path) {
             // mod: http://www.phparch.com/2010/04/putting-glob-to-the-test/
-            $files = array ();
+            $files = array();
             $dir = opendir ($path);
             while (($currentFile = readdir ($dir)) !== false) {
                 if ( $currentFile != '.' && $currentFile != '..' ) {
@@ -240,7 +239,7 @@
         // and returns an array of results.
 
         function multi_http ($urlArr) {
-            $sockets = $urlInfo = $retDone = $retData = $errno = $errstr = array ();
+            $sockets = $urlInfo = $retDone = $retData = $errno = $errstr = array();
             for ($x = 0; $x < count ($urlArr); $x++) {
                 $urlInfo[$x] = parse_url($urlArr[$x]);
                 $urlInfo[$x][port] = ($urlInfo[$x][port]) ? $urlInfo[$x][port] : 80;
@@ -253,7 +252,7 @@
             // ok read the data from each one
             $done = false;
             while (!$done) {
-                for ($x = 0; $x < count ($urlArr); $x++) {
+                for ($x = 0; $x < count($urlArr); $x++) {
                     if (!feof ($sockets[$x])) {
                         if ($retData[$x]) {
                             $retData[$x] .= fgets ($sockets[$x], 128);
@@ -282,12 +281,12 @@
     }
 
     if (!function_exists ('default_to')) {
-        function default_to () {
+        function default_to() {
             // successively checks all supplied variables and returns the
             // first one that isn't null or empty or false or not set
             // (but 0 is valid and will be returned)
-            $args = func_get_args ();
-            $argv = func_num_args ();
+            $args = func_get_args();
+            $argv = func_num_args();
             for ($i = 0; $i < $argv; $i ++) {
                 if (! (!isset ($args[$i]) || $args[$i] === null || $args[$i] === '' || $args[$i] === false)) {
                     return $args[$i];

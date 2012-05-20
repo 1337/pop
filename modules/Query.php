@@ -2,31 +2,31 @@
     class Query {
         /*  extends Model to get property bags. Don't assign an ID!
             usage:
-                get all existing module types as an array of strings: 
+                get all existing module types as an array of strings:
                     $a = new Query();
                     var_dump ($a->found);
-                
+
                 get all objects of a certain type as an array of objects:
                     $a = Pop::obj ('Query', 'ModuleName');
-                    var_dump ($a->get ());
-                
+                    var_dump ($a->get());
+
                 sort by a property:
                     $a = Pop::obj ('Query', 'ModuleName');
                     var_dump (
                         $a->filter('id ==', 123)->get (1)
                     );
-            
+
             reusing a Query object has unexpected results.
             always create a new Query object.
         */
-        
+
         var $found; // public array of matching filenames. need this to overload $this->found[]
         protected $found_objects; // array of objects successfully queried. calling fetch() clears it.
-        
+
         // module name, e.g. "Product", "Student"
         protected $module_name;
-        
-        /*  an array of filters: 
+
+        /*  an array of filters:
             [
                 ['name ==', 'brian'],
                 ['age >=', '1337']
@@ -36,8 +36,8 @@
 
         function __construct ($module_name = false) {
             // false module name searches all modules.
-            $this->found_objects = array (); // init var
-            $this->filters = array ();
+            $this->found_objects = array(); // init var
+            $this->filters = array();
             if ($module_name === false) {
                 // search all model types
                 $matches = glob (DATA_PATH . '*');
@@ -51,23 +51,23 @@
                 // all data are stored as DATA_PATH/class_name/id
                 $matches = glob (DATA_PATH . $module_name . '/*');
             } else {
-                $matches = array ();
+                $matches = array();
             }
             foreach ((array) $matches as $idx => $match) {
                 $this->found[] = basename ($match);
             }
             return $this; // chaining for php 5
         }
-    
+
         public function filter ($filter, $condition) {
             // adds a filter to the Query.
             // $filter = field name followed by an operator, e.g. 'name =='
             // comparison operators allowed: <, >, ==, !=, <=, >=, IN
-            
+
             $this->filters[] = array ($filter, $condition);
             return $this; // chaining for php 5
         }
-        
+
         public function order ($by, $asc = true) {
             // EXTREMELY slow.
             $this->sort_field = $by;
@@ -81,7 +81,7 @@
         public function fetch ($limit = PHP_INT_MAX) {
             // This class does NOT store or cache these results.
             // calling fetch more than once on the same Query object will reset its list of items found.
-            $this->found_objects = array (); // reset var
+            $this->found_objects = array(); // reset var
             $i = $found_count = 0;
             // if the DB has fewer matching results than $limit, this will force
             // fetch() to go through the entire store. Performance hit!!
@@ -107,10 +107,10 @@
             }
             // update filenames (count() uses it)
             $this->found = array_map (array ($this, '_get_object_name'), (array) $this->found_objects);
-            
+
             // reset the filters (doesn't matter no more)
             $object = null;
-            $this->filters = array ();
+            $this->filters = array();
             return $this;
         }
 
@@ -121,15 +121,15 @@
             }
             return $this->found_objects;
         }
-        
-        public function iterate () {
+
+        public function iterate() {
             // return one result at a time; FALSE for no more rows
             // (same behaviour as mysql_fetch_???)
             if ($this->found) {
                 while ($found = array_shift ($this->found)) {
                     $object = $this->_create_object_from_filename ($found);
-                    
-                    // same code from fetch ()
+
+                    // same code from fetch()
                     $include_this_object = true;
                     foreach ((array) $this->filters as $idx => $filter) {
                         // if any filter is not met, $include_this_object is false
@@ -143,13 +143,13 @@
             }
             return false;
         }
-        
-        public function count () {
+
+        public function count() {
             /*  Returns the size of the resultset.
                 It WILL recount if pending filters are present in the Query object.
             */
             if (sizeof ($this->filters) > 0) {
-                $this->fetch (); // gotta recount...
+                $this->fetch(); // gotta recount...
             }
             return sizeof ($this->found);
         }
@@ -162,7 +162,7 @@
                 return ($a->{$field} < $b->{$field}) ? -1 : 1;
             }
         }
-        
+
         private function _filter_function ($object, $filter) {
             // $filter = e.g. ['name ==', 'brian']
             // returns true if object meets filter criteria.
@@ -198,7 +198,7 @@
                     }
                 case '===':
                     return ($haystack === $cond);
-                
+
                 case '!=':
                     return ($haystack != $cond);
                 case 'WITHIN': // within; $cond must be [min, max]
@@ -220,16 +220,14 @@
                     break;
             }
         }
-        
+
         private function _get_object_name ($o) {
             // Model(hello) -> Model/hello
             return get_class ($o) . '/' . $o->id; // if this is a Model, this will not fail
         }
-        
+
         private function _create_object_from_filename ($file) {
             // output: object of Id.Type
             return Pop::obj ($this->module_name, $file);
         }
     }
-    
-?>

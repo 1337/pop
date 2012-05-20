@@ -1,9 +1,9 @@
 <?php
     class MySQLModel extends Model {
-        /* 
+        /*
             Lets pop use MySQL databases.
             Some results are cached by the underlying Model object.
-            
+
             define in your config: MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_DB
             pop uses only the 'objects' table, with rows:
                 <str> 'id' primary
@@ -11,11 +11,11 @@
                 <str> 'props' serialized object
         */
         var $link, $db, $host, $user, $password;
-        
+
         function __construct ($param = null,
-                              $db = MYSQL_DB, 
-                              $host = MYSQL_HOST, 
-                              $user = MYSQL_USER, 
+                              $db = MYSQL_DB,
+                              $host = MYSQL_HOST,
+                              $user = MYSQL_USER,
                               $password = MYSQL_PASSWORD) {
             parent::__construct ($param); // idk...
             $this->_connect ($db, $host, $user, $password);
@@ -24,7 +24,7 @@
             $this->user = $user;
             $this->password = $password;
         }
-        
+
         public function __get ($property) {
             $property = strtolower ($property); // case-insensitive
             switch ($property) { // manage special cases
@@ -46,7 +46,7 @@
                                 // cache result; save to FS cache. line below should call put()
                                 $prop_str = $row['properties'];
                                 $props = unserialize ($prop_str); // unpack
-                                
+
                                 // existence of FS object guarantees consistency!
                                 // load entire DB object into FS.
                                 foreach ((array) $props as $prop_key => $prop_val) {
@@ -63,9 +63,9 @@
                         return $cached_val;
                     }
             }
-            $this->onRead (); // trigger event
+            $this->onRead(); // trigger event
         }
-        
+
         public function __set ($property, $value) {
             // write to DB and reset cache (if you want to keep the cache, feel free to do so)
             parent::__set ($property, $value); // access to magic methods
@@ -83,21 +83,21 @@
                     SET `id` = '$id',
                         `type` = '$type',
                         `properties` = '$prop_str'
-                    ON DUPLICATE KEY UPDATE 
+                    ON DUPLICATE KEY UPDATE
                         `id` = '$id',
-                        `type` = '$type', 
+                        `type` = '$type',
                         `properties` = '$prop_str'";
             $ss = mysql_query ($sql, $this->link);
-            
+
             if ($ss) { // if write succeeds, ruin the FS cache.
-                @unlink ($this->_path ());
+                @unlink ($this->_path());
             } else {
                 throw new Exception ('Failed to update database');
             }
-            
-            $this->onWrite (); // trigger event
+
+            $this->onWrite(); // trigger event
         }
-        
+
         private function _connect ($db, $host, $user, $password) {
             $this->link = mysql_connect ($host, $user, $password);
             if (!$this->link) {
@@ -108,4 +108,3 @@
             }
         }
     }
-?>
