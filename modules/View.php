@@ -4,7 +4,7 @@
         var $contents, $ot, $ct, $vf;
         var $include_pattern, $forloop_pattern, $if_pattern, $listcmp_pattern, $field_pattern;
 
-        function __construct ($special = '') {
+        function __construct($special = '') {
             // if $special (file name without file path) is specified, then 
             // that template will be used instead.
             // note that user pref take precedence over those in page, post, etc.
@@ -37,7 +37,7 @@
             $this->field_pattern =   '/'.$ot.' ?field '.$vf.' +'.$vf.' +'.$vf.' ?'.$ct.'/sU';
         }
         
-        function __toString () {
+        function __toString() {
             // GZ buffering is handled elsewhere.
             if (class_exists ('Compressor') && TEMPLATE_COMPRESS === true) {
                 return (Compressor::html_compress ($this->contents));
@@ -290,6 +290,12 @@
     
     if (!function_exists ('render')) {
         function render ($options = array (), $template = '') {
+            static $has_rendered;
+            if ($has_rendered === true && $options === array()) {
+                // mistyping is a sign for shutdown function to be triggered
+                return;
+            }
+
             // that's why you ob_start at the beginning of Things.
             $content = ob_get_contents (); ob_end_clean ();
 
@@ -301,6 +307,7 @@
                     array ('content' => $content)
                 )
             );
+            $has_rendered = true;
         }
     }
 ?>

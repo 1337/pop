@@ -46,6 +46,11 @@ Then run `/etc/init.d/apache2 restart`.
 
 ## Changelog
 
+### 2012-05-20
+* Calling `render()` is no longer required in the case that you use Pop 
+  purely as a rendering engine.
+* Fixed bug involving static file URLs (when they go missing).
+
 ### 2012-04-10
 * Added object instance prototyping: you can now add functions to individual objects:
 

@@ -39,7 +39,7 @@
             }
 
             // CodeIgniter technique
-            set_error_handler(array ('Pop', '_exception_handler'));
+            set_error_handler(array('Pop', '_exception_handler'));
             if (!self::phpver(5.3)) {
                 @set_magic_quotes_runtime(0); // Kill magic quotes
             }
@@ -48,7 +48,7 @@
 // public functions
         public static function debug ($msg) {
             // debug() accepts the same parameters as printf() typically does.
-            $format_string_args = array_slice (func_get_args(), 1);
+            $format_string_args = array_slice(func_get_args(), 1);
             echo
                 '<div style="border:1px #ccc solid;
                              padding:2ex;
@@ -92,9 +92,9 @@
             foreach ((array) self::$all_hooks as $module => $hooks) {
                 foreach ((array) $hooks as $hook => $handler) {
                     // On malformed URLs, parse_url() may return FALSE
-                    $url_parts = parse_url ($url);
+                    $url_parts = parse_url($url);
                     if ($url_parts) {
-                        $match = preg_match (
+                        $match = preg_match(
                             '#^/' . SUBDIR . '?' . $hook . '$#i',
                             $url_parts['path']
                         );
