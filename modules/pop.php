@@ -83,9 +83,9 @@
             return $current_version;
         }
 
-        public static function url ($url = '', $verbose = false) {
+        public static function url($url='', $verbose=false) {
             // provide the name of the handler that serves a given url.
-            if (!$url) {
+            if ($url === '') {
                 $url = $_SERVER['REQUEST_URI'];
             }
 
@@ -106,7 +106,7 @@
             }
 
             if ($verbose) {
-                throw new Exception('We have nothing to serve at ' . $url);
+                throw new Exception('403 Forbidden ' . $url);
             } else {
                 return false;
             }
@@ -114,6 +114,7 @@
         
         public static function _exception_handler($errno, $errstr) {
             // do nothing?
+            error_log($errstr, 0);
             return true;
         }
 

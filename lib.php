@@ -270,8 +270,9 @@
     }
 
     if (!function_exists ('preg_match_multi')) {
-        function preg_match_multi ($patterns, $contents) {
+        function preg_match_multi($patterns, $contents) {
             // accept multiple preg patterrns on the same string.
+            // returns true of any in $patterns match $contents.
             foreach ((array) $patterns as $pattern) {
                 if (preg_match ($pattern, $contents) > 0) {
                     return true;

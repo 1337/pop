@@ -35,7 +35,6 @@
     define ('STATIC_PATH', 'static/'); // cannot be changed
     define ('SITE_TEMPLATE', 'default.html');
     define ('DEFAULT_TEMPLATE', 'default.html');
-    define ('EXTRA_TEMPLATE_TAG_FORMATS', false); // allow {{ tags }} ?
     define ('FS_FETCH_HARD_LIMIT', PHP_INT_MAX); // when should Query give up?
     define ('TEMPLATE_COMPRESS', true); // use compressor = more CPU, less bandwidth
     define ('SITE_SECRET', 'password123'); // for ajax. Change immediately!
