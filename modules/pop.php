@@ -46,7 +46,7 @@
         }
 
 // public functions
-        public static function debug ($msg) {
+        public static function debug($msg) {
             // debug() accepts the same parameters as printf() typically does.
             $format_string_args = array_slice(func_get_args(), 1);
             echo
