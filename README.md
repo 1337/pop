@@ -7,7 +7,6 @@ Pop is 100% compatible with [backbone.js](http://documentcloud.github.com/backbo
 
 ## What does it do?
 ### As a database
-
 Pop keeps information across sessions, users, and even servers.
 Here is an example of two scripts sharing the same variable:
 
@@ -51,6 +50,21 @@ Handlers:
   - /?: index
 ```
 
+### As a templating engine
+Pop has a built-in templating engine - a bit strange, considering PHP is
+already a templating language. For more information, visit
+[Django template tags and filters](https://docs.djangoproject.com/en/dev/ref/templates/builtins/).
+
+#### Supported tags
+* `{{ variable }}`
+* `{% if something %} ... {% endif %}`
+* `{% if something %} ... {% else %} ... {% endif %}`
+* `{% if something %} ... {% elseif something_else %} ... {% endif %}`
+* `{% if something %} ... {% elseif something_else %} ... {% else %} ... {% endif %}`
+* `{% for key, value in an array %}`
+* `{% comprehension_shorthand in a_list %}`
+* `{% include "other_template.php" %}`
+
 ## Installing
 
 ### Requirements
@@ -91,6 +105,9 @@ Then run `/etc/init.d/apache2 restart`.
 2. Run ```chmod -R 666 (install path)/pop/data``` to allow PHP write access to the data folder.
 
 ## Changelog
+
+### 2012-06-20
+* Added flag to skip object persistence until $model.put() is called. It is a huge performance booster if used correctly.
 
 ### 2012-05-20
 * Calling `render()` is no longer required in the case that you use Pop
@@ -189,6 +206,3 @@ Handlers:
 * Changed storage format from serialized PHP to JSON. It is still possible to read serialized PHP objects.
 * CSS/JS compressors now accept multiple filenames, and concatenates them when serving.
 * Misc cross-machine bug fixes.
-
-### 2012-02-12
-* Someone should go test the MySQLModel thingy.
