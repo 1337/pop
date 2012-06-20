@@ -5,6 +5,52 @@ Pop is a filesystem-based PHP database, allowing for object persistence without 
 It allows for static object relational mapping.
 Pop is 100% compatible with [backbone.js](http://documentcloud.github.com/backbone/).
 
+## What does it do?
+### As a database
+
+Pop keeps information across sessions, users, and even servers.
+Here is an example of two scripts sharing the same variable:
+
+```
+<?php  // script 1
+    include('pop.php');
+
+    $var = new Model();
+    $var->id = 'secret corporate info';
+    $var->contents = 'haha just kidding';
+
+    $var->put();
+?>
+
+<?php  // script 2
+    include('pop.php');
+
+    $var = new Model('secret corporate info');
+
+    echo $var->contents;  // haha just kidding
+?>
+```
+
+### As a routing engine
+Pop lets you define your own paths in what we call *modules*.
+Each module has its own functions that can map to a URL a web browser can visit.
+
+#### Routing example
+
+```
+<?php  // modules/HomePage.php
+    class HomePage extends Model {
+        public function index() {
+            $this->render();
+        }
+    }
+?>
+
+# modules/HomePage.yaml
+Handlers:
+  - /?: index
+```
+
 ## Installing
 
 ### Requirements
@@ -47,7 +93,7 @@ Then run `/etc/init.d/apache2 restart`.
 ## Changelog
 
 ### 2012-05-20
-* Calling `render()` is no longer required in the case that you use Pop 
+* Calling `render()` is no longer required in the case that you use Pop
   purely as a rendering engine.
 * Fixed bug involving static file URLs (when they go missing).
 * Fixed bug with list comprehension template replacement (`{{ x in all_things }}`)

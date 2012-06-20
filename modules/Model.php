@@ -59,8 +59,24 @@
             // it will be called like this.
             // if you want to register methods for all instances of the same
             // class, then you might want to write a private function.
-            if (isset($this->methods[$name])) {
+            if (preg_match('/^get_by_/', $name)) {
+                // manage get_by_propname methods with this.
+                $class_name = get_class();
+                $prop_name = substr($name, 7);  // [get_by_]prop_name
+                return $class_name::get_by($prop_name, $args[0]);
+            } else if (isset($this->methods[$name])) {
                 return call_user_func_array($this->methods[$name], $args);
+            } else {
+                throw new Exception('Method ' . $name . ' not registered');
+            }
+        }
+
+        public static function __callStatic($name, $args) {
+            // Note: PHP 5.30+ only
+            if (preg_match('/^get_by_/', $name)) {
+                // manage get_by_propname methods with this.
+                $prop_name = substr($name, 7);  // [get_by_]prop_name
+                return self::get_by($prop_name, $args[0]);
             } else {
                 throw new Exception('Method ' . $name . ' not registered');
             }
@@ -138,6 +154,13 @@
                     }
                 }
             }
+        }
+
+        public static function get_by($property, $value) {
+            // returns the first object in the database whose $property
+            // matches $value.
+            // e.g. get_by('name', 'bob') => Model(bob)
+
         }
 
         public function ajax_handler() {
