@@ -108,6 +108,11 @@
 
                replace_tags help recurse this function.
             */
+            global $modules;
+            if (in_array('AjaxField', $modules) !== true) {
+                // don't try to create a AjaxField class if it is not loaded
+                return;
+            }
             $af = Pop::obj('AjaxField', null);
 
             $matches = array(); // preg_match_all gives you an array of &$matches.
@@ -296,4 +301,3 @@
             $has_rendered = true;
         }
     }
-?>
