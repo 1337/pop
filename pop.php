@@ -1,9 +1,13 @@
 <?php
     // Put your setup variables in vars.php. Create one if it doesn't exist.
     define('PATH', dirname(__FILE__) . '/');
-    require_once(PATH . (file_exists(PATH . 'vars.php')?
-        'vars.php':
-        'vars.default.php'));
+    if (file_exists(PATH . '../vars.php')) {
+        require_once(PATH . '../vars.php');
+    } else if (file_exists(PATH . 'vars.php')) {
+        require_once(PATH . 'vars.php');
+    } else {
+        require_once(PATH . 'vars.default.php');
+    }
     require_once(PATH . 'lib.php');
 
     // run!
