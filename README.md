@@ -106,6 +106,9 @@ Then run `/etc/init.d/apache2 restart`.
 
 ## Changelog
 
+### 2012-12-20
+* Fixed dependency of View on AjaxField, which was not available on github.
+
 ### 2012-06-20
 * Added flag to skip object persistence until $model.put() is called. It is a huge performance booster if used correctly.
 
