@@ -2,14 +2,14 @@
     require_once (MODULE_PATH . 'View.php');
 
     class Model {
-        protected $properties = array();
-        protected $methods = array();
+        protected $properties = array ();
+        protected $methods = array ();
 
         // Extended by subclasses.
         // Example $_memcache_fields: [guid, id, other_unique_keys]
-        protected $_memcache_fields = array();
+        protected $_memcache_fields = array ();
 
-        public function __construct($param=null) {
+        public function __construct($param = null) {
             // if no param (null): create (saved on first __set)
             // if param is associative array: create, with param = default values
             // if param is not array: get as param = id
@@ -62,8 +62,10 @@
             if (preg_match('/^get_by_/', $name)) {
                 // manage get_by_propname methods with this.
                 $class_name = get_class();
-                $prop_name = substr($name, 7);  // [get_by_]prop_name
-                return $class_name::get_by($prop_name, $args[0]);
+                $prop_name = substr($name, 7); // [get_by_]prop_name
+
+                // not implemented
+                // return $class_name::get_by($prop_name, $args[0]);
             } else if (isset($this->methods[$name])) {
                 return call_user_func_array($this->methods[$name], $args);
             } else {
@@ -75,7 +77,7 @@
             // Note: PHP 5.30+ only
             if (preg_match('/^get_by_/', $name)) {
                 // manage get_by_propname methods with this.
-                $prop_name = substr($name, 7);  // [get_by_]prop_name
+                $prop_name = substr($name, 7); // [get_by_]prop_name
                 return self::get_by($prop_name, $args[0]);
             } else {
                 throw new Exception('Method ' . $name . ' not registered');
@@ -93,13 +95,14 @@
             }
 
             if (isset($this->properties[$property])) {
-                if (   is_string($this->properties[$property])
-                    && substr($this->properties[$property], 0, 5) === 'db://') {
+                if (is_string($this->properties[$property])
+                    && substr($this->properties[$property], 0, 5) === 'db://'
+                ) {
                     // The db://ClassName/ID notation means 'this thing is a Model'
                     $class = substr($this->properties[$property], 5, // after 'db://'
                                     strpos($this->properties[$property],
                                            '/', 5) - 5);
-                    $id = substr($db, strpos ($db, '/', 5) + 1);
+                    $id = substr($db, strpos($db, '/', 5) + 1);
                     return Pop::obj($class, $id);
                 } else {
                     return $this->properties[$property];
@@ -132,7 +135,10 @@
         public function __toString() {
             return json_encode($this->properties);
         }
-        public function to_string() { return $this->__toString(); }
+
+        public function to_string() {
+            return $this->__toString();
+        }
 
         private function _memcache($secondary_keys = true) {
             // add to "memcache" by indexing this object's properties.
@@ -140,15 +146,15 @@
             // an object is being read multiple times by different properties.
 
             // store by primary key.
-            Pop::$models_cache[get_class ($this)][$this->properties['id']] =& $this;
+            Pop::$models_cache[get_class($this)][$this->properties['id']] =& $this;
 
             // store by unique secondary keys.
             if ($secondary_keys) {
                 foreach ($this->_memcache_fields as $idx => $field) {
                     try {
                         // so, key = 'fieldname=value'
-                        $key = $field . '=' . (string) $this->__get($field);
-                        Pop::$models_cache[get_class ($this)][$key] =& $this;
+                        $key = $field . '=' . (string)$this->__get($field);
+                        Pop::$models_cache[get_class($this)][$key] =& $this;
                     } catch (Exception $e) {
                         // memcache fail
                     }
@@ -179,11 +185,11 @@
             // - val (field value)
             // returns: (string) val
 
-            $id   = vars('id', false);
+            $id = vars('id', false);
             $type = vars('type', false);
             $prop = vars('prop', false);
-            $val  = vars('val', false);
-            $key  = vars('key', false);
+            $val = vars('val', false);
+            $key = vars('key', false);
 
             if (!($id && $type && $prop)) {
                 // minimum request params not yet
@@ -198,7 +204,7 @@
                         Header::code(403);
                         die(); // do not serve the json
                     }
-                    $obj->$prop = $val;  // -> update object
+                    $obj->$prop = $val; // -> update object
                 } else { // read
                     $hash = $obj->get_hash('read');
                     if ($key !== $hash) { // key is incorrect
@@ -209,7 +215,7 @@
                 // output info
                 $resp = array ('value' => $obj->$prop);
                 echo json_encode($resp);
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 Header::status(500);
             }
         }
@@ -244,26 +250,28 @@
             return $handler;
         }
 
-        public function render($template = null, $more_options = array()) {
+        public function render($template = null, $more_options = array ()) {
             // uses a View module to show this Model object using a template,
             // specified or otherwise (using $template).
             // $template should be a file name, and the file should be present
             // under VIEWS_PATH.
             if (is_array($template)) {
                 // swap parameters if template is not given.
-                list($template, $more_options) = array(null, $template);
+                list($template, $more_options) = array (null, $template);
             }
 
             Mediator::fire('beforeRender');
 
             // open_basedir
             if (file_exists(VIEWS_PATH . $template) /* &&
-                is_file(VIEWS_PATH . $template) */) {
+                is_file(VIEWS_PATH . $template) */
+            ) {
                 $pj = new View($template);
                 $pj->replace_tags(array_merge($this->properties,
                                               $more_options));
-                if (   isset($more_options['_json'])
-                    && $more_options['_json'] === true) {
+                if (isset($more_options['_json'])
+                    && $more_options['_json'] === true
+                ) {
                     // if a 'json' tag is set to true, the content shall be myself
                     $fc = $this->__toString();
                 } else {
@@ -272,9 +280,10 @@
                 echo $fc;
 
                 if (array_key_exists('_cacheable', $more_options) &&
-                    $more_options['_cacheable'] === true) {
-                    file_put_contents (
-                        CACHE_PATH . create_etag ($_SERVER['REQUEST_URI']),
+                    $more_options['_cacheable'] === true
+                ) {
+                    file_put_contents(
+                        CACHE_PATH . create_etag($_SERVER['REQUEST_URI']),
                         $fc
                     );
                 }
@@ -290,20 +299,20 @@
             return $this->_key();
         }
 
-        public function get_hash($type='read') {
+        public function get_hash($type = 'read') {
             return md5($this->id . $this->type . $this->field .
-                       SITE_SECRET . $type);
+                           SITE_SECRET . $type);
         }
 
         private function _key() {
             if (isset ($this->properties['id'])) {
-                return 'db://' . get_class ($this) . '/' . $this->id;
+                return 'db://' . get_class($this) . '/' . $this->id;
             } else {
                 throw new Exception('Cannot request DB key before ID assignment');
             }
         }
 
-        private function _path($id=null) {
+        private function _path($id = null) {
             // returns the filesystem path of an object, created or otherwise.
             // if neither the id is supplied nor the object has an id property,
             // then a unique ID will be used instead.
@@ -316,8 +325,8 @@
                     $id = uniqid('');
                 }
             }
-            return sprintf('%s%s/%s',         // data/obj_class/obj_id
-                           DATA_PATH,         // paths include trailing slash
+            return sprintf('%s%s/%s', // data/obj_class/obj_id
+                           DATA_PATH, // paths include trailing slash
                            get_class($this),
                            $id);
         }
