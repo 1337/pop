@@ -106,6 +106,10 @@ Then run `/etc/init.d/apache2 restart`.
 
 ## Changelog
 
+### 2013-01-03
+* Added option to have settings files above the library directory
+* Fixed problem where templates with no branching logic fails to render
+
 ### 2012-12-20
 * Fixed dependency of View on AjaxField, which was not available on github.
 
