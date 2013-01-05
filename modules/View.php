@@ -3,7 +3,7 @@
         //  View handles page templates (Views). put them inside VIEWS_PATH.
         protected $contents;
         protected static $ot, $ct, $vf, $include_pattern, $forloop_pattern,
-            $if_pattern, $listcmp_pattern, $field_pattern;
+            $if_pattern, $listcmp_pattern, $field_pattern, $variable_pattern;
 
         function __construct($special_filename = '') {
             // if $special_filename (without file path) is specified, then
