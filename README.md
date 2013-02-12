@@ -1,4 +1,4 @@
-# Pop (GPLv3)
+# Pop (GPLv3) ![project logo](http://www.ohai.ca/images/poplogo.jpg)
 
 Pop is a filesystem-based PHP database, allowing for object persistence without MySQL (i.e. NoSQL).
 
