@@ -264,6 +264,10 @@
                 $values_processed[] = (string)$data; // "abc", "true" or "array"
             }
 
+            // initial processing (for when the template has no logic)
+            $this->contents = preg_replace($tags_processed, $values_processed,
+                                           $this->contents);
+
             // replacing will stop when there are no more {% include "tags" %}.
             while (preg_match_multi(array (self::$include_pattern,
                                            self::$forloop_pattern,
