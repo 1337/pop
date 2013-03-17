@@ -55,6 +55,8 @@ Pop has a built-in templating engine - a bit strange, considering PHP is
 already a templating language. For more information, visit
 [Django template tags and filters](https://docs.djangoproject.com/en/dev/ref/templates/builtins/).
 
+Pop does not support all django template tags.
+
 #### Supported tags
 * `{{ variable }}`
 * `{% if something %} ... {% endif %}`
@@ -105,6 +107,9 @@ Then run `/etc/init.d/apache2 restart`.
 2. Run ```chmod -R 666 (install path)/pop/data``` to allow PHP write access to the data folder.
 
 ## Changelog
+
+### 2013-03-16
+* Fixed problem where templates with no branching logic fails to render (really this time)
 
 ### 2013-01-03
 * Added option to have settings files above the library directory
@@ -210,6 +215,6 @@ Handlers:
 * Added tag properties: memory usage (`{{ memory_usage }}`), subdirectories (`{{ subdir }}`), and current handler (`{{ handler }}`).
 
 ### 2012-03-01
-* Changed storage format from serialized PHP to JSON. It is still possible to read serialized PHP objects.
+* Changed storage format from serialized PHP to JSON. It is still possible to read serialized PHP objects, but they will be re-saved as JSON.
 * CSS/JS compressors now accept multiple filenames, and concatenates them when serving.
 * Misc cross-machine bug fixes.
