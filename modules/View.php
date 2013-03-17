@@ -264,18 +264,8 @@
                 $values_processed[] = (string)$data; // "abc", "true" or "array"
             }
 
-            // initial processing (for when the template has no logic)
-            $this->contents = preg_replace($tags_processed, $values_processed,
-                                           $this->contents);
-
             // replacing will stop when there are no more {% include "tags" %}.
-            while (preg_match_multi(array (self::$include_pattern,
-                                           self::$forloop_pattern,
-                                           self::$if_pattern,
-                                           self::$listcmp_pattern,
-                                           self::$field_pattern,
-                                           self::$variable_pattern),
-                                    $this->contents)) {
+            do {
                 $this->include_snippets($this->contents); // recursively include files (resolves include tags)
                 $this->expand_list_comprehension($this->contents);
                 $this->expand_page_loops($this->contents, $tags);
@@ -288,11 +278,20 @@
                     $tags_processed,
                     $values_processed,
                     $this->contents);
-            }
+            } while (preg_match_multi(array(self::$include_pattern,
+                                            self::$forloop_pattern,
+                                            self::$if_pattern,
+                                            self::$listcmp_pattern,
+                                            self::$field_pattern,
+                                            self::$variable_pattern),
+                                      $this->contents));
             unset ($tags_processed, $values_processed); // free ram
 
             // then hide unmatched var tags
-            $this->contents = preg_replace('/' . $ot . ' ?' . $vf . ' ?' . $ct . '/U', '', $this->contents);
+            $this->contents = preg_replace(
+                '/' . $ot . ' ?' . $vf . ' ?' . $ct . '/U', '',
+                $this->contents
+            );
             return $this; // chaining
         }
     }
