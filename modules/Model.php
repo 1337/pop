@@ -59,6 +59,7 @@
             // it will be called like this.
             // if you want to register methods for all instances of the same
             // class, then you might want to write a private function.
+
             if (preg_match('/^get_by_/', $name)) {
                 // manage get_by_propname methods with this.
                 $class_name = get_class();
@@ -66,6 +67,7 @@
 
                 // not implemented
                 // return $class_name::get_by($prop_name, $args[0]);
+
             } else if (isset($this->methods[$name])) {
                 return call_user_func_array($this->methods[$name], $args);
             } else {
@@ -90,22 +92,34 @@
             Mediator::fire('read');
             $property = strtolower($property); // case-insensitive
 
+            // http://php.net/manual/en/language.variables.php
+            $var_format = '/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/';
+
             if ($property === 'type') { // manage special cases
                 return get_class($this);
             }
 
+            // checks if the property is a reference to another model.
             if (isset($this->properties[$property])) {
-                if (is_string($this->properties[$property])
-                    && substr($this->properties[$property], 0, 5) === 'db://'
-                ) {
+                $db = $this->properties[$property];
+                if (is_string($db) && substr($db, 0, 5) === 'db://') {
                     // The db://ClassName/ID notation means 'this thing is a Model'
-                    $class = substr($this->properties[$property], 5, // after 'db://'
-                                    strpos($this->properties[$property],
-                                           '/', 5) - 5);
+                    // TODO: WTF is $db? Please make sure.
+                    $class = substr($db, 5, strpos($db, '/', 5) - 5); // after 'db://'
                     $id = substr($db, strpos($db, '/', 5) + 1);
                     return Pop::obj($class, $id);
                 } else {
                     return $this->properties[$property];
+                }
+            }
+
+            // process variable magic for var_or_var[_or_var]()...
+            $matches = explode('_or_', $property);
+            foreach ($matches as $match) {
+                if ($match &&
+                    preg_match($var_format, $match) &&
+                    ($this->properties[$match] !== null)) {
+                    return $this->properties[$match];
                 }
             }
             return null;
