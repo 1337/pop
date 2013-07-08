@@ -58,6 +58,14 @@
             }
             return $this; // chaining for php 5
         }
+        
+        public function __call($name, $args) {
+            // everyone loves magic functions
+            if (substr($name, 0, 7) === 'get_by_') {
+                $get_by = substr($name, 8);
+                return $this->filter($get_by . ' ==', $args[0]);
+            }
+        }
 
         public function filter ($filter, $condition) {
             // adds a filter to the Query.
