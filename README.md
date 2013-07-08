@@ -108,6 +108,9 @@ Then run `/etc/init.d/apache2 restart`.
 
 ## Changelog
 
+### 2013-07-08
+* Added the `Query->get_by_some_field($value)` syntax
+
 ### 2013-03-16
 * Fixed problem where templates with no branching logic fails to render (really this time)
 
