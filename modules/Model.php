@@ -175,7 +175,7 @@
                 }
             }
         }
-
+        
         public static function get_by($property, $value) {
             // returns the first object in the database whose $property
             // matches $value.
@@ -238,6 +238,11 @@
             return array_keys($this->properties);
         }
 
+        public function validate() {
+            // @override
+            // throw your own exception if anything is wrong.
+        }
+
         public function put() {
             // put is automatically called when a variable is assigned
             // to the object.
@@ -248,6 +253,8 @@
                 Pop::debug('data path ' . DATA_PATH . ' not writable');
                 die();
             }
+            
+            $this->validate();
 
             $blob = json_encode($this->properties);
             $class_dir = dirname($this->_path());
