@@ -76,6 +76,29 @@
             return $this; // chaining for php 5
         }
 
+        public function aggregate_by($key) {
+            /*  $queryInstance->aggregate_by('date') will return
+                [
+                    '2013-09-10': [(objects with this date)],
+                    '2013-09-11': [(objects with this date)],
+                    ...
+                ]
+            */
+            $old_objects = $this->objects;  // keep copy
+            $pool = array();
+
+            while ($obj = $this->iterate()) {
+                try {
+                    $pool[$obj->$key][] = $obj;
+                } catch (Exception $e) {
+                    // first item.
+                    $pool[$obj->$key] = array($obj);
+                }
+            }
+            $this->objects = $old_objects;  // swap back
+            return $pool;
+        }
+
         public function order ($by, $asc = true) {
             // EXTREMELY slow.
             $this->sort_field = $by;
