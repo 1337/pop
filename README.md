@@ -108,6 +108,9 @@ Then run `/etc/init.d/apache2 restart`.
 
 ## Changelog
 
+### 2013-09-10
+* Added `Query->aggregate_by($key) => (array of arrays)`
+
 ### 2013-07-08
 * Added the `Query->get_by_some_field($value)` syntax
 
