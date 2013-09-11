@@ -2,7 +2,7 @@
     require_once (MODULE_PATH . 'View.php');
 
     class Model {
-        protected $properties = array ();
+        protected $properties = array ();  // associative
         protected $methods = array ();
 
         // Extended by subclasses.
@@ -151,6 +151,7 @@
         }
 
         public function to_string() {
+            // alias
             return $this->__toString();
         }
 
