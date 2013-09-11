@@ -108,6 +108,11 @@ Then run `/etc/init.d/apache2 restart`.
 
 ## Changelog
 
+### 2013-09-11
+* Added `CSVModel` and `CSVQuery`.
+* Added `__toString` magics for `Query`, `CSVQuery`, and `CSVModel`.
+* Added optional math library.
+
 ### 2013-09-10
 * Added `Query->aggregate_by($key) => (array of arrays)`
 
