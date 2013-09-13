@@ -100,7 +100,7 @@
             // returns array of all object properties.
             $objs = array();
             foreach((array)$this->found_objects as $obj) {
-                $objs[] = $obj->properties_and_values();
+                $objs[] = $obj->to_array();
             }
             return $objs;
         }

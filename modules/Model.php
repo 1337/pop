@@ -49,7 +49,9 @@
                 $this->__set('guid', create_guid());
             }
 
-            Mediator::fire('load');
+            if (isset(Mediator)) {
+                Mediator::fire('load');
+            }
             return $this;
         }
 
@@ -89,7 +91,9 @@
         public function __get($property) {
             // Pop uses this method to read all unavailable properties from the
             // $properties variable.
-            Mediator::fire('read');
+            if (isset(Mediator)) {
+                Mediator::fire('read');
+            }
             $property = strtolower($property); // case-insensitive
 
             // http://php.net/manual/en/language.variables.php
@@ -100,11 +104,11 @@
             }
 
             // checks if the property is a reference to another model.
+            // $db is a property value.
             if (isset($this->properties[$property])) {
                 $db = $this->properties[$property];
                 if (is_string($db) && substr($db, 0, 5) === 'db://') {
                     // The db://ClassName/ID notation means 'this thing is a Model'
-                    // TODO: WTF is $db? Please make sure.
                     $class = substr($db, 5, strpos($db, '/', 5) - 5); // after 'db://'
                     $id = substr($db, strpos($db, '/', 5) + 1);
                     return Pop::obj($class, $id);
@@ -126,7 +130,9 @@
         }
 
         public function __set($property, $value) {
-            Mediator::fire('write');
+            if (isset(Mediator)) {
+                Mediator::fire('write');
+            }
 
             $property = strtolower($property); // case-insensitive
 
@@ -181,7 +187,7 @@
                 }
             }
         }
-        
+
         public static function get_by($property, $value) {
             // returns the first object in the database whose $property
             // matches $value.
@@ -255,11 +261,8 @@
             // $blob = serialize ($this->properties);
 
             // Model checks for its required permission.
-            if (!is_writable(DATA_PATH)) {
-                Pop::debug('data path ' . DATA_PATH . ' not writable');
-                die();
-            }
-            
+            self::_test_writable() or die();
+
             $this->validate();
 
             $blob = json_encode($this->properties);
@@ -268,6 +271,16 @@
                 throw new Exception('Cannot create data directory!');
             }
             return file_put_contents($this->_path(), $blob, LOCK_EX);
+        }
+
+        public function delete() {
+            // objects could never be deleted. whoops.
+            try {
+                unlink($this->_path());
+                return true;
+            } except (Exception $e) {
+                Pop::debug($e->getMessage());
+            }
         }
 
         public static function handler() {
@@ -287,7 +300,9 @@
                 list($template, $more_options) = array (null, $template);
             }
 
-            Mediator::fire('beforeRender');
+            if (isset(Mediator)) {
+                Mediator::fire('beforeRender');
+            }
 
             // open_basedir
             if (file_exists(VIEWS_PATH . $template) /* &&
@@ -318,7 +333,9 @@
                 print_r($this->properties);
             }
 
-            Mediator::fire('render');
+            if (isset(Mediator)) {
+                Mediator::fire('render');
+            }
         }
 
         public function get_db_key() {
@@ -331,15 +348,24 @@
                            SITE_SECRET . $type);
         }
 
+        private static function _test_writable() {
+            // often used in conjunction with "or die()".
+            if (!is_writable(DATA_PATH)) {
+                Pop::debug('data path ' . DATA_PATH . ' not writable');
+                return false;
+            }
+            return true;
+        }
+
         private function _key() {
             if (isset ($this->properties['id'])) {
-                return 'db://' . get_class($this) . '/' . $this->id;
+                return 'db://' . get_class($this) . '/' . $this->id . DATA_SUFFIX;
             } else {
                 throw new Exception('Cannot request DB key before ID assignment');
             }
         }
 
-        private function _path($id = null) {
+        private function _path($id=null) {
             // returns the filesystem path of an object, created or otherwise.
             // if neither the id is supplied nor the object has an id property,
             // then a unique ID will be used instead.
@@ -352,10 +378,11 @@
                     $id = uniqid('');
                 }
             }
-            return sprintf('%s%s/%s', // data/obj_class/obj_id
+            return sprintf('%s%s/%s%s', // data/obj_class/obj_id.json
                            DATA_PATH, // paths include trailing slash
                            get_class($this),
-                           $id);
+                           $id,
+                           DATA_SUFFIX);
         }
 
         private static function _read_from_file($path) {
