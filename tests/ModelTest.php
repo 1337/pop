@@ -14,18 +14,28 @@
             $this->model->delete();
         }
 
-        public function testModel1() {
+        public function testType() {
             $this->model = new Model();
             $this->assertEquals($this->model->type, 'Model');
         }
 
-        public function testModel2() {
+        public function testAccess() {
             $this->model = new Model(array('a' => 'b'));
             $this->assertEquals($this->model->a, 'b');
         }
 
-        public function testModel3() {
+        public function testOrOrOr() {
             $this->model = new Model(array('e' => 'c', 'b' => 'd'));
             $this->assertEquals($this->model->a_or_b, 'd');
+        }
+
+        public function testArray() {
+            $this->model = new Model(array('e' => 'c', 'b' => 'd'));
+            is_array($this->to_array());
+        }
+
+        public function testString() {
+            $this->model = new Model(array('e' => 'c', 'b' => 'd'));
+            is_string($this->to_string());
         }
     }

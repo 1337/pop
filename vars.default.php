@@ -25,7 +25,11 @@
     }
 
     set_time_limit(3); // preferred; prevents DDoS?
-    define ('DOMAIN', 'http://' . $_SERVER['SERVER_NAME']);
+    if (isset($_SERVER['SERVER_NAME'])) {
+        define ('DOMAIN', 'http://' . $_SERVER['SERVER_NAME']);
+    } else {
+        define ('DOMAIN', 'http://localhost');  // phpunit has no clue
+    }
     define ('DATA_PATH', PATH . 'data/');
     define ('CACHE_PATH', PATH . 'cache/');
     define ('MODULE_PATH', PATH . 'modules/');
