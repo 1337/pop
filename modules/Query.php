@@ -91,6 +91,20 @@
             return $bfr;
         }
 
+        public function to_string() {
+            // alias
+            return $this->__toString();
+        }
+
+        public function to_array() {
+            // returns array of all object properties.
+            $objs = array();
+            foreach((array)$this->found_objects as $obj) {
+                $objs[] = $obj->properties_and_values();
+            }
+            return $objs;
+        }
+
         public function filter($filter, $condition) {
             // adds a filter to the Query.
             // $filter = field name followed by an operator, e.g. 'name =='
@@ -108,6 +122,8 @@
                     '2013-09-11': [(objects with this date)],
                     ...
                 ]
+
+                underscore alias: indexBy
             */
             $old_objects = $this->objects; // keep copy
             $pool = array();
@@ -124,13 +140,31 @@
             return $pool;
         }
 
-        public function order($by, $asc = true) {
+        public function order($by, $asc=true) {
             // EXTREMELY slow.
             $this->sort_field = $by;
             usort($t = (array)$this->found_objects,
                   array($this, "_sort_function")); // php automagic
             if (!$asc) {
                 $this->found_objects = array_reverse($this->found_objects);
+            }
+
+            return $this; // chaining for php 5
+        }
+
+        public function shuffle($strong) {
+            // fisher-yates shuffle the found variable, NOT found_objects.
+            // call before get() or fetch().
+            // http://stackoverflow.com/a/6557893/1558430
+            if ($strong) {
+                for ($i = count($this->found) - 1; $i > 0; $i--) {
+                    $j = @mt_rand(0, $i);
+                    $tmp = $this->found[$i];
+                    $this->found[$i] = $this->found[$j];
+                    $this->found[$j] = $tmp;
+                }
+            } else {
+                shuffle($this->found);
             }
 
             return $this; // chaining for php 5
@@ -172,7 +206,7 @@
             $object = null;
             $this->filters = array();
 
-            return $this;
+            return $this;  // chaining
         }
 
         public function get($limit = PHP_INT_MAX) {
@@ -217,6 +251,28 @@
             }
 
             return sizeof($this->found);
+        }
+
+        public function pluck($key) {
+            // returns an array with only the values of one property
+            // from objects fetched.
+            $props = array();
+            foreach((array)$this->found_objects as $obj) {
+                $props[] = $obj->$key;
+            }
+            return $props;
+        }
+
+        public function min($key) {
+            // returns the object by which its $key was the smallest.
+            $objs = $this->order($key, true);
+            return $objs[0];
+        }
+
+        public function max($key) {
+            // returns the object by which its $key was the largest.
+            $objs = $this->order($key, false);
+            return $objs[0];
         }
 
         private function _sort_function($a, $b) {

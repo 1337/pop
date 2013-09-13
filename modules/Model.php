@@ -155,6 +155,11 @@
             return $this->__toString();
         }
 
+        public function to_array() {
+            // isn't this what it is?
+            return $this->properties;
+        }
+
         private function _memcache($secondary_keys = true) {
             // add to "memcache" by indexing this object's properties.
             // this form of cache is erased after every page load, so it only benefits cases where
