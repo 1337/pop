@@ -31,11 +31,11 @@
 
         public function testArray() {
             $this->model = new Model(array('e' => 'c', 'b' => 'd'));
-            is_array($this->to_array());
+            is_array($this->model->to_array());
         }
 
         public function testString() {
             $this->model = new Model(array('e' => 'c', 'b' => 'd'));
-            is_string($this->to_string());
+            is_string($this->model->to_string());
         }
     }
