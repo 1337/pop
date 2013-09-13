@@ -49,9 +49,7 @@
                 $this->__set('guid', create_guid());
             }
 
-            if (isset(Mediator)) {
-                Mediator::fire('load');
-            }
+            Mediator::fire('load');
             return $this;
         }
 
@@ -91,9 +89,8 @@
         public function __get($property) {
             // Pop uses this method to read all unavailable properties from the
             // $properties variable.
-            if (isset(Mediator)) {
-                Mediator::fire('read');
-            }
+            Mediator::fire('read');
+
             $property = strtolower($property); // case-insensitive
 
             // http://php.net/manual/en/language.variables.php
@@ -130,9 +127,7 @@
         }
 
         public function __set($property, $value) {
-            if (isset(Mediator)) {
-                Mediator::fire('write');
-            }
+            Mediator::fire('write');
 
             $property = strtolower($property); // case-insensitive
 
@@ -300,9 +295,7 @@
                 list($template, $more_options) = array (null, $template);
             }
 
-            if (isset(Mediator)) {
-                Mediator::fire('beforeRender');
-            }
+            Mediator::fire('beforeRender');
 
             // open_basedir
             if (file_exists(VIEWS_PATH . $template) /* &&
@@ -333,9 +326,7 @@
                 print_r($this->properties);
             }
 
-            if (isset(Mediator)) {
-                Mediator::fire('render');
-            }
+            Mediator::fire('render');
         }
 
         public function get_db_key() {

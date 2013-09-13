@@ -1,4 +1,38 @@
 <?php
+    class Mediator {
+        // Coordinates cross-module communication.
+        public static $hooks = array();
+
+        public static function fire($event, $params=null) {
+            if (!isset(self::$hooks[$event])) return;
+
+            for ($i = 0; $i < sizeof(self::$hooks[$event]); $i++) {
+                try {
+                    $params = $params || self::$hooks[$event][$i][1];
+                    call_user_func_array(self::$hooks[$event][$i][0], $params);
+                } catch (Exception $err) { }
+            }
+        }
+
+        public static function on($event, $func, $params=null) {
+            if (!isset(self::$hooks[$event])) {
+                self::$hooks[$event] = array();
+            }
+            self::$hooks[$event][] = array($func, $params);
+        }
+
+        public static function off($event) {
+            if (isset(self::$hooks[$event])) {
+                unset(self::$hooks[$event]);
+            }
+        }
+
+        public static function replace($event, $func, $params=null) {
+            self::off($event);
+            self::on($event, $func, $params);
+        }
+    }
+
     class Pop {
 // variables
         private static $all_hooks = array ();
@@ -161,7 +195,7 @@
         private static function _load_module($name) {
             static $loaded_modules = array ();
             $paths = array (PATH, MODULE_PATH, LIBRARY_PATH);
-            foreach ($paths as $idx => $path) {
+            foreach ($paths as $path) {
                 if (file_exists($path . $name . '.php')) {
                     include_once $path . $name . '.php';
                     $loaded_modules[] = $name;
