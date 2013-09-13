@@ -273,7 +273,7 @@
             try {
                 unlink($this->_path());
                 return true;
-            } except (Exception $e) {
+            } catch (Exception $e) {
                 Pop::debug($e->getMessage());
             }
         }
