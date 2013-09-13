@@ -54,5 +54,5 @@
         // $u = mean of the pop
         // $s = standard deviation of the pop
         return (1 / $s / sqrt(2 * PI)) * exp(-1 / 2 * pow($x - $u, 2)
-                                                 / pow($s, 2));
+                                             / pow($s, 2));
     }
