@@ -1,6 +1,6 @@
 <?php
-
-    include_once('../pop.php');
+    echo getcwd();
+    include_once(dirname(dirname(__FILE__)) . '/pop.php');
 
     class ModelTest extends PHPUnit_Framework_TestCase {
 
