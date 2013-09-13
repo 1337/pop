@@ -51,7 +51,7 @@ By default, returns a JSON dump of the object.
 ### `$object->to_array()`
 Returns the list of the object's raw properties.
 
-### `$object->properties() {
+### `$object->properties()`
 Returns the list of the object's property names.
 
 ### `$object->validate()`
