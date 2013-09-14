@@ -307,9 +307,7 @@
             Mediator::fire('beforeRender');
 
             // open_basedir
-            if (file_exists(VIEWS_PATH . $template) /* &&
-                is_file(VIEWS_PATH . $template) */
-            ) {
+            if (file_exists(VIEWS_PATH . $template)) {
                 $pj = new View($template);
                 $pj->replace_tags(array_merge($this->properties,
                                               $more_options));

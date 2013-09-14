@@ -10,8 +10,8 @@
             // that template will be used instead.
             // note that user pref take precedence over those in page, post, etc.
 
-            $template = $this->resolve_template_name($special_filename); // returns full path
-            $this->contents = $this->get_parsed($template);
+            $template = $this->_resolve_template_name($special_filename); // returns full path
+            $this->contents = $this->_get_parsed($template);
 
             // constants default to case-sensitive
             $ot = self::$ot = '({[{%])'; // opening tag
@@ -36,34 +36,74 @@
             }
         }
 
-        function get_parsed($file) {
-            if (strpos($file, VIEWS_PATH) === false) {
-                $file = VIEWS_PATH . $file;
+        /**
+         * This is used by Model.render for some reason.
+         * @param array $tags
+         * @return $this
+         */
+        public function replace_tags($tags = array()) {
+            $ot = self::$ot;
+            $ct = self::$ct;
+            $vf = self::$vf;
+
+            list($_era, $_ert) = Pop::url( /* defaults to REQUEST_URI */);
+            $tags = array_merge(
+                array( // defaults
+                    '__cacheable'  => false,
+                    'title'        => '',
+                    'styles'       => '',
+                    'content'      => '',
+                    'root'         => DOMAIN,
+                    'subdir'       => SUBDIR,
+                    'base'         => DOMAIN . SUBDIR, // so, pop dir
+                    'handler'      => $_era ? "$_era.$_ert" : '',
+                    'memory_usage' => filesize_natural(memory_get_peak_usage()),
+                    'exec_time'    => (time() - $_SERVER['REQUEST_TIME']) . ' s',
+                    'year'         => date('Y'),
+                ), // "required" defaults
+                vars(), // environmental variables
+                $tags // custom tags
+            );
+
+            // build tags array; replace tags with object props
+            foreach ($tags as $tag => $data) {
+                $tags_processed[] = '/' . $ot . ' ?' . $tag . ' ?' . $ct . '/U';
+                $values_processed[] = (string)$data; // "abc", "true" or "array"
             }
 
-            if (TEMPLATE_SAFE_MODE === false) { // PHP tags don't work in safe mode.
-                ob_start();
-                // open_basedir
-                if (@is_file($file)) {
-                    @include($file);
-                } else {
-                    // file not found
-                    Pop::debug('File %s not found', $file);
-                }
-                $buffer = ob_get_contents();
-                ob_end_clean();
-            } else {
-                try {
-                    $buffer = @file_get_contents($file);
-                } catch (Exception $e) {
-                    $buffer = '';
-                }
-            }
+            // replacing will stop when there are no more {% include "tags" %}.
+            do {
+                $this->include_snippets($this->contents); // recursively include files (resolves include tags)
+                $this->_expand_list_comprehension($this->contents);
+                $this->_expand_page_loops($this->contents, $tags);
+                $this->_resolve_if_conditionals($this->contents, $tags);
+                $this->create_field_tags($this->contents);
 
-            return $buffer;
+                // replace all variable tags
+                // remember, replacement may generate new include tags
+                $this->contents = preg_replace(
+                    $tags_processed,
+                    $values_processed,
+                    $this->contents);
+            } while (preg_match_multi(array(self::$include_pattern,
+                                          self::$forloop_pattern,
+                                          self::$if_pattern,
+                                          self::$listcmp_pattern,
+                                          self::$field_pattern,
+                                          self::$variable_pattern),
+                                      $this->contents));
+            unset ($tags_processed, $values_processed); // free ram
+
+            // then hide unmatched var tags
+            $this->contents = preg_replace(
+                '/' . $ot . ' ?' . $vf . ' ?' . $ct . '/U', '',
+                $this->contents
+            );
+
+            return $this; // chaining
         }
 
-        function resolve_template_name($special_filename = '') {
+        private function _resolve_template_name($special_filename = '') {
             // successive attempts to get an existing template.
             if (is_file(VIEWS_PATH . $special_filename)) {
                 return VIEWS_PATH . $special_filename;
@@ -92,7 +132,7 @@
                 if (sizeof($matches) > 0 && sizeof($matches[2]) > 0) {
                     foreach ($matches[2] as $index => $filename) { // [1] because [0] is full line
                         try {
-                            $nv = $this->get_parsed($filename);
+                            $nv = $this->_get_parsed($filename);
                         } catch (Exception $e) { // include fail? fail.
                             $nv = '';
                         }
@@ -141,7 +181,7 @@
             }
         }
 
-        private function expand_list_comprehension(&$contents) {
+        private function _expand_list_comprehension(&$contents) {
             // e.g. {% object in objects %}
             $contents = preg_replace(
                 self::$listcmp_pattern,
@@ -149,7 +189,7 @@
                 $contents);
         }
 
-        private function expand_page_loops(&$contents, $tags = array()) {
+        private function _expand_page_loops(&$contents, $tags = array()) {
             $ot = self::$ot;
             $ct = self::$ct;
             $regex = self::$forloop_pattern;
@@ -193,7 +233,7 @@
             }
         }
 
-        private function resolve_if_conditionals(&$contents,
+        private function _resolve_if_conditionals(&$contents,
             $tags = array()) {
             $regex = self::$if_pattern;
             // e.g. {% if a %} b
@@ -239,66 +279,31 @@
             }
         }
 
-        public function replace_tags($tags = array()) {
-            $ot = self::$ot;
-            $ct = self::$ct;
-            $vf = self::$vf;
-
-            list($_era, $_ert) = Pop::url( /* defaults to REQUEST_URI */);
-            $tags = array_merge(
-                array( // defaults
-                    '__cacheable'  => false,
-                    'title'        => '',
-                    'styles'       => '',
-                    'content'      => '',
-                    'root'         => DOMAIN,
-                    'subdir'       => SUBDIR,
-                    'base'         => DOMAIN . SUBDIR, // so, pop dir
-                    'handler'      => $_era ? "$_era.$_ert" : '',
-                    'memory_usage' => filesize_natural(memory_get_peak_usage()),
-                    'exec_time'    => (time() - $_SERVER['REQUEST_TIME']) . ' s',
-                    'year'         => date('Y'),
-                ), // "required" defaults
-                vars(), // environmental variables
-                $tags // custom tags
-            );
-
-            // build tags array; replace tags with object props
-            foreach ($tags as $tag => $data) {
-                $tags_processed[] = '/' . $ot . ' ?' . $tag . ' ?' . $ct . '/U';
-                $values_processed[] = (string)$data; // "abc", "true" or "array"
+        private function _get_parsed($file) {
+            if (strpos($file, VIEWS_PATH) === false) {
+                $file = VIEWS_PATH . $file;
             }
 
-            // replacing will stop when there are no more {% include "tags" %}.
-            do {
-                $this->include_snippets($this->contents); // recursively include files (resolves include tags)
-                $this->expand_list_comprehension($this->contents);
-                $this->expand_page_loops($this->contents, $tags);
-                $this->resolve_if_conditionals($this->contents, $tags);
-                $this->create_field_tags($this->contents);
+            if (TEMPLATE_SAFE_MODE === false) { // PHP tags don't work in safe mode.
+                ob_start();
+                // open_basedir
+                if (@is_file($file)) {
+                    @include($file);
+                } else {
+                    // file not found
+                    Pop::debug('File %s not found', $file);
+                }
+                $buffer = ob_get_contents();
+                ob_end_clean();
+            } else {
+                try {
+                    $buffer = @file_get_contents($file);
+                } catch (Exception $e) {
+                    $buffer = '';
+                }
+            }
 
-                // replace all variable tags
-                // remember, replacement may generate new include tags
-                $this->contents = preg_replace(
-                    $tags_processed,
-                    $values_processed,
-                    $this->contents);
-            } while (preg_match_multi(array(self::$include_pattern,
-                                          self::$forloop_pattern,
-                                          self::$if_pattern,
-                                          self::$listcmp_pattern,
-                                          self::$field_pattern,
-                                          self::$variable_pattern),
-                                      $this->contents));
-            unset ($tags_processed, $values_processed); // free ram
-
-            // then hide unmatched var tags
-            $this->contents = preg_replace(
-                '/' . $ot . ' ?' . $vf . ' ?' . $ct . '/U', '',
-                $this->contents
-            );
-
-            return $this; // chaining
+            return $buffer;
         }
     }
 

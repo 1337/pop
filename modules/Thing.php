@@ -180,42 +180,26 @@
             $this->DelChildren(array($child_id));
         }
 
-        function GetParents($type_id = 0,
-            $order = "ORDER BY `parent_oid` ASC") {
-            // there are no limits to the number of parents.
-            // returns all parent objects associated with this one.
-            // if $type_id is supplied, returns only parents of that type.
-            $oid = $this->oid;
-            if (isset ($this->cache['parents']) && sizeof($this->cache['parents']) > 0) {
-                return $this->cache['parents'];
-            } else {
-                if ($oid > 0) {
-                    $children = array();
-                    if ($type_id > 0) {
-                        $query = "SELECT ua.`parent_oid`
-                                     FROM `hierarchy` as ua, `objects` as ub
-                                    WHERE ua.`child_oid` = '$oid'
-                                      AND ua.`parent_oid` = ub.`oid`
-                                      AND ub.`type` = '$type_id' $order";
-                    } else {
-                        $query = "SELECT `parent_oid` FROM `hierarchy`
-                                    WHERE `child_oid` = '$oid' $order";
-                    }
-                    $sql = mysql_query($query) or die (mysql_error());
-                    if ($sql && mysql_num_rows($sql) > 0) {
-                        $roller = array();
-                        while ($tmp = mysql_fetch_assoc($sql)) {
-                            $roller[] = $tmp['parent_oid'];
-                        }
-                        $this->cache['parents'] = $roller;
-
-                        return $roller;
-                    }
+        /**
+         * there are no limits to the number of parents.
+         * returns all parent objects associated with this one.
+         * if $type_id is supplied, returns only parents of that type.
+         *
+         * @param string $type_id: class name of a model. optional.
+         *        TODO: adapter only supports parents of the same type.
+         * @param string $order: this parameter has no effect.
+         * @return array
+         */
+        function GetParents($type_id = null, $order = null) {
+            $buffer = array();
+            $q = new Query($this->type);
+            foreach($obj = $q->iterate()) {
+                if ($obj->type === $this->type &&
+                    in_array($this->id, $obj->children)) {
+                    $buffer[] = $obj;
                 }
-                $this->cache['parents'] = array();
-
-                return array();
             }
+            return $buffer;
         }
 
         function SetParents($what) {

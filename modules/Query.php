@@ -1,6 +1,6 @@
 <?php
-    class Query {
-        /*  extends Model to get property bags. Don't assign an ID!
+    class Query extends View {
+        /*  extends View to get property bags. Don't assign an ID!
             usage:
                 get all existing module types as an array of strings:
                     $a = new Query();
