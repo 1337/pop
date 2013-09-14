@@ -398,7 +398,8 @@
                 (array)$context,
                 array('content' => $content)));
             */
-            $view = new View($template, array_merge($options, $context, array('content' => $content)));
+            $view = new View($template, array_merge($options, (array)$context,
+                                                    array('content' => $content)));
             echo $view->to_string();
 
             // append messages.
