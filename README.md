@@ -9,6 +9,7 @@ Pop is 100% compatible with [backbone.js](http://documentcloud.github.com/backbo
 
 * [Install instructions](INSTALLING.md)
 * [Running your Pop application](docs/routing.md)
+* [Configuration](docs/settings.md)
 * [Example routing module](examples/)
 * [How to use Pop as a templating engine](docs/templating.md)
 * [Changelog](CHANGELOG.md)

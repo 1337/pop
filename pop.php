@@ -2,7 +2,9 @@
     // Put your setup variables in vars.php. Create one if it doesn't exist.
     define('PATH', dirname(__FILE__) . DIRECTORY_SEPARATOR);
 
+    // each settings file extends the one before
     $_vars_cascade = array(
+        dirname(dirname(dirname(PATH))) . DIRECTORY_SEPARATOR . 'vars.php',
         dirname(dirname(PATH)) . DIRECTORY_SEPARATOR . 'vars.php',
         dirname(PATH) . DIRECTORY_SEPARATOR . 'vars.php',
         PATH . 'vars.php',

@@ -20,7 +20,8 @@ It has no default subclasses.
 ### Filtering
 
     $a = Pop::obj('Query', 'ModuleName');
-    $a->filter('id ==', 123);  // allowed comparisons: >, <, ==, !=, <=, >=, IN
+    // allowed comparisons: >, <, ==, ===, !=, <=, >=, IN, WITHIN, CONTAINS
+    $a->filter('id ==', 123);
     var_dump($a->get());
 
 
@@ -44,7 +45,18 @@ Adds a filter to the Query.
 
 $filter = field name followed by an operator, e.g. 'name =='
 
-Comparison operators allowed: <, >, ==, !=, <=, >=, IN
+Comparison operators allowed: >, <, ==, ===, !=, <=, >=, IN, WITHIN, CONTAINS
+
+* `>`: if value is greater than the next parameter.
+* `<`: if value is less than the next parameter.
+* `==`: if value is equivalent to the next parameter.
+* `===`: if value is equal to the next parameter.
+* `!=`: if value is not equivalent to the next parameter.
+* `<=`: if value is less than or equal to the next parameter.
+* `>=`: if value is greater than or equal to the next parameter.
+* `IN`: if value, a string, is found as a substring inside the next parameter.
+* `WITHIN`: if value, a number, is between the next parameter, `array(min, max)`.
+* `CONTAINS`: if value, an array, has a value equal to the next parameter.
 
 ### `$query->aggregate_by($key)`
 

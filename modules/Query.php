@@ -53,12 +53,12 @@
             } elseif (is_string($module_name)) {
                 $this->module_name = $module_name;
                 // all data are stored as DATA_PATH/class_name/id
-                $matches = glob(DATA_PATH . $module_name . '/*');
+                $matches = glob(DATA_PATH . $module_name . DIRECTORY_SEPARATOR . '*');
             } elseif (is_object($module_name)) {
                 $module_name = get_class($module_name); // revert to its name
                 $this->module_name = $module_name;
                 // all data are stored as DATA_PATH/class_name/id
-                $matches = glob(DATA_PATH . $module_name . '/*');
+                $matches = glob(DATA_PATH . $module_name . DIRECTORY_SEPARATOR . '*');
             } else {
                 $matches = array();
             }
@@ -136,18 +136,18 @@
 
                 underscore alias: indexBy
             */
-            $old_objects = $this->objects; // keep copy
+            $old_found = $this->found; // keep copy
             $pool = array();
 
             while ($obj = $this->iterate()) {
                 try {
-                    $pool[$obj->$key][] = $obj;
+                    $pool[$obj->{$key}][] = $obj;
                 } catch (Exception $e) {
                     // first item.
-                    $pool[$obj->$key] = array($obj);
+                    $pool[$obj->{$key}] = array($obj);
                 }
             }
-            $this->objects = $old_objects; // swap back
+            $this->found = $old_found; // swap back
             return $pool;
         }
 
@@ -202,7 +202,7 @@
             // This class does NOT store or cache these results.
             // calling fetch more than once on the same Query object will reset its list of items found.
             $this->found_objects = array(); // reset var
-            $i = $found_count = 0;
+            $found_count = 0;
             // if the DB has fewer matching results than $limit, this will force
             // fetch() to go through the entire store. Performance hit!!
             // adjust FS_FETCH_HARD_LIMIT.
@@ -250,7 +250,7 @@
         public function iterate() {
             // return one result at a time; FALSE for no more rows
             // (same behaviour as mysql_fetch_???)
-            if ($this->found) {
+            if (sizeof($this->found) >= 1) {
                 while ($found = array_shift($this->found)) {
                     $object = $this->_create_object_from_filename($found);
 
@@ -323,12 +323,13 @@
             if (strpos($filter[0], ' ') !== false) {
                 // if space is found in 'name ==', then split by it
                 $spl = explode(' ', $filter[0]);
-                $mode = $spl[1]; // should be >, <, ==, !=, <=, >=, or IN
+                // >, <, ==, ===, !=, <=, >=, IN, WITHIN, or CONTAINS
+                $mode = $spl[1];
                 $field = $spl[0];
             } else {
                 // else guess by getting last two characters or something
-                $mode = trim(substr($filter[0],
-                                    -2)); // should be >, <, ==, !=, <=, >=, or IN
+                // >, <, ==, !=, <=, >=, or IN
+                $mode = trim(substr($filter[0], -2));
                 $field = trim(substr($filter[0], 0,
                                      strlen($filter[0]) - strlen($mode)));
             }
@@ -342,7 +343,6 @@
                     return ($haystack < $cond);
                 case '<=':
                     return ($haystack <= $cond);
-
                 case '=':
                 case '==':
                     if (is_string($haystack) && is_string($cond)) {
@@ -353,7 +353,6 @@
                     }
                 case '===':
                     return ($haystack === $cond);
-
                 case '!=':
                     return ($haystack != $cond);
                 case 'WITHIN': // within; $cond must be [min, max]
@@ -367,8 +366,8 @@
                     }
                 case 'CONTAINS': // reverse IN; this field's value is an array that contains the criterion
                     if (is_string($haystack)) {
-                        return (strpos($haystack,
-                                       $cond) >= 0); // 'condition is found in db field'
+                        // 'condition is found in db field'
+                        return (strpos($haystack, $cond) >= 0);
                     } else { // compare as array
                         return (in_array($cond, $haystack));
                     }
@@ -400,7 +399,8 @@
          * @return string: Model/hello
          */
         private function _get_object_name($o) {
-            return get_class($o) . '/' . $o->id; // if this is a Model, this will not fail
+            // if this is a Model, this will not fail
+            return get_class($o) . DIRECTORY_SEPARATOR . $o->id;
         }
 
         /**

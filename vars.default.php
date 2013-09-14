@@ -39,7 +39,7 @@
     define('STATIC_PATH', 'static' . DIRECTORY_SEPARATOR); // cannot be changed
     define('SITE_TEMPLATE', 'default.html');
     define('DEFAULT_TEMPLATE', 'default.html');
-    define('DATA_SUFFIX', '.json');
+    define('DATA_SUFFIX', '');  // '.json' encouraged
     define('FS_FETCH_HARD_LIMIT', PHP_INT_MAX); // when should Query give up?
     define('TEMPLATE_COMPRESS', true); // use compressor = more CPU, less bandwidth
     define('SITE_SECRET', 'password123'); // for ajax. Change immediately!
