@@ -108,8 +108,8 @@
                 if (is_string($db) && substr($db, 0, 5) === 'db://') {
                     // The db://ClassName/ID notation means 'this thing is a Model'
                     $class = substr($db, 5,
-                                    strpos($db, '/', 5) - 5); // after 'db://'
-                    $id = substr($db, strpos($db, '/', 5) + 1);
+                                    strpos($db, DIRECTORY_SEPARATOR, 5) - 5); // after 'db://'
+                    $id = substr($db, strpos($db, DIRECTORY_SEPARATOR, 5) + 1);
 
                     return Pop::obj($class, $id);
                 } else {
@@ -359,7 +359,8 @@
 
         private function _key() {
             if (isset ($this->properties['id'])) {
-                return 'db://' . get_class($this) . '/' . $this->id . DATA_SUFFIX;
+                return 'db://' . get_class($this) . DIRECTORY_SEPARATOR .
+                       $this->id . DATA_SUFFIX;
             } else {
                 throw new Exception('Cannot request DB key before ID assignment');
             }
@@ -379,9 +380,10 @@
                 }
             }
 
-            return sprintf('%s%s/%s%s', // data/obj_class/obj_id.json
+            return sprintf('%s%s%s%s%s', // data/obj_class/obj_id.json
                            DATA_PATH, // paths include trailing slash
                            get_class($this),
+                           DIRECTORY_SEPARATOR,
                            $id,
                            DATA_SUFFIX);
         }

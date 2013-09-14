@@ -1,4 +1,6 @@
 <?php
+    require_once(MODULE_PATH . 'View.php');
+
     class Query extends View {
         /*  extends View to get property bags. Don't assign an ID!
             usage:

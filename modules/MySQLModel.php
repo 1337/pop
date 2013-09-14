@@ -34,7 +34,7 @@
                 default:
                     // first check file system (now used as cache)
                     $cached_val = parent::__get($property);
-                    if (is_null($cached_val)) { // FS returns null if no result.
+                    if ($cached_val === null) { // FS returns null if no result.
                         $id = $this->id;
                         // never hurts to call again
                         $this->_connect($this->db, $this->host, $this->user,

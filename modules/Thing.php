@@ -193,7 +193,7 @@
         function GetParents($type_id = null, $order = null) {
             $buffer = array();
             $q = new Query($this->type);
-            foreach($obj = $q->iterate()) {
+            while($obj = $q->iterate()) {
                 if ($obj->type === $this->type &&
                     in_array($this->id, $obj->children)) {
                     $buffer[] = $obj;
@@ -202,9 +202,14 @@
             return $buffer;
         }
 
+        /**
+         * appends a new parent-child relationship into the hierarchy table.
+         *
+         * @param array $what: ('parent1::ID','parent2::ID',...)
+         * @return bool|resource
+         */
         function SetParents($what) {
-            // appends a new parent-child relationship into the hierarchy table.
-            // accepts array ('parent1::ID','parent2::ID',...)
+            /*
             if (sizeof($what) > 0) {
                 $oid = $this->oid;
                 $this->cache['parents'] = array(); // flush cache
@@ -225,11 +230,16 @@
             } else {
                 return true; // inserting nothing is a success
             }
+            */
         }
 
+        /**
+         * removes hierarchical data where this object is the parent's child.
+         *
+         * @param array $parent_ids: (parent1id, parent2id, ...)
+         */
         function DelParents($parent_ids) {
-            // removes hierarchical data where this object is the parent's child.
-            // accepts (parent1id, parent2id, ...)
+            /*
             $oid = $this->oid;
             if ($oid > 0) {
                 $this->cache['parents'] = array(); // flush cache
@@ -245,6 +255,7 @@
 
                 return $sql;
             }
+            */
         }
 
         function DelParent($parent_id) {
@@ -259,6 +270,7 @@
          * @return resource
          */
         function DelParentsAll() {
+            /*
             $oid = $this->oid;
             if ($oid > 0) {
                 $this->cache['parents'] = array(); // flush cache
@@ -268,6 +280,7 @@
 
                 return $sql;
             }
+            */
         }
 
         function DelAllParents() {
@@ -282,6 +295,7 @@
          * @return bool
          */
         function ChangeID($nid) {
+            /*
             $query = "SELECT * FROM `objects` WHERE `oid` = '$nid'";
             $sql = mysql_query($query) or die (mysql_error());
             if (mysql_num_rows($sql) == 0) { // target ID does not exist
@@ -310,6 +324,7 @@
             } else {
                 die ("Failed to reallocate object");
             }
+            */
         }
 
         /**
@@ -341,6 +356,7 @@
          * @return bool: success
          */
         function Destroy() {
+            /*
             global $user;
             if (isset ($user) && get_class($user) == 'User' &&
                 class_exists('Auth') && function_exists('CheckAuth')
@@ -360,5 +376,6 @@
             $this->DelParentsAll(); // then the properties and stuff (no orphaning on crash)
             $this->DelPropsAll();
             return true;
+            */
         }
     }
