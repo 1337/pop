@@ -1,13 +1,13 @@
 <?php
-    require_once (MODULE_PATH . 'View.php');
+    require_once(MODULE_PATH . 'View.php');
 
     class Model {
-        protected $properties = array ();  // associative
-        protected $methods = array ();
+        protected $properties = array(); // associative
+        protected $methods = array();
 
         // Extended by subclasses.
         // Example $_memcache_fields: [guid, id, other_unique_keys]
-        protected $_memcache_fields = array ();
+        protected $_memcache_fields = array();
 
         public function __construct($param = null) {
             // if no param (null): create (saved on first __set)
@@ -50,6 +50,7 @@
             }
 
             Mediator::fire('load');
+
             return $this;
         }
 
@@ -106,8 +107,10 @@
                 $db = $this->properties[$property];
                 if (is_string($db) && substr($db, 0, 5) === 'db://') {
                     // The db://ClassName/ID notation means 'this thing is a Model'
-                    $class = substr($db, 5, strpos($db, '/', 5) - 5); // after 'db://'
+                    $class = substr($db, 5,
+                                    strpos($db, '/', 5) - 5); // after 'db://'
                     $id = substr($db, strpos($db, '/', 5) + 1);
+
                     return Pop::obj($class, $id);
                 } else {
                     return $this->properties[$property];
@@ -119,10 +122,12 @@
             foreach ($matches as $match) {
                 if ($match &&
                     preg_match($var_format, $match) &&
-                    ($this->properties[$match] !== null)) {
+                    ($this->properties[$match] !== null)
+                ) {
                     return $this->properties[$match];
                 }
             }
+
             return null;
         }
 
@@ -215,6 +220,7 @@
             if (!($id && $type && $prop)) {
                 // minimum request params not yet
                 Header::status(400);
+
                 return;
             }
             try {
@@ -234,7 +240,7 @@
                     }
                 }
                 // output info
-                $resp = array ('value' => $obj->$prop);
+                $resp = array('value' => $obj->$prop);
                 echo json_encode($resp);
             } catch (Exception $e) {
                 Header::status(500);
@@ -265,6 +271,7 @@
             if (!file_exists($class_dir) && !mkdir($class_dir)) {
                 throw new Exception('Cannot create data directory!');
             }
+
             return file_put_contents($this->_path(), $blob, LOCK_EX);
         }
 
@@ -272,6 +279,7 @@
             // objects could never be deleted. whoops.
             try {
                 unlink($this->_path());
+
                 return true;
             } catch (Exception $e) {
                 Pop::debug($e->getMessage());
@@ -282,17 +290,18 @@
             // returns the current handler, not the ones
             // for which this module is responsible.
             list($module, $handler) = Pop::url();
+
             return $handler;
         }
 
-        public function render($template = null, $more_options = array ()) {
+        public function render($template = null, $more_options = array()) {
             // uses a View module to show this Model object using a template,
             // specified or otherwise (using $template).
             // $template should be a file name, and the file should be present
             // under VIEWS_PATH.
             if (is_array($template)) {
                 // swap parameters if template is not given.
-                list($template, $more_options) = array (null, $template);
+                list($template, $more_options) = array(null, $template);
             }
 
             Mediator::fire('beforeRender');
@@ -336,15 +345,17 @@
 
         public function get_hash($type = 'read') {
             return md5($this->id . $this->type . $this->field .
-                           SITE_SECRET . $type);
+                       SITE_SECRET . $type);
         }
 
         private static function _test_writable() {
             // often used in conjunction with "or die()".
             if (!is_writable(DATA_PATH)) {
                 Pop::debug('data path ' . DATA_PATH . ' not writable');
+
                 return false;
             }
+
             return true;
         }
 
@@ -356,7 +367,7 @@
             }
         }
 
-        private function _path($id=null) {
+        private function _path($id = null) {
             // returns the filesystem path of an object, created or otherwise.
             // if neither the id is supplied nor the object has an id property,
             // then a unique ID will be used instead.
@@ -369,6 +380,7 @@
                     $id = uniqid('');
                 }
             }
+
             return sprintf('%s%s/%s%s', // data/obj_class/obj_id.json
                            DATA_PATH, // paths include trailing slash
                            get_class($this),
@@ -383,6 +395,7 @@
             if ($props === null) { // if fails
                 $props = unserialize($file_contents);
             }
+
             return $props;
         }
     }

@@ -3,18 +3,19 @@
         // Coordinates cross-module communication.
         public static $hooks = array();
 
-        public static function fire($event, $params=null) {
+        public static function fire($event, $params = null) {
             if (!isset(self::$hooks[$event])) return;
 
             for ($i = 0; $i < sizeof(self::$hooks[$event]); $i++) {
                 try {
                     $params = $params || self::$hooks[$event][$i][1];
                     call_user_func_array(self::$hooks[$event][$i][0], $params);
-                } catch (Exception $err) { }
+                } catch (Exception $err) {
+                }
             }
         }
 
-        public static function on($event, $func, $params=null) {
+        public static function on($event, $func, $params = null) {
             if (!isset(self::$hooks[$event])) {
                 self::$hooks[$event] = array();
             }
@@ -27,7 +28,7 @@
             }
         }
 
-        public static function replace($event, $func, $params=null) {
+        public static function replace($event, $func, $params = null) {
             self::off($event);
             self::on($event, $func, $params);
         }
@@ -35,15 +36,15 @@
 
     class Pop {
 // variables
-        private static $all_hooks = array ();
-        public static $models_cache = array ();
+        private static $all_hooks = array();
+        public static $models_cache = array();
 
 // magics
         public function __construct() {
             global $modules;
 
             // whenever you call "new Class()", _load_module will be called!
-            spl_autoload_register(array ($this, '_load_module'));
+            spl_autoload_register(array($this, '_load_module'));
             // force Model (required)
             $model = new Model();
             unset ($model);
@@ -75,7 +76,7 @@
             }
 
             // CodeIgniter technique
-            set_error_handler(array ('Pop', '_exception_handler'));
+            set_error_handler(array('Pop', '_exception_handler'));
             if (!self::phpver(5.3)) {
                 @set_magic_quotes_runtime(0); // Kill magic quotes
             }
@@ -105,6 +106,7 @@
             if (!isset ($args[1])) {
                 $args[1] = null; // add default [1] if missing
             }
+
             return new $class_name ($args[1]);
         }
 
@@ -114,8 +116,10 @@
             $current_version = str_replace('.', '', phpversion()) / 100;
             if ($checkver) {
                 $check_version = str_replace('.', '', $checkver) / 100;
+
                 return ($current_version >= $check_version);
             }
+
             return $current_version;
         }
 
@@ -135,7 +139,7 @@
                             $url_parts['path']
                         );
                         if ($match) { // 1 = match
-                            return array ($module, $handler);
+                            return array($module, $handler);
                         }
                     }
                 }
@@ -151,6 +155,7 @@
         public static function _exception_handler($errno, $errstr) {
             // do nothing?
             error_log($errstr, 0);
+
             return true;
         }
 
@@ -165,12 +170,14 @@
                 (time() - filemtime($url_cache)) < 3600
             ) {
                 try { // because
-                    self::$all_hooks = json_decode(file_get_contents($url_cache), true);
+                    self::$all_hooks = json_decode(file_get_contents($url_cache),
+                                                   true);
                 } catch (Exception $err) {
-                    self::debug('URL cache is corrupted: %s', $err->getMessage());
+                    self::debug('URL cache is corrupted: %s',
+                                $err->getMessage());
                 }
             } else { // load URLs from all handlers... and cache them.
-                require_once (LIBRARY_PATH . 'spyc.php');
+                require_once(LIBRARY_PATH . 'spyc.php');
                 foreach ($modules as $idx => $module) {
                     $yaml_path = MODULE_PATH . $module . '.yaml';
                     try {
@@ -193,8 +200,8 @@
         }
 
         private static function _load_module($name) {
-            static $loaded_modules = array ();
-            $paths = array (PATH, MODULE_PATH, LIBRARY_PATH);
+            static $loaded_modules = array();
+            $paths = array(PATH, MODULE_PATH, LIBRARY_PATH);
             foreach ($paths as $path) {
                 if (file_exists($path . $name . '.php')) {
                     include_once $path . $name . '.php';

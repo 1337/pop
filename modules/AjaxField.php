@@ -1,11 +1,11 @@
 <?php
     class AjaxField extends Model {
 
-        public function make ($object, $property, $mode = 'text') {
-            $k = $object->get_hash ('write');
+        public function make($object, $property, $mode = 'text') {
+            $k = $object->get_hash('write');
             $i = $object->id;
             $t = $object->type;
-            $v = htmlspecialchars ($object->$property, ENT_QUOTES);
+            $v = htmlspecialchars($object->$property, ENT_QUOTES);
 
             switch ($mode) {
                 case 'option':

@@ -34,8 +34,8 @@
         }
 
         return binomial_coefficient($n, $k) *
-            pow($p, $k) *
-            pow(1 - $p, $n - $k);
+        pow($p, $k) *
+        pow(1 - $p, $n - $k);
     }
 
     function z_score($x, $u, $s) {

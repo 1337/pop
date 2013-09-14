@@ -84,10 +84,11 @@
 
             $bfr = '[';
             foreach ($this->found_objects as $obj) {
-                $bfr .= (string) $obj;
+                $bfr .= (string)$obj;
                 $bfr .= ',';
             }
             $bfr .= ']';
+
             return $bfr;
         }
 
@@ -99,9 +100,10 @@
         public function to_array() {
             // returns array of all object properties.
             $objs = array();
-            foreach((array)$this->found_objects as $obj) {
+            foreach ((array)$this->found_objects as $obj) {
                 $objs[] = $obj->to_array();
             }
+
             return $objs;
         }
 
@@ -140,7 +142,7 @@
             return $pool;
         }
 
-        public function order($by, $asc=true) {
+        public function order($by, $asc = true) {
             // EXTREMELY slow.
             $this->sort_field = $by;
             usort($t = (array)$this->found_objects,
@@ -206,7 +208,7 @@
             $object = null;
             $this->filters = array();
 
-            return $this;  // chaining
+            return $this; // chaining
         }
 
         public function get($limit = PHP_INT_MAX) {
@@ -257,21 +259,24 @@
             // returns an array with only the values of one property
             // from objects fetched.
             $props = array();
-            foreach((array)$this->found_objects as $obj) {
+            foreach ((array)$this->found_objects as $obj) {
                 $props[] = $obj->$key;
             }
+
             return $props;
         }
 
         public function min($key) {
             // returns the object by which its $key was the smallest.
             $objs = $this->order($key, true);
+
             return $objs[0];
         }
 
         public function max($key) {
             // returns the object by which its $key was the largest.
             $objs = $this->order($key, false);
+
             return $objs[0];
         }
 

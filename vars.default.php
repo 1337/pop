@@ -20,7 +20,7 @@
     */
 
     // set to false if using POP as persistance library
-    if (!defined ('USE_POP_REDIRECTION')) {
+    if (!defined('USE_POP_REDIRECTION')) {
         define ('USE_POP_REDIRECTION', false);
     }
 
@@ -28,7 +28,7 @@
     if (isset($_SERVER['SERVER_NAME'])) {
         define ('DOMAIN', 'http://' . $_SERVER['SERVER_NAME']);
     } else {
-        define ('DOMAIN', 'http://localhost');  // phpunit has no clue
+        define ('DOMAIN', 'http://localhost'); // phpunit has no clue
     }
     define ('DATA_PATH', PATH . 'data/');
     define ('CACHE_PATH', PATH . 'cache/');
@@ -47,7 +47,7 @@
 
     // SUBDIR: exclude prefix slash, include trailing slash.
     // define ('SUBDIR', substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
-    define ('SUBDIR', substr (PATH, strlen ($_SERVER['DOCUMENT_ROOT'])));
+    define ('SUBDIR', substr(PATH, strlen($_SERVER['DOCUMENT_ROOT'])));
 
     define ('WIN', 5);
     $win = WIN;
@@ -61,7 +61,7 @@
     define ('MYSQL_HOST', 'localhost');
     define ('MYSQL_DB', 'pop');
 
-    $modules = array (
+    $modules = array(
         'Model',
         'View',
         'Query',

@@ -6,7 +6,8 @@
             // CSVQuery only works with CSVModels and their subclasses.
 
             if (!is_array($this->found_objects) ||
-                !sizeof($this->found_objects)) {
+                !sizeof($this->found_objects)
+            ) {
                 throw new Exception("call get() or fetch() first");
             }
 
@@ -14,13 +15,14 @@
 
             foreach ($this->found_objects as $idx => $obj) {
                 if ($idx === 0) {
-                    $bfr = (string) $obj;
+                    $bfr = (string)$obj;
                 } else {
-                    $lines = explode("\n", (string) $obj);
+                    $lines = explode("\n", (string)$obj);
                     $bfr .= $lines[1];
                 }
                 $bfr .= "\n";
             }
+
             return $bfr;
         }
     }

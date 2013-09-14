@@ -12,5 +12,5 @@
 
     // run!
     import('pop');
-    $pop = new Pop();  // register autoloaders and URL handlers
+    $pop = new Pop(); // register autoloaders and URL handlers
     unset($pop);

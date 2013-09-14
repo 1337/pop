@@ -45,7 +45,7 @@
                 ob_start();
                 // open_basedir
                 if (@is_file($file)) {
-                    @include ($file);
+                    @include($file);
                 } else {
                     // file not found
                     Pop::debug('File %s not found', $file);
@@ -59,6 +59,7 @@
                     $buffer = '';
                 }
             }
+
             return $buffer;
         }
 
@@ -83,7 +84,7 @@
 
                replace_tags help recurse this function.
             */
-            $matches = array (); // preg_match_all gives you an array of &$matches.
+            $matches = array(); // preg_match_all gives you an array of &$matches.
             if (preg_match_all(self::$include_pattern,
                                $contents,
                                $matches) > 0
@@ -96,7 +97,8 @@
                             $nv = '';
                         }
                         // replace tags in this contents with that contents
-                        $contents = str_replace($matches[0][$index], $nv, $contents);
+                        $contents = str_replace($matches[0][$index], $nv,
+                                                $contents);
                         unset ($nv); // free memory
                     }
                 }
@@ -117,8 +119,9 @@
             }
             $af = Pop::obj('AjaxField', null);
 
-            $matches = array (); // preg_match_all gives you an array of &$matches.
-            if (preg_match_all(self::$field_pattern, $contents, $matches) <= 0) {
+            $matches = array(); // preg_match_all gives you an array of &$matches.
+            if (preg_match_all(self::$field_pattern, $contents, $matches) <= 0
+            ) {
                 return;
             }
             if (sizeof($matches) > 0 && sizeof($matches[2]) > 0) {
@@ -146,13 +149,13 @@
                 $contents);
         }
 
-        private function expand_page_loops(&$contents, $tags = array ()) {
+        private function expand_page_loops(&$contents, $tags = array()) {
             $ot = self::$ot;
             $ct = self::$ct;
             $regex = self::$forloop_pattern;
             // e.g. {% for i in objects %} bla bla bla {% endfor %}
 
-            $matches = array ();
+            $matches = array();
             preg_match_all($regex, $contents, $matches);
             $len = sizeof($matches[0]);
             for ($i = 0; $i < $len; ++$i) { // each match
@@ -168,15 +171,17 @@
                     for ($lc = 0; $lc < sizeof($tags[$matches[4][$i]]); ++$lc) {
                         // now, replace the key and value
                         $buffer .= preg_replace(
-                            array ( // search
-                                    '/' . $ot . ' ?' . preg_quote($matches[2][$i], '/') . ' ?' . $ct . '/sU',
-                                    // key
-                                    '/' . $ot . ' ?' . preg_quote($matches[3][$i], '/') . ' ?' . $ct . '/sU'
-                                    // value
+                            array( // search
+                                '/' . $ot . ' ?' . preg_quote($matches[2][$i],
+                                                              '/') . ' ?' . $ct . '/sU',
+                                // key
+                                '/' . $ot . ' ?' . preg_quote($matches[3][$i],
+                                                              '/') . ' ?' . $ct . '/sU'
+                                // value
                             ),
-                            array ( // replace
-                                    (string)$match_keys[$lc],
-                                    (string)$match_vals[$lc]
+                            array( // replace
+                                (string)$match_keys[$lc],
+                                (string)$match_vals[$lc]
                             ),
                             $matches[6][$i] // loop content
                         );
@@ -189,7 +194,7 @@
         }
 
         private function resolve_if_conditionals(&$contents,
-                                                 $tags = array ()) {
+            $tags = array()) {
             $regex = self::$if_pattern;
             // e.g. {% if a %} b
             //      {% elseif c %} d
@@ -197,7 +202,7 @@
             //      {% else g %} h
             //      {% endif %}
 
-            $matches = array ();
+            $matches = array();
             preg_match_all($regex, $contents, $matches);
             for ($i = 0; $i < sizeof($matches[0]); ++$i) { // each match
 
@@ -234,25 +239,25 @@
             }
         }
 
-        public function replace_tags($tags = array ()) {
+        public function replace_tags($tags = array()) {
             $ot = self::$ot;
             $ct = self::$ct;
             $vf = self::$vf;
 
             list($_era, $_ert) = Pop::url( /* defaults to REQUEST_URI */);
             $tags = array_merge(
-                array ( // defaults
-                        '__cacheable' => false,
-                        'title' => '',
-                        'styles' => '',
-                        'content' => '',
-                        'root' => DOMAIN,
-                        'subdir' => SUBDIR,
-                        'base' => DOMAIN . SUBDIR, // so, pop dir
-                        'handler' => $_era ? "$_era.$_ert" : '',
-                        'memory_usage' => filesize_natural(memory_get_peak_usage()),
-                        'exec_time' => (time() - $_SERVER['REQUEST_TIME']) . ' s',
-                        'year' => date('Y'),
+                array( // defaults
+                    '__cacheable'  => false,
+                    'title'        => '',
+                    'styles'       => '',
+                    'content'      => '',
+                    'root'         => DOMAIN,
+                    'subdir'       => SUBDIR,
+                    'base'         => DOMAIN . SUBDIR, // so, pop dir
+                    'handler'      => $_era ? "$_era.$_ert" : '',
+                    'memory_usage' => filesize_natural(memory_get_peak_usage()),
+                    'exec_time'    => (time() - $_SERVER['REQUEST_TIME']) . ' s',
+                    'year'         => date('Y'),
                 ), // "required" defaults
                 vars(), // environmental variables
                 $tags // custom tags
@@ -279,11 +284,11 @@
                     $values_processed,
                     $this->contents);
             } while (preg_match_multi(array(self::$include_pattern,
-                                            self::$forloop_pattern,
-                                            self::$if_pattern,
-                                            self::$listcmp_pattern,
-                                            self::$field_pattern,
-                                            self::$variable_pattern),
+                                          self::$forloop_pattern,
+                                          self::$if_pattern,
+                                          self::$listcmp_pattern,
+                                          self::$field_pattern,
+                                          self::$variable_pattern),
                                       $this->contents));
             unset ($tags_processed, $values_processed); // free ram
 
@@ -292,14 +297,15 @@
                 '/' . $ot . ' ?' . $vf . ' ?' . $ct . '/U', '',
                 $this->contents
             );
+
             return $this; // chaining
         }
     }
 
     if (!function_exists('render')) {
-        function render($options = array (), $template = '') {
+        function render($options = array(), $template = '') {
             static $has_rendered;
-            if ($has_rendered === true && $options === array ()) {
+            if ($has_rendered === true && $options === array()) {
                 // mistyping is a sign for shutdown function to be triggered
                 return;
             }
@@ -311,7 +317,7 @@
             $pj = Pop::obj('Model');
             $pj->render($template,
                         array_merge($options,
-                                    array ('content' => $content)));
+                                    array('content' => $content)));
             $has_rendered = true;
         }
     }
