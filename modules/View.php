@@ -2,7 +2,7 @@
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
         protected $contents;
-        protected static $ot, $ct, $vf, $include_pattern, $forloop_pattern,
+        protected static $ot, $ct, $vf, $vpf, $include_pattern, $forloop_pattern,
             $if_pattern, $listcmp_pattern, $field_pattern, $variable_pattern,
             $comment_pattern, $filter_pattern;
 
@@ -11,14 +11,18 @@
             // that template will be used instead.
             // note that user pref take precedence over those in page, post, etc.
 
-            $template = $this->_resolve_template_name($special_filename); // returns full path
-            $this->contents = $this->_get_parsed($template);
+            try {
+                $template = $this->_resolve_template_name($special_filename); // returns full path
+                $this->contents = $this->_get_parsed($template);
+            } catch (Exception $e) {
+                $this->contents = '';  // blank page.
+            }
 
             // constants default to case-sensitive
             $ot = self::$ot = '({[{%])'; // opening tag
             $ct = self::$ct = '([}%]})'; // close tag
             $vf = self::$vf = '([a-zA-Z0-9_\.]+)'; // variable format
-            $vpf = self::$vf = '([a-zA-Z0-9_\.\s\|]+)'; // variable pipes format (a | b | c)
+            $vpf = self::$vpf = '([a-zA-Z0-9_\.\s\|]+)'; // variable pipes format (a | b | c)
 
             // these will only be evaluated once - speed is not much concern.
             self::$include_pattern = "/$ot ?include ?\"([^\"]+)\" ?$ct/U";
@@ -56,9 +60,21 @@
          * @return $this
          */
         public function replace_tags($tags = array()) {
+            $iters = 0;
             $ot = self::$ot;
             $ct = self::$ct;
             $vf = self::$vf;
+
+            $match_patterns = array(
+                self::$include_pattern,
+                self::$forloop_pattern,
+                self::$if_pattern,
+                self::$listcmp_pattern,
+                self::$field_pattern,
+                self::$variable_pattern,
+                self::$comment_pattern,
+                self::$filter_pattern,
+            );
 
             list($_era, $_ert) = Pop::url( /* defaults to REQUEST_URI */);
             $tags = array_merge(
@@ -97,19 +113,13 @@
 
                 // replace all variable tags
                 // remember, replacement may generate new include tags
-                $this->contents = preg_replace(
-                    $tags_processed,
-                    $values_processed,
-                    $this->contents);
-            } while (preg_match_multi(array(self::$include_pattern,
-                                          self::$forloop_pattern,
-                                          self::$if_pattern,
-                                          self::$listcmp_pattern,
-                                          self::$field_pattern,
-                                          self::$variable_pattern,
-                                          self::$comment_pattern,
-                                          self::$filter_pattern),
-                                      $this->contents));
+                $this->contents = preg_replace($tags_processed,
+                                               $values_processed,
+                                               $this->contents);
+
+                // max iteration of 100 (no way you'll need that many)
+                $iters++; if ($iters > 100) break;
+            } while (preg_match_multi($match_patterns, $this->contents));
             unset ($tags_processed, $values_processed); // free ram
 
             // then hide unmatched var tags
@@ -195,13 +205,18 @@
                 $callback, $contents);
         }
 
+        /**
+         * replace tags that look like {% field [id] [type] [prop] %}
+         * (without the square brackets) with an AJAX html tag.
+         * requires jQuery Transmission on the same page.
+         * replace_tags help recurse this function.
+         *
+         * @deprecated
+         * @param $contents
+         */
         private function _create_field_tags(&$contents) {
-            /* replace tags that look like
-               {% field [id] [type] [prop] %} (without the square brackets)
-               with an AJAX html tag. requires jQuery Transmission on the same page.
-
-               replace_tags help recurse this function.
-            */
+            return;  // deprecated
+            /*
             global $modules;
             if (in_array('AjaxField', $modules) !== true) {
                 // don't try to create a AjaxField class if it is not loaded
@@ -229,6 +244,7 @@
                     }
                 }
             }
+            */
         }
 
         private function _expand_list_comprehension(&$contents) {
@@ -262,12 +278,8 @@
                         // now, replace the key and value
                         $buffer .= preg_replace(
                             array( // search
-                                '/' . $ot . ' ?' . preg_quote($matches[2][$i],
-                                                              '/') . ' ?' . $ct . '/sU',
-                                // key
-                                '/' . $ot . ' ?' . preg_quote($matches[3][$i],
-                                                              '/') . ' ?' . $ct . '/sU'
-                                // value
+                                "/$ot ?" . preg_quote($matches[2][$i], '/') . " ?$ct/sU",  // key
+                                "/$ot ?" . preg_quote($matches[3][$i], '/') . " ?$ct/sU"  // value
                             ),
                             array( // replace
                                 (string)$match_keys[$lc],
@@ -364,22 +376,40 @@
          * @param string $template: path of a template file.
          */
         public static function render($options = array(), $template = '') {
-            static $has_rendered;
+            global $context;  // global context (might not exist)
+            /* static $has_rendered;
 
             if ($has_rendered === true && $options === array()) {
                 // mistyping is a sign for shutdown function to be triggered
                 return;
-            }
+            } */
 
             // that's why you ob_start at the beginning of Things.
             $content = ob_get_contents();
             ob_end_clean();
 
+            /*
             $pj = Pop::obj('Model');
-            $pj->render($template, array_merge($options,
+            $pj->render($template, array_merge(
+                $options,
+                (array)$context,
                 array('content' => $content)));
+            */
+            $view = new View($template, array_merge($options, $context, array('content' => $content)));
+            echo $view->to_string();
 
-            $has_rendered = true;  // set flag
+            // append messages.
+            if (sizeof((array)Pop::$debug_messages) > 0) {
+                echo "<ul class='pop debug'>";
+                foreach(Pop::$debug_messages as $msg_config) {
+                    $msg = $msg_config[0];
+                    $format_string_args = $msg_config[1];
+                    echo '<li>', vsprintf($msg, $format_string_args), '</li>';
+                }
+                echo "</ul>";
+            }
+
+            // $has_rendered = true;  // set flag
         }
     }
 

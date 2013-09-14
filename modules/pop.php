@@ -43,6 +43,7 @@
 // variables
         private static $all_hooks = array();
         public static $models_cache = array();
+        public static $debug_messages = array();
 
 // magics
         public function __construct() {
@@ -91,16 +92,9 @@
         public static function debug($msg) {
             // debug() accepts the same parameters as printf() typically does.
             $format_string_args = array_slice(func_get_args(), 1);
-            echo
-            '<div style="border:1px #ccc solid;
-                             padding:2ex;
-                             color:#000;
-                             box-shadow: 3px 3px 5px #ddd;
-                             border-radius:8px;
-                             font:1em monospace;">
-                     Error<hr />',
-            vsprintf($msg, $format_string_args),
-            '</div>';
+
+            // add to the stack
+            self::$debug_messages[] = array($msg, $format_string_args);
         }
 
         public static function obj() {

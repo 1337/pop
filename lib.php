@@ -279,14 +279,18 @@
         }
     }
 
-    if (!function_exists('preg_match_multi')) {
-        function preg_match_multi($patterns, $contents) {
-            // accept multiple preg patterrns on the same string.
-            // returns true of any in $patterns match $contents.
-            foreach ((array)$patterns as $pattern) {
-                if (preg_match($pattern, $contents) > 0) {
-                    return true;
-                }
+    /**
+     * accept multiple preg patterrns on the same string.
+     * returns true if any in $patterns match $contents.
+     *
+     * @param $patterns
+     * @param $contents
+     * @return bool
+     */
+    function preg_match_multi($patterns, $contents) {
+        foreach ((array)$patterns as $pattern) {
+            if (preg_match($pattern, $contents) > 0) {
+                return true;
             }
         }
     }
