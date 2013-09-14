@@ -3,6 +3,8 @@
 ### 2013-09-13
 * Added `to_array` to Models and Query objects.
 * Added `min`, `max`, `pluck` and `shuffle`.
+* Added `Thing` adapter.
+* Added `StaticServer` component.
 
 ### 2013-09-11
 * Added `CSVModel` and `CSVQuery`.
