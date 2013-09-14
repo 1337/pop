@@ -72,11 +72,11 @@
         public function __call($name, $args) {
             // everyone loves magic functions
             if (substr($name, 0, 7) === 'get_by_') {
-                $get_by = substr($name, 8);
+                $get_by = substr($name, 7);
 
                 return $this->filter($get_by . ' ==', $args[0]);
             } else if (substr($name, 0, 7) === 'reject_') {
-                $reject = substr($name, 8);
+                $reject = substr($name, 7);
                 return $this->filter($reject . ' !=', $args[0]);
             }
         }

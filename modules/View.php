@@ -2,29 +2,37 @@
     class View {
         //  View handles page templates (Views). put them inside VIEWS_PATH.
         protected $contents;
-        protected static $ot, $ct, $vf, $vpf, $include_pattern, $forloop_pattern,
+        protected static
+            $ot = '({[{%])',  // opening tag
+            $ct = '([}%]})',  // closing tag
+            $vf = '([a-zA-Z0-9_\.]+)',  // variable format
+            $vpf = '([a-zA-Z0-9_\.\s\|]+)',  // variable pipes format (a | b | c)
+            $include_pattern, $forloop_pattern,
             $if_pattern, $listcmp_pattern, $field_pattern, $variable_pattern,
             $comment_pattern, $filter_pattern;
 
-        function __construct($special_filename = '', $tags = array()) {
-            // if $special_filename (without file path) is specified, then
-            // that template will be used instead.
-            // note that user pref take precedence over those in page, post, etc.
-
+        /**
+         * @param string $content: either the path of a file that exists, or
+         *                         a string representing a template.
+         * @param array  $context: an associative array of things the template
+         *                         will use to render itself.
+         */
+        function __construct($content = '', $context = array()) {
             try {
-                $template = $this->_resolve_template_name($special_filename); // returns full path
+                $template = $this->_resolve_template_name($content); // returns full path
                 $this->contents = $this->_get_parsed($template);
             } catch (Exception $e) {
-                $this->contents = '';  // blank page.
+                // use the first parameter as the template content.
+                $this->contents = $content;
             }
 
-            // constants default to case-sensitive
-            $ot = self::$ot = '({[{%])'; // opening tag
-            $ct = self::$ct = '([}%]})'; // close tag
-            $vf = self::$vf = '([a-zA-Z0-9_\.]+)'; // variable format
-            $vpf = self::$vpf = '([a-zA-Z0-9_\.\s\|]+)'; // variable pipes format (a | b | c)
+            // constants default to case-sensitive (faster)
+            $ot = self::$ot;
+            $ct = self::$ct;
+            $vf = self::$vf;
+            $vpf = self::$vpf;
 
-            // these will only be evaluated once - speed is not much concern.
+            // these will only be evaluated once - speed is not of much concern.
             self::$include_pattern = "/$ot ?include ?\"([^\"]+)\" ?$ct/U";
             self::$forloop_pattern = "/$ot ?for $vf, ?$vf in $vf ?$ct(.*)$ot ?endfor ?$ct/sU";
             self::$if_pattern = "/$ot ?if $vf ?$ct(.*)(($ot ?elseif $vf ?$ct(.*))*)($ot ?else ?$ct(.*))*$ot ?endif ?$ct/sU";
@@ -34,8 +42,8 @@
             self::$comment_pattern = "/$ot ?comment ?$ct(.*)$ot ?endcomment ?$ct/sU";
             self::$filter_pattern = "/$ot ?filter $vpf ?$ct(.*)$ot ?endfilter ?$ct/sU";
 
-            if (sizeof($tags)) {
-                $this->replace_tags($tags);
+            if (sizeof($context)) {
+                $this->replace_tags($context);
             }
         }
 
@@ -48,6 +56,11 @@
             }
         }
 
+        /**
+         * alias
+         * 
+         * @return string
+         */
         function to_string() {
             return $this->__toString();
         }
@@ -108,7 +121,6 @@
                 $this->_expand_page_loops($this->contents, $tags);
                 $this->_process_comment_tags($this->contents);
                 $this->_resolve_if_conditionals($this->contents, $tags);
-                $this->_create_field_tags($this->contents);
                 $this->_process_filter_tags($this->contents);
 
                 // replace all variable tags
@@ -117,8 +129,8 @@
                                                $values_processed,
                                                $this->contents);
 
-                // max iteration of 1000 (no way you'll need that many)
-                $iters++; if ($iters > 1000) break;
+                // max iteration of 500 (no way you'll need that many)
+                $iters++; if ($iters > 500) break;
             } while (preg_match_multi($match_patterns, $this->contents));
             unset ($tags_processed, $values_processed); // free ram
 
@@ -145,7 +157,7 @@
             if (is_file(VIEWS_PATH . DEFAULT_TEMPLATE)) {
                 return VIEWS_PATH . DEFAULT_TEMPLATE;
             }
-            throw new Exception ('Template file cannot be found to render this page.');
+            throw new Exception('Template file cannot be found to render this page.');
         }
 
         private function _include_snippets(&$contents) {
@@ -206,48 +218,6 @@
             );
             $contents = preg_replace_callback(self::$filter_pattern,
                 $callback, $contents);
-        }
-
-        /**
-         * replace tags that look like {% field [id] [type] [prop] %}
-         * (without the square brackets) with an AJAX html tag.
-         * requires jQuery Transmission on the same page.
-         * replace_tags help recurse this function.
-         *
-         * @deprecated
-         * @param $contents
-         */
-        private function _create_field_tags(&$contents) {
-            return;  // deprecated
-            /*
-            global $modules;
-            if (in_array('AjaxField', $modules) !== true) {
-                // don't try to create a AjaxField class if it is not loaded
-                return;
-            }
-            $af = Pop::obj('AjaxField', null);
-
-            $matches = array(); // preg_match_all gives you an array of &$matches.
-            if (preg_match_all(self::$field_pattern, $contents, $matches) <= 0
-            ) {
-                return;
-            }
-            if (sizeof($matches) > 0 && sizeof($matches[2]) > 0) {
-                foreach ($matches[2] as $index => $id) { // [1] because [0] is full line
-                    $type = $matches[3][$index];
-                    $prop = $matches[4][$index];
-                    $obj = Pop::obj($type, $id);
-                    if ($obj) {
-                        // replace tags in this contents with that contents
-                        $contents = str_replace(
-                            $matches[0][$index],
-                            $af->make($obj, $matches[4][$index]),
-                            $contents
-                        );
-                    }
-                }
-            }
-            */
         }
 
         private function _expand_list_comprehension(&$contents) {
@@ -344,6 +314,13 @@
             }
         }
 
+        /**
+         * depending on configuration, returns either the contents of $file,
+         * or PHP's include() resultant of it.
+         *
+         * @param $file
+         * @return string
+         */
         private function _get_parsed($file) {
             if (strpos($file, VIEWS_PATH) === false) {
                 $file = VIEWS_PATH . $file;
@@ -355,17 +332,13 @@
                 if (@is_file($file)) {
                     @include($file);
                 } else {
-                    // file not found
                     Pop::debug('File %s not found', $file);
                 }
                 $buffer = ob_get_contents();
                 ob_end_clean();
             } else {
-                try {
-                    $buffer = @file_get_contents($file);
-                } catch (Exception $e) {
-                    $buffer = '';
-                }
+                // if it doesn't exist, an error handler will deal with it
+                $buffer = file_get_contents($file);
             }
 
             return $buffer;
@@ -380,40 +353,25 @@
          */
         public static function render($options = array(), $template = '') {
             global $context;  // global context (might not exist)
-            /* static $has_rendered;
-
-            if ($has_rendered === true && $options === array()) {
-                // mistyping is a sign for shutdown function to be triggered
-                return;
-            } */
 
             // that's why you ob_start at the beginning of Things.
             $content = ob_get_contents();
             ob_end_clean();
 
-            /*
-            $pj = Pop::obj('Model');
-            $pj->render($template, array_merge(
-                $options,
-                (array)$context,
-                array('content' => $content)));
-            */
             $view = new View($template, array_merge($options, (array)$context,
                                                     array('content' => $content)));
             echo $view->to_string();
 
             // append messages.
             if (sizeof((array)Pop::$debug_messages) > 0) {
-                echo "<ul class='pop debug'>";
+                $buffer = '<ul class="pop debug">';
                 foreach(Pop::$debug_messages as $msg_config) {
                     $msg = $msg_config[0];
                     $format_string_args = $msg_config[1];
-                    echo '<li>', vsprintf($msg, $format_string_args), '</li>';
+                    $buffer .= '<li>' . vsprintf($msg, $format_string_args) . '</li>';
                 }
-                echo "</ul>";
+                $buffer .= '</ul>';
             }
-
-            // $has_rendered = true;  // set flag
         }
     }
 
