@@ -1,6 +1,6 @@
 # Pop (GPLv3) ![project logo](http://www.ohai.ca/images/poplogo.jpg)
 
-[![Build Status](https://secure.travis-ci.org/1337/pop.png?branch=master)](http://travis-ci.org/1337/pop)
+[![Build Status](https://secure.travis-ci.org/1337/pop.png?branch=master,dev)](http://travis-ci.org/1337/pop)
 
 **Pop is a filesystem-based PHP database**, persisting state without MySQL (i.e. NoSQL).
 

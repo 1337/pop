@@ -23,3 +23,4 @@ Handlers:
 ### As a library only
 You can also run Pop [as a library](library.md). 
 In this mode, Pop will not interfere with your URLs.
+[See example](../examples/simple_templating.php)

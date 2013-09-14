@@ -203,22 +203,27 @@
             return $q->filter($property . ' ===', $value)->get();
         }
 
+        /**
+         * @deprecated
+         * depending on what the request is like, it will either
+         * serve JSON data or modify a Model with the supplied request.
+         *
+         * to request information, send in these fields:
+         * - id (object id)
+         * - type (object type)
+         * - prop (data field)
+         * - key (id-type-field-specific read key)
+         *
+         * returns: (string) val
+         *
+         * to update information, send in these fields, too:
+         * - key (id-type-field-specific write key)
+         * - val (field value)
+         *
+         * returns: (string) val
+         */
         public function ajax_handler() {
-            // depending on what the request is like, it will either
-            // serve JSON data or modify a Model with the supplied request.
-
-            // to request information, send in these fields:
-            // - id (object id)
-            // - type (object type)
-            // - prop (data field)
-            // - key (id-type-field-specific read key)
-            // returns: (string) val
-
-            // to update information, send in these fields, too:
-            // - key (id-type-field-specific write key)
-            // - val (field value)
-            // returns: (string) val
-
+            /*
             $id = vars('id', false);
             $type = vars('type', false);
             $prop = vars('prop', false);
@@ -249,6 +254,7 @@
             } catch (Exception $e) {
                 die(Header::status(500));
             }
+            */
         }
 
         public function properties() { // read-only prop keys

@@ -117,8 +117,8 @@
                                                $values_processed,
                                                $this->contents);
 
-                // max iteration of 100 (no way you'll need that many)
-                $iters++; if ($iters > 100) break;
+                // max iteration of 1000 (no way you'll need that many)
+                $iters++; if ($iters > 1000) break;
             } while (preg_match_multi($match_patterns, $this->contents));
             unset ($tags_processed, $values_processed); // free ram
 

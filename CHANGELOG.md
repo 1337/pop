@@ -4,7 +4,9 @@
 * Added tests.
 * Added `filter` and `comment` template tags.
 * Added piped syntax to `filter` tag.
+* Templating engine now enforces a maximum iteration count of 1000. Typically, 1 ~ 5 iterations complete templating.
 * Fixed HTTP status code library (it didn't work half of the time)
+* Removed the `field` tag. It is not fundamental enough to be in the core.
 
 ### 2013-09-13
 * Added `to_array` to Models and Query objects.
