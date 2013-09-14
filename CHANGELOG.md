@@ -4,6 +4,7 @@
 * Added tests.
 * Added `filter` and `comment` template tags.
 * Added piped syntax to `filter` tag.
+* Fixed HTTP status code library (it didn't work half of the time)
 
 ### 2013-09-13
 * Added `to_array` to Models and Query objects.

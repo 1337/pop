@@ -6,7 +6,7 @@
             $if_pattern, $listcmp_pattern, $field_pattern, $variable_pattern,
             $comment_pattern, $filter_pattern;
 
-        function __construct($special_filename = '') {
+        function __construct($special_filename = '', $tags = array()) {
             // if $special_filename (without file path) is specified, then
             // that template will be used instead.
             // note that user pref take precedence over those in page, post, etc.
@@ -29,6 +29,10 @@
             self::$variable_pattern = "/$ot ?$vf ?$ct/sU";
             self::$comment_pattern = "/$ot ?comment ?$ct(.*)$ot ?endcomment ?$ct/sU";
             self::$filter_pattern = "/$ot ?filter $vpf ?$ct(.*)$ot ?endfilter ?$ct/sU";
+
+            if (sizeof($tags)) {
+                $this->replace_tags($tags);
+            }
         }
 
         function __toString() {
@@ -40,8 +44,14 @@
             }
         }
 
+        function to_string() {
+            return $this->__toString();
+        }
+
         /**
-         * This is used by Model.render for some reason.
+         * This is used by Model.render because Models are also Routers.
+         * @deprecated: this function will be private soon.
+         *
          * @param array $tags
          * @return $this
          */
@@ -345,11 +355,17 @@
 
             return $buffer;
         }
-    }
 
-    if (!function_exists('render')) {
-        function render($options = array(), $template = '') {
+        /**
+         * render is called with a register_shutdown_function.
+         * TODO: method should not be static
+         *
+         * @param array  $options: tag variables.
+         * @param string $template: path of a template file.
+         */
+        public static function render($options = array(), $template = '') {
             static $has_rendered;
+
             if ($has_rendered === true && $options === array()) {
                 // mistyping is a sign for shutdown function to be triggered
                 return;
@@ -360,9 +376,18 @@
             ob_end_clean();
 
             $pj = Pop::obj('Model');
-            $pj->render($template,
-                        array_merge($options,
-                                    array('content' => $content)));
-            $has_rendered = true;
+            $pj->render($template, array_merge($options,
+                array('content' => $content)));
+
+            $has_rendered = true;  // set flag
         }
+    }
+
+    /**
+     * @deprecated (use View::render instead)
+     * @param array  $arg1
+     * @param string $arg2
+     */
+    function render($arg1 = array(), $arg2 = '') {
+        View::render($arg1, $arg2);
     }

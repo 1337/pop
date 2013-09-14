@@ -24,18 +24,45 @@
             $this->assertEquals($this->model->a, 'b');
         }
 
-        public function testOrOrOr() {
+        public function testOrOr() {
             $this->model = new Model(array('e' => 'c', 'b' => 'd'));
             $this->assertEquals($this->model->a_or_b, 'd');
         }
 
+        public function testOrOrOr() {
+            $this->model = new Model(array('e' => 'c', 'b' => 'd', 'g' => 'f'));
+            $this->assertEquals($this->model->h_or_m_or_g, 'f');
+        }
+
         public function testArray() {
             $this->model = new Model(array('e' => 'c', 'b' => 'd'));
-            is_array($this->model->to_array());
+            $this->assertTrue(is_array($this->model->to_array()));
         }
 
         public function testString() {
             $this->model = new Model(array('e' => 'c', 'b' => 'd'));
-            is_string($this->model->to_string());
+            $this->assertTrue(is_string($this->model->to_string()));
+        }
+
+        public function testReferenceSaved() {
+            $model1 = new Model();
+            $model2 = new Model();
+
+            $model1.put();
+            $model2.put();
+
+            $model1->ref = $model2;
+            $model1.put();
+
+            $this->assertTrue(is_a($model1->ref, 'Model'));
+        }
+
+        public function testReferenceUnsaved() {
+            $model1 = new Model();
+            $model2 = new Model();
+
+            $model1->ref = $model2;
+
+            $this->assertTrue(is_a($model1->ref, 'Model'));
         }
     }

@@ -5,14 +5,19 @@
 
         public static function fire($event, $params = null) {
             if (!isset(self::$hooks[$event])) return;
+            $last_result = null;
 
             for ($i = 0; $i < sizeof(self::$hooks[$event]); $i++) {
                 try {
-                    $params = $params || self::$hooks[$event][$i][1];
-                    call_user_func_array(self::$hooks[$event][$i][0], $params);
+                    if (!sizeof($params)) {
+                        $params = self::$hooks[$event][$i][1];
+                    }
+                    $last_result = call_user_func_array(
+                        self::$hooks[$event][$i][0], $params);
                 } catch (Exception $err) {
                 }
             }
+            return $last_result;
         }
 
         public static function on($event, $func, $params = null) {
@@ -72,7 +77,7 @@
                     self::debug($err->getMessage());
                 }
             } else { // else: use POP as library
-                register_shutdown_function('render');
+                register_shutdown_function(array('View', 'render'));
             }
 
             // CodeIgniter technique

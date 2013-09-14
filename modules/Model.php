@@ -93,7 +93,7 @@
             // $properties variable.
             Mediator::fire('read');
 
-            $property = strtolower($property); // case-insensitive
+            $property = trim(strtolower($property)); // case-insensitive
 
             // http://php.net/manual/en/language.variables.php
             $var_format = '/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/';
@@ -102,23 +102,22 @@
                 return get_class($this);
             }
 
-            // checks if the property is a reference to another model.
-            // $db is a property value.
             if (isset($this->properties[$property])) {
-                $db = $this->properties[$property];
-                if (is_string($db) && substr($db, 0, 5) === 'db://') {
-                    // The db://ClassName/ID notation means 'this thing is a Model'
-                    $class = substr($db, 5,
-                                    strpos($db, DIRECTORY_SEPARATOR, 5) - 5); // after 'db://'
-                    $id = substr($db, strpos($db, DIRECTORY_SEPARATOR, 5) + 1);
+                $prop = $this->properties[$property];
 
-                    return Pop::obj($class, $id);
-                } else {
-                    return $this->properties[$property];
+                // checks if the property is a reference to another model.
+                // $prop is either a key, which needs taking care of, or not.
+                if (self::_is_db_key($prop)) {
+                    list($class, $id) = self::_info_from_db_key($prop);
+
+                    // turn it into an object
+                    $prop = Pop::obj($class, $id);
                 }
+
+                return $prop;
             }
 
-            // process variable magic for var_or_var[_or_var]()...
+            // process variable magic for var_or_var[_or_var]...
             $matches = explode('_or_', $property);
             foreach ($matches as $match) {
                 if ($match &&
@@ -135,22 +134,29 @@
         public function __set($property, $value) {
             Mediator::fire('write');
 
-            $property = strtolower($property); // case-insensitive
+            $property = trim(strtolower($property)); // case-insensitive
 
-            if ($value instanceof Model && $value->id !== null) {
-                // replace object by a reference to it, so we can serialize THIS object
-                $value = $value->get_db_key();
-            }
-
+            // save to memory
             $this->properties[$property] = $value;
 
-            if ($property === 'id') { // manage special cases
+            // manage special cases
+            if ($property === 'id') {
+                // re-initialise
                 $this->__construct($value);
             } else if ($property === 'type') {
+                // block changes to immutable props
                 throw new Exception('Object type cannot be changed');
-            } else if (WRITE_ON_MODIFY === true && isset($this->properties['id'])) {
+            } else if (is_a($value, 'Model')) {
+                // replace objects by references, so we can serialize them.
+                // this will cause exceptions if the linked object has no key.
+                $this->properties[$property] = $value->get_db_key();
+            }
+
+            // check if saving is needed.
+            if (WRITE_ON_MODIFY === true && isset($this->properties['id'])) {
                 $this->put(); // record it into DB
             }
+            return $this;
         }
 
         public function __toString() {
@@ -193,7 +199,8 @@
             // returns the first object in the database whose $property
             // matches $value.
             // e.g. get_by('name', 'bob') => Model(bob)
-
+            $q = Pop::obj('Query', 'Model');
+            return $q->filter($property . ' ===', $value)->get();
         }
 
         public function ajax_handler() {
@@ -220,31 +227,27 @@
 
             if (!($id && $type && $prop)) {
                 // minimum request params not yet
-                Header::status(400);
-
-                return;
+                die(Header::status(400));
             }
             try {
                 $obj = Pop::obj($type, $id);
                 if ($val && $key) { // write
                     $hash = $obj->get_hash('write');
                     if ($key !== $hash) { // key is incorrect
-                        Header::code(403);
-                        die(); // do not serve the json
+                        die(Header::status(403));  // do not serve the json
                     }
                     $obj->$prop = $val; // -> update object
                 } else { // read
                     $hash = $obj->get_hash('read');
                     if ($key !== $hash) { // key is incorrect
-                        Header::code(403);
-                        die(); // do not serve the json
+                        die(Header::status(403));  // do not serve the json
                     }
                 }
                 // output info
                 $resp = array('value' => $obj->$prop);
                 echo json_encode($resp);
             } catch (Exception $e) {
-                Header::status(500);
+                die(Header::status(500));
             }
         }
 
@@ -295,46 +298,57 @@
             return $handler;
         }
 
-        public function render($template = null, $more_options = array()) {
-            // uses a View module to show this Model object using a template,
-            // specified or otherwise (using $template).
-            // $template should be a file name, and the file should be present
-            // under VIEWS_PATH.
+        /**
+         * Router mode
+         * uses a View module to show this Model object using a template,
+           specified or otherwise (using $template).
+         *
+         * @param string $template: a file name, present under VIEWS_PATH.
+         * @param array $context: template context
+         * @return mixed|null
+         */
+        public function render($template = null, $context = array()) {
+            // for historical reasons, $template can be omitted.
             if (is_array($template)) {
-                // swap parameters if template is not given.
-                list($template, $more_options) = array(null, $template);
+                list($template, $context) = array(null, $template);
             }
 
             Mediator::fire('beforeRender');
 
-            // open_basedir
-            if (file_exists(VIEWS_PATH . $template)) {
-                $pj = new View($template);
-                $pj->replace_tags(array_merge($this->properties,
-                                              $more_options));
-                if (isset($more_options['_json'])
-                    && $more_options['_json'] === true
-                ) {
-                    // if a 'json' tag is set to true, the content shall be myself
-                    $fc = $this->__toString();
-                } else {
-                    $fc = $pj->__toString();
-                }
-                echo $fc;
-
-                if (array_key_exists('_cacheable', $more_options) &&
-                    $more_options['_cacheable'] === true
-                ) {
-                    file_put_contents(
-                        CACHE_PATH . create_etag($_SERVER['REQUEST_URI']),
-                        $fc
-                    );
-                }
-            } else {
-                print_r($this->properties);
+            if (isset($_json)) {  // global override
+                $context['_json'] = $_json;
             }
 
-            Mediator::fire('render');
+            if (isset($_cacheable)) {  // global override
+                $context['_cacheable'] = $_cacheable;
+            }
+
+            if (
+                // if a 'json' tag is set to true, the content shall be myself
+                (isset($context['_json']) && $context['_json'] === true) ||
+                // if template doesn't exist, the content shall be myself too
+                (!file_exists(VIEWS_PATH . $template))) {
+
+                echo $this->to_string();
+                return Mediator::fire('render');
+            }
+
+            $view = new View(
+                $template,
+                array_merge($this->properties, $context));
+
+            $fc = $view->to_string();
+
+            // cache it if it said it wants to be
+            if (isset($context['_cacheable']) && $context['_cacheable'] === true) {
+                file_put_contents(
+                    CACHE_PATH . create_etag($_SERVER['REQUEST_URI']),
+                    $fc
+                );
+            }
+
+            echo $fc;  // output it
+            return Mediator::fire('render');
         }
 
         public function get_db_key() {
@@ -351,26 +365,46 @@
             // often used in conjunction with "or die()".
             if (!is_writable(DATA_PATH)) {
                 Pop::debug('data path ' . DATA_PATH . ' not writable');
-
                 return false;
             }
-
             return true;
         }
 
         private function _key() {
-            if (isset ($this->properties['id'])) {
-                return 'db://' . get_class($this) . DIRECTORY_SEPARATOR .
-                       $this->id . DATA_SUFFIX;
-            } else {
-                throw new Exception('Cannot request DB key before ID assignment');
+            if (!isset ($this->properties['id'])) {
+                $this->properties['id'] = null;
+                // throw new Exception('Cannot request DB key before ID assignment');
+                Pop::debug('Warning: assigning random ID to unsaved object');
             }
+            return $this->_path($this->properties['id'] || null, true);
         }
 
-        private function _path($id = null) {
-            // returns the filesystem path of an object, created or otherwise.
-            // if neither the id is supplied nor the object has an id property,
-            // then a unique ID will be used instead.
+        /**
+         * The db://ClassName/ID notation means 'this thing is a Model'
+         *
+         * @param $key
+         * @return bool
+         */
+        private static function _is_db_key($key) {
+            return (is_string($key) && substr($key, 0, 5) === 'db://');
+        }
+
+
+        /**
+         * returns the filesystem path of an object, created or otherwise,
+         * or the database key of an object, created or otherwise.
+         *
+         * if neither the id is supplied nor the object has an id property,
+         * then a unique ID will be used instead.
+         *
+         * @param string $id
+         * @param bool $db_key_format: if true, then db:// replaces data path.
+         * @return string
+         */
+        private function _path($id = null, $db_key_format = false) {
+            $root = '';
+            $force_save = false;  // turns true if id was automatic
+
             if ($id === null) {
                 if (isset($this->properties['id'])) {
                     // ID is not supplied, but object has it
@@ -378,17 +412,51 @@
                 } else {
                     // ID is neither supplied nor an existing object property
                     $id = uniqid('');
+                    $force_save = true;
                 }
             }
 
-            return sprintf('%s%s%s%s%s', // data/obj_class/obj_id.json
-                           DATA_PATH, // paths include trailing slash
-                           get_class($this),
-                           DIRECTORY_SEPARATOR,
-                           $id,
-                           DATA_SUFFIX);
+            // paths include trailing slash
+            if ($db_key_format === true) {
+                $root = DATA_PATH;  // data/obj_class/obj_id[.json]
+            } else {
+                $root = 'db://';  // db://obj_class/obj_id[.json]
+            }
+
+            if ($force_save === true) {
+                $this->put();
+            }
+
+            return $root . get_class($this) . DIRECTORY_SEPARATOR . $id .
+                   DATA_SUFFIX;
         }
 
+        /**
+         * this function does not tolerate failures.
+         *
+         * @param $db_key: db://class/id
+         * @return array ($class_name, $id)
+         */
+        private static function _info_from_db_key($db_key) {
+            $class = substr($db_key, 5, strpos($prop, DIRECTORY_SEPARATOR, 5) - 5); // after 'db://'
+            $id = substr($db_key, strpos($prop, DIRECTORY_SEPARATOR, 5) + 1);
+
+            // if the key was appended with DATA_SUFFIX (usually .json),
+            // then remove it. it is not part of the id.
+            if (substr($id, -strlen(DATA_SUFFIX)) === DATA_SUFFIX) {
+                $id = substr($id, 0, -strlen(DATA_SUFFIX));
+            }
+
+            return array($class, $id);
+        }
+
+        /**
+         * For compatibility reasons, JSON is the only serialization option,
+         * but both JSON and PHP unserialize() are deserialization options.
+         *
+         * @param $path
+         * @return array
+         */
         private static function _read_from_file($path) {
             $file_contents = file_get_contents($path);
             // json_decode: true = array, false = object

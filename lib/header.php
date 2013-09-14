@@ -2,7 +2,7 @@
     class Header {
         // template: http://www.phpclasses.org/browse/file/27226.html
         // relicensed under GPL v3
-        protected $codes = array(
+        private static $codes = array(
             100 => 'Continue',
             101 => 'Switching Protocols',
             200 => 'OK',
@@ -47,10 +47,12 @@
 
         public static function status($code, $serious = false) {
             // call this function to send a header by number: Header::status(500);
-            if (isset ($this->codes[$code])) {
-                header('HTTP/1.1 ' . $code . ' ' . $this->codes[$code]);
+            $codes = self::$codes;
+            if (isset ($codes[$code])) {
+                header('HTTP/1.1 ' . $code . ' ' . $codes[$code]);
             } else if ($serious) {
                 throw new Exception ('Could not send header ' . $code);
             }
+            return null;
         }
     }
