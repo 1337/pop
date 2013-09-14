@@ -1,5 +1,9 @@
 # Changelog
 
+### 2013-09-14
+* Added tests.
+* Added `filter` and `comment` template tags.
+
 ### 2013-09-13
 * Added `to_array` to Models and Query objects.
 * Added `min`, `max`, `pluck` and `shuffle`.

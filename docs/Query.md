@@ -24,12 +24,29 @@ It has no default subclasses.
     $a->filter('id ==', 123);
     var_dump($a->get());
 
+### Chaining
+
+All query methods, with the exception of those that return results, can
+be chained if you use PHP 5.3+, i.e. this is possible:
+
+    // get list of 5 women aged between 20 and 40, youngest first.
+    $a = Pop::obj('Query', 'People');
+    $girls = $a->filter('id !=', null)
+               ->filter('sex ===', 'female')
+               ->filter('age WITHIN', array(20, 40))
+               ->order('age', false)
+               ->get(5);
+
 
 ## Public methods
 
 ### `$query->get_by_propertyName($value)`
 
 Adds a filter to the query that requires results to have `$model->propertyName == $value`.
+
+### `$query->reject_propertyName($value)`
+
+Adds a filter to the query that requires results *not* to have `$model->propertyName == $value`.
 
 ### `$query->to_string()`
 
@@ -87,6 +104,16 @@ Returns objects found by the query, after `fetch` is called.
 ### `while($object = $query->iterate)`
 
 To speed things up, you don't always need to load all objects into a giant array.
+
+#### Example
+
+```
+$query = Pop::obj('Query', 'People');
+while($person = $query->iterate) {
+    echo "{$person->name}\n";
+}
+
+```
 
 Instead, if objects are needed for a loop, then this call saves memory.
 

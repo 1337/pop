@@ -44,10 +44,11 @@
                 }
             }
 
-            if (!isset ($this->properties['guid'])) {
+            /* TODO: who cares about GUIDs?
+            if (!isset($this->properties['guid'])) {
                 // if the object does not have a GUID already, assign one to it.
                 $this->__set('guid', create_guid());
-            }
+            } */
 
             Mediator::fire('load');
 

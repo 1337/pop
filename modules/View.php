@@ -3,7 +3,8 @@
         //  View handles page templates (Views). put them inside VIEWS_PATH.
         protected $contents;
         protected static $ot, $ct, $vf, $include_pattern, $forloop_pattern,
-            $if_pattern, $listcmp_pattern, $field_pattern, $variable_pattern;
+            $if_pattern, $listcmp_pattern, $field_pattern, $variable_pattern,
+            $comment_pattern, $filter_pattern;
 
         function __construct($special_filename = '') {
             // if $special_filename (without file path) is specified, then
@@ -25,6 +26,8 @@
             self::$listcmp_pattern = "/$ot ?$vf ?in ?$vf ?$ct/sU";
             self::$field_pattern = "/$ot ?field $vf +$vf +$vf ?$ct/sU";
             self::$variable_pattern = "/$ot ?$vf ?$ct/sU";
+            self::$comment_pattern = "/$ot ?comment ?$ct(.*)$ot ?endcomment ?$ct/sU";
+            self::$filter_pattern = "/$ot ?filter $vf ?$ct(.*)$ot ?endfilter ?$ct/sU";
         }
 
         function __toString() {
@@ -73,11 +76,13 @@
 
             // replacing will stop when there are no more {% include "tags" %}.
             do {
-                $this->include_snippets($this->contents); // recursively include files (resolves include tags)
+                $this->_include_snippets($this->contents); // recursively include files (resolves include tags)
                 $this->_expand_list_comprehension($this->contents);
                 $this->_expand_page_loops($this->contents, $tags);
+                $this->_process_comment_tags($this->contents);
                 $this->_resolve_if_conditionals($this->contents, $tags);
-                $this->create_field_tags($this->contents);
+                $this->_create_field_tags($this->contents);
+                $this->_process_filter_tags($this->contents);
 
                 // replace all variable tags
                 // remember, replacement may generate new include tags
@@ -90,7 +95,9 @@
                                           self::$if_pattern,
                                           self::$listcmp_pattern,
                                           self::$field_pattern,
-                                          self::$variable_pattern),
+                                          self::$variable_pattern,
+                                          self::$comment_pattern,
+                                          self::$filter_pattern),
                                       $this->contents));
             unset ($tags_processed, $values_processed); // free ram
 
@@ -117,7 +124,7 @@
             throw new Exception ('Template file cannot be found to render this page.');
         }
 
-        private function include_snippets(&$contents) {
+        private function _include_snippets(&$contents) {
             /* replace tags that look like
                {% include "header_and_footer.html" %}
                with their actual contents.
@@ -145,7 +152,30 @@
             }
         }
 
-        private function create_field_tags(&$contents) {
+        /**
+         * replace {% comment %}stuff{% endcomment %}
+         * with <!-- stuff -->.
+         * not sure why this is useful.
+         *
+         * @param $contents
+         */
+        private function _process_comment_tags(&$contents) {
+            $contents = preg_replace(self::$comment_pattern, '<!-- $3 -->',
+                 $contents);
+        }
+
+        /**
+         * replace {% filter func %}stuff{% endfilter %} with func(stuff).
+         * @param $contents
+         */
+        private function _process_filter_tags(&$contents) {
+            // bloody php 5.2...
+            $callback = create_function('$m', '$f = $m[2];return $f($m[4]);');
+            $contents = preg_replace_callback(self::$filter_pattern,
+                $callback, $contents);
+        }
+
+        private function _create_field_tags(&$contents) {
             /* replace tags that look like
                {% field [id] [type] [prop] %} (without the square brackets)
                with an AJAX html tag. requires jQuery Transmission on the same page.

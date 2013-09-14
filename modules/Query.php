@@ -75,6 +75,9 @@
                 $get_by = substr($name, 8);
 
                 return $this->filter($get_by . ' ==', $args[0]);
+            } else if (substr($name, 0, 7) === 'reject_') {
+                $reject = substr($name, 8);
+                return $this->filter($reject . ' !=', $args[0]);
             }
         }
 
@@ -159,6 +162,8 @@
          * @return $this
          */
         public function order($by, $asc = true) {
+            $this->get();  // loads $this->found_objects
+
             $this->sort_field = $by;
             usort($t = (array)$this->found_objects,
                   array($this, "_sort_function")); // php automagic
