@@ -3,6 +3,7 @@
 ### 2013-09-14
 * Added tests.
 * Added `filter` and `comment` template tags.
+* Added piped syntax to `filter` tag.
 
 ### 2013-09-13
 * Added `to_array` to Models and Query objects.

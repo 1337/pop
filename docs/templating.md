@@ -6,14 +6,39 @@ already a templating language. For more information, visit
 
 Pop supports a core subset of django template tags.
 
-#### Supported tags
-* `{{ variable }}`
-* `{% if something %} ... {% endif %}`
-* `{% if something %} ... {% else %} ... {% endif %}`
-* `{% if something %} ... {% elseif something_else %} ... {% endif %}`
-* `{% if something %} ... {% elseif something_else %} ... {% else %} ... {% endif %}`
-* `{% for key, value in an array %}`
-* `{% comprehension_shorthand in a_list %}`
-* `{% include "other_template.php" %}`
-* `{% comment %} (html) {% endcomment %}`
-* `{% filter func %} (string) {% endfilter %}`, where `func` is a php function that accepts `(string)`.
+## Supported tags
+
+### `{{ variable }}`
+If `render(array('variable' => 5))`, then it turns into 5.
+
+### `{% if something %} ... {% endif %}`
+If `render(array('something' => true))`, then this block is rendered.
+Otherwise, it is not.
+
+### `{% if something %} ... {% else %} ... {% endif %}`
+If `render(array('something' => true))`, then the first block is rendered.
+Otherwise, the second block is rendered.
+
+### `{% if something %} ... {% elseif something_else %} ... {% endif %}`
+One of many forms if the `if` tag.
+
+### `{% if something %} ... {% elseif something_else %} ... {% else %} ... {% endif %}`
+One of many forms if the `if` tag.
+
+### `{% for key, value in an_array %} ... {% endfor %}`
+Within the block, `{{ key }}` and `{{ value }}` are available.
+
+### `{% comprehension_shorthand in an_array %}`
+Shorthand for `{% for a, b in an_array %}{{ b }}{% endfor %}`.
+
+### `{% include "other_template.php" %}`
+Reads the file, and replaces this tag with its contents.
+
+### `{% comment %} contents {% endcomment %}`
+Turns contents into nothing.
+
+### `{% filter func %} contents {% endfilter %}`, where `func` is a php function that accepts `contents`.
+Turns block contents into `func(contents)`.
+
+There can be multiple `func`s, i.e. `{% filter func1|func2|func3 %}`,
+ which renders `func1(func2(func3(contents)))`.

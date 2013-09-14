@@ -18,6 +18,7 @@
             $ot = self::$ot = '({[{%])'; // opening tag
             $ct = self::$ct = '([}%]})'; // close tag
             $vf = self::$vf = '([a-zA-Z0-9_\.]+)'; // variable format
+            $vpf = self::$vf = '([a-zA-Z0-9_\.\s\|]+)'; // variable pipes format (a | b | c)
 
             // these will only be evaluated once - speed is not much concern.
             self::$include_pattern = "/$ot ?include ?\"([^\"]+)\" ?$ct/U";
@@ -27,7 +28,7 @@
             self::$field_pattern = "/$ot ?field $vf +$vf +$vf ?$ct/sU";
             self::$variable_pattern = "/$ot ?$vf ?$ct/sU";
             self::$comment_pattern = "/$ot ?comment ?$ct(.*)$ot ?endcomment ?$ct/sU";
-            self::$filter_pattern = "/$ot ?filter $vf ?$ct(.*)$ot ?endfilter ?$ct/sU";
+            self::$filter_pattern = "/$ot ?filter $vpf ?$ct(.*)$ot ?endfilter ?$ct/sU";
         }
 
         function __toString() {
@@ -154,14 +155,13 @@
 
         /**
          * replace {% comment %}stuff{% endcomment %}
-         * with <!-- stuff -->.
+         * with nothing.
          * not sure why this is useful.
          *
          * @param $contents
          */
         private function _process_comment_tags(&$contents) {
-            $contents = preg_replace(self::$comment_pattern, '<!-- $3 -->',
-                 $contents);
+            $contents = preg_replace(self::$comment_pattern, '', $contents);
         }
 
         /**
@@ -170,7 +170,17 @@
          */
         private function _process_filter_tags(&$contents) {
             // bloody php 5.2...
-            $callback = create_function('$m', '$f = $m[2];return $f($m[4]);');
+            $callback = create_function(
+                '$m',  // parameters
+                '$f = $m[2];' .  // "func1 | func2 | func3"
+                '$m4 = $m[4];' .  // the stuff
+                '$fs = array_reverse(explode("|", $f));' .  // ["func3 ", " func2 ", " func1"]
+                'foreach ($fs as $fsp) {' .
+                '    $fsp = trim($fsp);' .
+                '    $m4 = $fsp($m4);' .  // func(stuff)
+                '}' .
+                'return $m4;'
+            );
             $contents = preg_replace_callback(self::$filter_pattern,
                 $callback, $contents);
         }
