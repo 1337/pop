@@ -123,10 +123,13 @@
             unset ($tags_processed, $values_processed); // free ram
 
             // then hide unmatched var tags
+            // TODO: hides too many parse errors
+            /*
             $this->contents = preg_replace(
                 '/' . $ot . ' ?' . $vf . ' ?' . $ct . '/U', '',
                 $this->contents
             );
+            */
 
             return $this; // chaining
         }

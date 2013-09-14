@@ -9,7 +9,7 @@
 ?>
 
 {% if print_names %}
-    {% for name in names %}
+    {% for _, name in names %}
         {% filter ucfirst %}
             {{ name }}
         {% endfilter %}

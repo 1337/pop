@@ -28,6 +28,8 @@ One of many forms of the `if` tag.
 #### `{% for key, value in an_array %} ... {% endfor %}`
 Within the block, `{{ key }}` and `{{ value }}` are available.
 
+**Note**: `key` must be present. `{% for value in an_array %}` is not valid syntax.
+
 #### `{% comprehension_shorthand in an_array %}`
 Shorthand for `{% for a, b in an_array %}{{ b }}{% endfor %}`.
 
