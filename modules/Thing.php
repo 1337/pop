@@ -1,5 +1,5 @@
 <?php
-    class Thing extends MySQLModel {
+    class Thing extends Model {
         // Standard adapter for a Things Thing. PHP 5 only.
         public $oid;
         private $cache;
@@ -15,12 +15,14 @@
             }
         }
 
+        /**
+         * TODO: attempt to delete all old orphans linking to this object
+         * because that's impossible.
+         *
+         * @return int
+         */
         function Create() {
             $this->put();
-
-            // attempt to delete all old orphans linking to this object because that's impossible.
-            // TODO
-
             return $this->id;
         }
 
@@ -32,33 +34,50 @@
             }
         }
 
+        /**
+         * @return string
+         */
         function GetType() {
             return $this->type;
         }
 
+        /**
+         * @param string $type_id: the class name of a module.
+         * @return null
+         */
         function SetType($type_id) {
-            if (ObjectTypeExists($type_id)) {
-                $this->type = $type_id;
-            }
-
+            $this->type = $type_id;
             return null;
         }
 
+        /**
+         * alias for: to_array()
+         * @return array
+         */
         function GetProps() {
             return $this->properties;
         }
 
+        /**
+         * @param string $name
+         * @return mixed
+         */
         function GetProp($name) {
             return $this->properties[$name];
         }
 
+        /**
+         * @param string $prop: key
+         * @param mixed $val
+         */
         function SetProp($prop, $val) {
-            // wrap wrap wrap.
-            return $this->SetProps(array($prop => $val));
+            $this->SetProps(array($prop => $val));
         }
 
+        /**
+         * @param array $what: array('name'=>'value','name'=>'value')
+         */
         function SetProps($what) {
-            // accepts an array ('name'=>'value','name'=>'value') things and write them.
             if (sizeof($what) > 0) {
                 $this->obj_mtime = time();
                 foreach ($what as $prop => $val) {
@@ -84,74 +103,80 @@
             return $this->DelPropsAll();
         }
 
-        function GetChildren($type_id = 0, $order_by = "`child_oid` ASC") {
-            // returns all children object IDs associated with this one.
-            // if $type_id is supplied, returns only children of that type.
-            $oid = $this->oid;
-            if ($oid > 0) {
-                return $this->children;
+        /**
+         * returns all children object IDs associated with this one.
+         * if $type_id is supplied, returns only children of that type.
+         *
+         * @param int    $type_id: class name of a model subclass.
+         * @param string $order_by: this argument has no effect.
+         * @return array: results.
+         */
+        function GetChildren($type_id = 0, $order_by = null) {
+            $children = $this->children;
+            $buffer = array();
+            foreach($children as $child) {
+                if ($child->type === $type_id) {
+                    $buffer[] = $child;
+                }
             }
-
-            return array(); // everything fails --> return empty array
+            return $child;
         }
 
+        /**
+         * appends a new parent-child relationship into the hierarchy table.
+         *
+         * @param array $what: ('child1ID','child2ID',...)
+         * @return bool
+         */
         function SetChildren($what) {
-            // appends a new parent-child relationship into the hierarchy table.
-            // accepts array ('child1ID','child2ID',...)
-
             if (!is_array($what)) {
                 $what = array($what); // a string / int, convert it to string.
             }
 
-            if (sizeof($what) > 0) {
-                $oid = $this->oid;
-                if ($oid > 0) {
-                    foreach ($what as $child) {
-                        $child = escape_data($child);
-                        $query = "SELECT `parent_oid` FROM `hierarchy`
-                                    WHERE `child_oid`='$child'
-                                      AND `parent_oid`='$oid'";
-                        $sql = mysql_query($query) or die (mysql_error());
-                        if (mysql_num_rows($sql) == 0) { // no existing key
-                            $query = "INSERT INTO `hierarchy` (`parent_oid`,`child_oid`)
-                                                         VALUES ('$oid','$child')";
-                            $sql = mysql_query($query) or die ("Error 362: " . mysql_error());
-                        } // else: already there, do nothing
-                    }
-
-                    return $sql;
+            foreach((array)$what as $child_id) {
+                if (!isset($this->children)) {
+                    $this->children = array();
                 }
-            } else {
-                return true; // inserting nothing is a success
+                $this->children[] = new Thing($child_id);
             }
+            return true; // inserting nothing is a success
         }
 
+        /**
+         * Singular of SetChildren.
+         *
+         * @param string $what: object ID
+         * @return bool
+         */
         function SetChild($what) {
             return $this->SetChildren(array($what));
         }
 
+        /**
+         * removes hierarchical data of some of this object's children.
+         *
+         * @param array $child_ids: (child_id, child_id, ...)
+         * @return bool
+         */
         function DelChildren($child_ids) {
-            // removes hierarchical data of some of this object's children.
-            // accepts (parent1id, parent2id, ...)
             $oid = $this->oid;
-            if ($oid > 0 && sizeof($child_ids) > 0) {
-                $query = "DELETE FROM `hierarchy`
-                                 WHERE `parent_oid`='$oid'
-                                  AND `child_oid` IN (";
-                foreach ($child_ids as $eh) {
-                    $eh = escape_data($eh);
-                    $query .= "'$eh',";
+            if (sizeof($child_ids) <= 0) {
+                return true;  // done
+            }
+            foreach($child_ids as $child_id) {
+                if(($key = array_search($child_id, (array)$this->children)) !== false) {
+                    unset($this->children[$key]);
                 }
-                $query = substr($query, 0,
-                                strlen($query) - 1) . ')'; // remove last comma, then add )
-                $sql = mysql_query($query) or die ("Error 385: " . mysql_error() . " | " . $query);
-
-                return $sql;
             }
         }
 
+        /**
+         * Singular of DelChildren.
+         *
+         * @param string $child_id
+         * @return bool
+         */
         function DelChild($child_id) {
-            // might as well
             $this->DelChildren(array($child_id));
         }
 
@@ -243,9 +268,13 @@
             $this->DelParents(array($parent_id));
         }
 
+        /**
+         * removes hierarchical data where this object is someone's child.
+         * effectively removes all of the object's parents (orphanating?).
+         *
+         * @return resource
+         */
         function DelParentsAll() {
-            // removes hierarchical data where this object is someone's child.
-            // effectively removes all of the object's parents (orphanating?).
             $oid = $this->oid;
             if ($oid > 0) {
                 $this->cache['parents'] = array(); // flush cache
@@ -261,10 +290,14 @@
             return $this->DelParentsAll();
         }
 
+        /**
+         * attempt to change the ID of this object to the new ID.
+         * attempt to resolve all references to this object.
+         *
+         * @param int $nid
+         * @return bool
+         */
         function ChangeID($nid) {
-            // attempt to change the ID of this object to the new ID.
-            // attempt to resolve all references to this object.
-
             $query = "SELECT * FROM `objects` WHERE `oid` = '$nid'";
             $sql = mysql_query($query) or die (mysql_error());
             if (mysql_num_rows($sql) == 0) { // target ID does not exist
@@ -295,10 +328,14 @@
             }
         }
 
+        /**
+         * creates a data-identical twin of this object.
+         * the new twin will have the same parents and have the same children (!!)
+         *
+         * @return null
+         */
         function Duplicate() {
-            // creates a data-identical twin of this object.
-            // the new twin will have the same parents and have the same children (!!)
-            $new_thing = new Thing (0 - $this->GetType()); // create the object.
+            $new_thing = new Thing(0 - $this->GetType()); // create the object.
 
             $props = $this->GetProps();
             $new_thing->SetProps($props); // duplicate properties.
@@ -306,16 +343,20 @@
             $parents = $this->GetParents();
             $new_thing->SetParents($parents); // duplicate upper hierarchy.
 
-            $children = $this->Children();
+            $children = $this->GetChildren();
             $new_thing->SetChildren($children); // duplicate lower hierarchy.
 
             return $new_thing->oid; // return the object ID. Don't lose it!
         }
 
+        /**
+         * removes an object from the database.
+         * deletes the object, the relationship with parents, and their children.
+         * children of this object will become orphans.
+         *
+         * @return bool: success
+         */
         function Destroy() {
-            // removes an object from the database.
-            // deletes the object, the relationship with parents, and their children.
-            // children of this object will become orphans.
             global $user;
             if (isset ($user) && get_class($user) == 'User' &&
                 class_exists('Auth') && function_exists('CheckAuth')
@@ -334,5 +375,6 @@
             $sql = mysql_query($query) or die (mysql_error()); // delete object first
             $this->DelParentsAll(); // then the properties and stuff (no orphaning on crash)
             $this->DelPropsAll();
+            return true;
         }
     }

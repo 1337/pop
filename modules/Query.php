@@ -107,16 +107,23 @@
             return $objs;
         }
 
+        /**
+         * adds a filter to the Query.
+         *
+         * @param {string} $filter: field name followed by an operator, e.g. 'name =='
+         * @param $condition: one of [<, >, ==, !=, <=, >=, IN]
+         * @return $this
+         */
         public function filter($filter, $condition) {
-            // adds a filter to the Query.
-            // $filter = field name followed by an operator, e.g. 'name =='
-            // comparison operators allowed: <, >, ==, !=, <=, >=, IN
-
             $this->filters[] = array($filter, $condition);
 
             return $this; // chaining for php 5
         }
 
+        /**
+         * @param {string} $key: e.g. 'date'
+         * @return array
+         */
         public function aggregate_by($key) {
             /*  $queryInstance->aggregate_by('date') will return
                 [
@@ -142,8 +149,14 @@
             return $pool;
         }
 
+        /**
+         * Orders all objects by a key. This is EXTREMELY slow.
+         *
+         * @param string $by: name of a field
+         * @param bool $asc: ascending or descending
+         * @return $this
+         */
         public function order($by, $asc = true) {
-            // EXTREMELY slow.
             $this->sort_field = $by;
             usort($t = (array)$this->found_objects,
                   array($this, "_sort_function")); // php automagic
@@ -154,10 +167,15 @@
             return $this; // chaining for php 5
         }
 
+        /**
+         * fisher-yates shuffle the found variable, NOT found_objects.
+         * call before get() or fetch().
+         * http://stackoverflow.com/a/6557893/1558430
+         *
+         * @param bool $strong: whether to use fisher-yates.
+         * @return $this
+         */
         public function shuffle($strong) {
-            // fisher-yates shuffle the found variable, NOT found_objects.
-            // call before get() or fetch().
-            // http://stackoverflow.com/a/6557893/1558430
             if ($strong) {
                 for ($i = count($this->found) - 1; $i > 0; $i--) {
                     $j = @mt_rand(0, $i);
@@ -172,6 +190,12 @@
             return $this; // chaining for php 5
         }
 
+        /**
+         * retrieves objects from the filesystem. use get() to get them.
+         *
+         * @param int $limit: max number of objects to fetch
+         * @return $this
+         */
         public function fetch($limit = PHP_INT_MAX) {
             // This class does NOT store or cache these results.
             // calling fetch more than once on the same Query object will reset its list of items found.
@@ -182,12 +206,7 @@
             // adjust FS_FETCH_HARD_LIMIT.
             foreach ((array)$this->found as $index => $file) {
                 $object = $this->_create_object_from_filename($file);
-                $include_this_object = true;
-                foreach ((array)$this->filters as $idx => $filter) {
-                    // if any filter is not met, $include_this_object is false
-                    $include_this_object &= $this->_filter_function($object,
-                                                                    $filter);
-                }
+                $include_this_object = $this->_check_against_filters($object);
                 if ($include_this_object) {
                     $this->found_objects[] = $object;
                     ++$found_count;
@@ -211,8 +230,14 @@
             return $this; // chaining
         }
 
+        /**
+         * returns query's objects.
+         * if fetch() has not been run, it will be run.
+         *
+         * @param int $limit: max number of objects to fetch
+         * @return array
+         */
         public function get($limit = PHP_INT_MAX) {
-            // throw objects out.
             if (sizeof($this->found_objects) <= 0) {
                 $this->fetch($limit); // if nothing, try fetch again just to be sure
             }
@@ -227,13 +252,7 @@
                 while ($found = array_shift($this->found)) {
                     $object = $this->_create_object_from_filename($found);
 
-                    // same code from fetch()
-                    $include_this_object = true;
-                    foreach ((array)$this->filters as $idx => $filter) {
-                        // if any filter is not met, $include_this_object is false
-                        $include_this_object &= $this->_filter_function($object,
-                                                                        $filter);
-                    }
+                    $include_this_object = $this->_check_against_filters($object);
                     if ($include_this_object) {
                         return $object;
                     }
@@ -289,9 +308,15 @@
             }
         }
 
-        private function _filter_function($object, $filter) {
-            // $filter = e.g. ['name ==', 'brian']
-            // returns true if object meets filter criteria.
+        /**
+         * Returns true if object meets filter criteria.
+         *
+         * @param $object
+         * @param $filter: e.g. ['name ==', 'brian']
+         * @return bool
+         * @throws Exception
+         */
+        private function _filter_func($object, $filter) {
             $cond = $filter[1]; // e.g. '5'
             if (strpos($filter[0], ' ') !== false) {
                 // if space is found in 'name ==', then split by it
@@ -351,13 +376,36 @@
             }
         }
 
+        /**
+         * True if this object meets all filter requirements, False otherwise.
+         * @param $object: a Model instance
+         * @return bool
+         */
+        private function _check_against_filters($object) {
+            $truth = true;
+            foreach ((array)$this->filters as $idx => $filter) {
+                // if any filter is not met, $truth is false
+                $truth &= $this->_filter_func($object, $filter);
+                if (!$truth) {
+                    return false;
+                }
+            }
+            return $truth;
+        }
+
+        /**
+         * @param $o: Model(hello)
+         * @return string: Model/hello
+         */
         private function _get_object_name($o) {
-            // Model(hello) -> Model/hello
             return get_class($o) . '/' . $o->id; // if this is a Model, this will not fail
         }
 
+        /**
+         * @param {string} $file
+         * @return Model: object of Id.Type
+         */
         private function _create_object_from_filename($file) {
-            // output: object of Id.Type
             return Pop::obj($this->module_name, $file);
         }
     }
