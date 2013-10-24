@@ -55,6 +55,8 @@
                             unset($matches[$idx]);
                         }
                     }
+                    // conditions more or less the ones worth implementing in
+                    // https://docs.djangoproject.com/en/dev/ref/models/querysets/
                     switch ($key_comp) {
                         case 'eq':
                             if ($model_key_val === $value) {
@@ -90,6 +92,26 @@
                         case 'contains':
                             // [1,2,3,4,5] contains '5'
                             if (in_array($value, $model_key_val)) {
+                                break 2;  // 2? http://www.php.net/break
+                            }
+                            break;
+                        case 'startswith':
+                            // 'abc'__startswith: 'a'
+                            if (strpos($model_key_val, $value) === 0) {
+                                break 2;  // 2? http://www.php.net/break
+                            }
+                            break;
+                        case 'endswith':
+                            // 'abc'__startswith: 'c'
+                            if (substr($model_key_val, -strlen($value))
+                                === $value) {
+                                break 2;  // 2? http://www.php.net/break
+                            }
+                            break;
+                        case 'range':
+                            // 5 range (1, 10)
+                            if ($model_key_val >= $value[0] &&
+                                $model_key_val <= $value[1]) {
                                 break 2;  // 2? http://www.php.net/break
                             }
                             break;
