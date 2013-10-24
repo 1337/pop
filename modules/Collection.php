@@ -70,6 +70,11 @@
                                 break 2;  // 2? http://www.php.net/break
                             }
                             break;
+                        case 'neq':
+                            if ($model_key_val !== $value) {
+                                break 2;  // 2? http://www.php.net/break
+                            }
+                            break;
                         case 'lt':
                             if ($model_key_val < $value) {
                                 break 2;  // 2? http://www.php.net/break

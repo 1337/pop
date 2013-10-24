@@ -340,27 +340,35 @@
             }
             $haystack = $object->{$field}; // good name
             switch ($mode) {
-                case '>':
+                case '>';
+                case 'GT';
                     return ($haystack > $cond);
                 case '>=':
+                case 'GTE';
                     return ($haystack >= $cond);
-                case '<':
+                case '<';
+                case 'LT';
                     return ($haystack < $cond);
-                case '<=':
+                case '<=';
+                case 'LTE';
                     return ($haystack <= $cond);
                 case '=':
                 case '==':
+                case 'EQV';
                     if (is_string($haystack) && is_string($cond)) {
                         // case-insensitive comparison
                         return (strcasecmp($haystack, $cond) === 0);
                     } else {
                         return ($haystack == $cond);
                     }
-                case '===':
+                case '===';
+                case 'EQ';
                     return ($haystack === $cond);
-                case '!=':
+                case '!=';
+                case 'NEQ';
                     return ($haystack != $cond);
-                case 'WITHIN': // within; $cond must be [min, max]
+                case 'WITHIN'; // within; $cond must be [min, max]
+                case 'RANGE';
                     return ($haystack >= $cond[0] && $haystack <= $cond[1]);
                 case 'IN': // list of criteria supplied contains this field's value
                     if (is_string($cond)) {
