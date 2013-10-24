@@ -32,7 +32,8 @@
             if (!is_array($filters)) {
                 throw new UnexpectedValueException('Filters must be array');
             }
-            foreach($filters as $condition => $value) {
+            /** @var $filters array */
+            foreach((array) $filters as $condition => $value) {
                 if (strpos($condition, '__') === false) {
                     // format foo, assuming foo__eq
                     $condition = $condition . '__eq';
@@ -60,6 +61,12 @@
                     switch ($key_comp) {
                         case 'eq':
                             if ($model_key_val === $value) {
+                                break 2;  // 2? http://www.php.net/break
+                            }
+                            break;
+                        case 'eqv':
+                            // nonstandard (added it just for shits)
+                            if ($model_key_val == $value) {
                                 break 2;  // 2? http://www.php.net/break
                             }
                             break;
