@@ -45,31 +45,31 @@
                 }
             }
 
-            /* TODO: who cares about GUIDs?
-            if (!isset($this->properties['guid'])) {
-                // if the object does not have a GUID already, assign one to it.
-                $this->__set('guid', create_guid());
-            } */
-
             Mediator::fire('load');
 
             return $this;
         }
 
+        /**
+         * $methods is an array storing callbacks to functions.
+         *
+         * if this object is registered with extra, object-bound methods,
+         * it will be called like this.
+         * if you want to register methods for all instances of the same
+         * class, then you might want to write a private function.
+         *
+         * @param string $name: this function is not actually public.
+         * @param array $args
+         * @return mixed
+         * @throws Exception
+         */
         public function __call($name, $args) {
-            // $methods is an array storing callbacks to functions.
-            // if this object is registered with extra, object-bound methods,
-            // it will be called like this.
-            // if you want to register methods for all instances of the same
-            // class, then you might want to write a private function.
-
-            if (preg_match('/^get_by_/', $name)) {
+            if (substr($name, 0, 7) === 'get_by_') {
                 // manage get_by_propname methods with this.
                 $class_name = get_class();
                 $prop_name = substr($name, 7); // [get_by_]prop_name
 
-                // not implemented
-                // return $class_name::get_by($prop_name, $args[0]);
+                return $class_name::get_by($prop_name, $args[0]);
 
             } else if (isset($this->methods[$name])) {
                 return call_user_func_array($this->methods[$name], $args);
@@ -78,12 +78,21 @@
             }
         }
 
+        /**
+         * Supports the Model::get_by_something syntax.
+         * Note: PHP 5.30+ only
+         *
+         * @param $name
+         * @param $args
+         * @return mixed
+         * @throws Exception
+         */
         public static function __callStatic($name, $args) {
-            // Note: PHP 5.30+ only
-            if (preg_match('/^get_by_/', $name)) {
+            if (substr($name, 0, 7) === 'get_by_') {
                 // manage get_by_propname methods with this.
                 $prop_name = substr($name, 7); // [get_by_]prop_name
-                return self::get_by($prop_name, $args[0]);
+                $query_obj = Pop::obj('Query', get_class());
+                return $query_obj->get_by($prop_name, $args[0]);
             } else {
                 throw new Exception('Method ' . $name . ' not registered');
             }
@@ -204,60 +213,6 @@
             return $q->filter($property . ' ===', $value)->get();
         }
 
-        /**
-         * @deprecated
-         * depending on what the request is like, it will either
-         * serve JSON data or modify a Model with the supplied request.
-         *
-         * to request information, send in these fields:
-         * - id (object id)
-         * - type (object type)
-         * - prop (data field)
-         * - key (id-type-field-specific read key)
-         *
-         * returns: (string) val
-         *
-         * to update information, send in these fields, too:
-         * - key (id-type-field-specific write key)
-         * - val (field value)
-         *
-         * returns: (string) val
-         */
-        public function ajax_handler() {
-            /*
-            $id = vars('id', false);
-            $type = vars('type', false);
-            $prop = vars('prop', false);
-            $val = vars('val', false);
-            $key = vars('key', false);
-
-            if (!($id && $type && $prop)) {
-                // minimum request params not yet
-                die(Header::status(400));
-            }
-            try {
-                $obj = Pop::obj($type, $id);
-                if ($val && $key) { // write
-                    $hash = $obj->get_hash('write');
-                    if ($key !== $hash) { // key is incorrect
-                        die(Header::status(403));  // do not serve the json
-                    }
-                    $obj->$prop = $val; // -> update object
-                } else { // read
-                    $hash = $obj->get_hash('read');
-                    if ($key !== $hash) { // key is incorrect
-                        die(Header::status(403));  // do not serve the json
-                    }
-                }
-                // output info
-                $resp = array('value' => $obj->$prop);
-                echo json_encode($resp);
-            } catch (Exception $e) {
-                die(Header::status(500));
-            }
-            */
-        }
-
         public function properties() { // read-only prop keys
             return array_keys($this->properties);
         }
@@ -267,11 +222,17 @@
             // throw your own exception if anything is wrong.
         }
 
+        /**
+         * saves the model to the (filesystem), as a json string.
+         * if the WRITE_ON_MODIFY flag is true, you don't need to call this.
+         *
+         * Pop needs write permission to DATA_PATH and its subdirectories.
+         * If it fails to write this model, it raises exceptions.
+         *
+         * @return int success
+         * @throws Exception
+         */
         public function put() {
-            // put is automatically called when a variable is assigned
-            // to the object.
-            // $blob = serialize ($this->properties);
-
             // Model checks for its required permission.
             self::_test_writable() or die();
 
@@ -380,7 +341,6 @@
         private function _key() {
             if (!isset ($this->properties['id'])) {
                 $this->properties['id'] = null;
-                // throw new Exception('Cannot request DB key before ID assignment');
                 Pop::debug('Warning: assigning random ID to unsaved object');
             }
             return $this->_path($this->properties['id'] || null, true);
