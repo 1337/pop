@@ -211,6 +211,8 @@
             // if the DB has fewer matching results than $limit, this will force
             // fetch() to go through the entire store. Performance hit!!
             // adjust FS_FETCH_HARD_LIMIT.
+
+            /*
             foreach ((array)$this->found as $index => $file) {
                 $object = $this->_create_object_from_filename($file);
                 $include_this_object = $this->_check_against_filters($object);
@@ -230,6 +232,7 @@
             $this->found = array_map(array($this, '_get_object_name'),
                                      (array)$this->found_objects);
 
+            */
             // reset the filters (doesn't matter no more)
             $object = null;
             $this->filters = array();
