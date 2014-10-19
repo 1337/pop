@@ -1,5 +1,7 @@
 <?php
-    class MySQLModel extends Model {
+    require_once(MODULE_PATH . 'ModelInterface.php');
+
+    class MySQLModel extends Model implements ModelInterface {
         /*
             Lets pop use MySQL databases.
             Some results are cached by the underlying Model object.
@@ -18,6 +20,7 @@
             $user = MYSQL_USER,
             $password = MYSQL_PASSWORD) {
             parent::__construct($param); // idk...
+
             $this->_connect($db, $host, $user, $password);
             $this->db = $db;
             $this->host = $host;

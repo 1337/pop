@@ -1,7 +1,8 @@
 <?php
     require_once(MODULE_PATH . 'View.php');
+    require_once(MODULE_PATH . 'ModelInterface.php');
 
-    class Model {
+    class Model implements ModelInterface {
         protected $properties = array(); // associative
         protected $methods = array();
 

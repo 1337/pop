@@ -1,5 +1,7 @@
 <?php
-    class CSVModel extends Model {
+    require_once(MODULE_PATH . 'ModelInterface.php');
+
+    class CSVModel extends Model implements ModelInterface {
 
         public function __toString() {
             $bfr = implode(',', $this->properties()) . // header
