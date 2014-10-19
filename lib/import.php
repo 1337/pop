@@ -5,9 +5,10 @@
      * from either LIBRARY_PATH, MODULE_PATH, or PATH, in descending
      * order or precedence.
      *
-     * @param string *args: any number of strings.
-     *
      * @throws Exception
+     * @internal param $string *args: any number of strings.
+     *
+     * @return mixed {object}  the imported
      */
     function import() {
         // of cascading precedence
@@ -20,14 +21,9 @@
             foreach ($search_roots as $search_root) {
                 if (file_exists($search_root . $path)) {
                     $ni = str_replace('.', DIRECTORY_SEPARATOR, $include);
-                    include_once($search_root . $ni . '.php');
-                    $imported = true;
-
-                    break;
+                    return include_once($search_root . $ni . '.php');
+                    // break 2;
                 }
-            }
-            if ($imported) {
-                break;
             }
             // *any* un-importable file will raise an error
             throw new Exception ('Could not find import: ' . $include);

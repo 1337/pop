@@ -1,8 +1,9 @@
 <?php
+    require_once(MODULE_PATH . 'Model/AbstractModel.php');
     require_once(MODULE_PATH . 'View.php');
     require_once(MODULE_PATH . 'ModelInterface.php');
 
-    class Model implements ModelInterface {
+    class Model extends AbstractModel implements ModelInterface {
         protected $properties = array(); // associative
         protected $methods = array();
 
@@ -44,8 +45,6 @@
                     }
                 }
             }
-
-            Mediator::fire('load');
 
             return $this;
         }
@@ -101,8 +100,6 @@
         public function __get($property) {
             // Pop uses this method to read all unavailable properties from the
             // $properties variable.
-            Mediator::fire('read');
-
             $property = trim(strtolower($property)); // case-insensitive
 
             // http://php.net/manual/en/language.variables.php
@@ -142,8 +139,6 @@
         }
 
         public function __set($property, $value) {
-            Mediator::fire('write');
-
             $property = trim(strtolower($property)); // case-insensitive
 
             // save to memory
@@ -167,6 +162,10 @@
                 $this->put(); // record it into DB
             }
             return $this;
+        }
+
+        public function _get_queryset() {
+
         }
 
         public function __toString() {
@@ -281,8 +280,6 @@
                 list($template, $context) = array(null, $template);
             }
 
-            Mediator::fire('beforeRender');
-
             if (isset($_json)) {  // global override
                 $context['_json'] = $_json;
             }
@@ -298,7 +295,7 @@
                 (!file_exists(VIEWS_PATH . $template))) {
 
                 echo $this->to_string();
-                return Mediator::fire('render');
+                return;
             }
 
             $view = new View(
@@ -316,7 +313,7 @@
             }
 
             echo $fc;  // output it
-            return Mediator::fire('render');
+            return;
         }
 
         public function get_db_key() {

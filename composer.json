@@ -1,0 +1,14 @@
+{
+    "name": "ohai/pop",
+    "description": "Simple PHP Object Persistence",
+    "license": "GPL V3",
+    "authors": [
+        {
+            "name": "Brian L",
+            "email": "brian@ohai.ca"
+        }
+    ],
+    "require": {
+        "phpunit/phpunit": "~4.3"
+    }
+}
