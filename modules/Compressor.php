@@ -1,5 +1,8 @@
 <?php
 
+namespace Pop;
+
+
 class Compressor {
     // compression functions
 
@@ -67,7 +70,7 @@ class Compressor {
             strpos($n, '//') !== false || // remote (http://)
             strpos($n, '~') === 0
         ) { // traversal (~/...)
-            throw new Exception ('file name unsafe!');
+            throw new \Exception ('file name unsafe!');
         } else {
             return $n;
         }

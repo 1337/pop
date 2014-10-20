@@ -1,5 +1,8 @@
 <?php
 
+namespace Pop;
+
+
 /**
  * Class Collection
  * An object with references to multiple models, via attribute `models`.
@@ -30,7 +33,7 @@ class Collection {
         $matches = $this->models;
 
         if (!is_array($filters)) {
-            throw new UnexpectedValueException('Filters must be array');
+            throw new \UnexpectedValueException('Filters must be array');
         }
         /** @var $filters array */
         foreach((array) $filters as $condition => $value) {

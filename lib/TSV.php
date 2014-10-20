@@ -6,7 +6,7 @@
 
         function __construct($array_of_arrays) {
             $max_cols = 0;
-            foreach ($array_of_arrays as $idx => $row) {
+            foreach ($array_of_arrays as $_ => $row) {
                 $row_cols = sizeof($row);
                 if ($row_cols > $max_cols) {
                     $max_cols = $row_cols;

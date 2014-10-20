@@ -4,9 +4,6 @@ namespace Pop;
 
 require_once(MODULE_PATH . 'ModelInterface.php');
 
-use Pop\Model;
-use Pop\ModelInterface;
-
 
 class MySQLModel extends Model implements ModelInterface {
     /*

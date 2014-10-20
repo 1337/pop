@@ -2,6 +2,7 @@
 
 namespace Pop;
 
+
 class StaticServer {
 
     function index() {
@@ -15,7 +16,7 @@ class StaticServer {
         if (file_exists($filename)) {
             echo file_get_contents($filename);
         } else {
-            throw new Exception('404 not found ' . $url);
+            throw new \Exception('404 not found ' . $url);
         }
     }
 
@@ -36,7 +37,7 @@ class StaticServer {
             strpos($n, '//') !== false || // remote (http://)
             strpos($n, '~') === 0
         ) { // traversal (~/...)
-            throw new Exception ('file name unsafe!');
+            throw new \Exception('file name unsafe!');
         } else {
             return $n;
         }

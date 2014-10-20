@@ -2,8 +2,6 @@
 
 namespace Pop;
 
-use Pop\Model;
-
 
 class Thing extends Model {
     // Standard adapter for a Things Thing. PHP 5 only.

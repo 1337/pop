@@ -2,6 +2,35 @@
 
 namespace Pop;
 
+/**
+ * has something to do with spl_autoload_register.
+ *
+ * http://php.net/manual/en/function.autoload.php
+ * @param $classname
+ */
+function __autoload($class_name) {
+    static $loaded_modules = array();
+    $paths = array(PATH, MODULE_PATH, LIBRARY_PATH);
+    $class_name = str_replace(__NAMESPACE__ . '\\', '', $class_name);  // remove Pop\
+    foreach ($paths as $path) {
+        $fqp = "$path$class_name.php";
+        // print "$fqp \n";
+        if (file_exists($fqp)) {
+            include_once $fqp;
+            $loaded_modules[] = $class_name;
+            break;
+        }
+    }
+}
+
+
+function _exception_handler($errno, $errstr) {
+    // do nothing?
+    error_log($errstr, 0);
+
+    return true;
+}
+
 
 class Pop {
 // variables
@@ -13,8 +42,8 @@ class Pop {
     public function __construct() {
         global $modules;
 
-        // whenever you call "new Class()", _load_module will be called!
-        spl_autoload_register(array($this, '_load_module'));
+        // whenever you call "new Class()", __autoload will be called!
+        spl_autoload_register(__NAMESPACE__ . '\__autoload');
         // force Model (required)
         $model = new Model();
         unset ($model);
@@ -37,16 +66,16 @@ class Pop {
                 $page = Pop::obj($mod, null);
                 $page->$handler(); // load only one page...
                 die();
-            } catch (Exception $err) {
+            } catch (\Exception $err) {
                 // core error handler (not that it always works)
                 self::debug($err->getMessage());
             }
         } else { // else: use POP as library
-            register_shutdown_function(array('View', 'render'));
+            register_shutdown_function(array(__NAMESPACE__ . '\View', 'render'));
         }
 
         // CodeIgniter technique
-        set_error_handler(array('Pop', '_exception_handler'));
+        set_error_handler(__NAMESPACE__ . '\_exception_handler');
         if (!self::phpver(5.3)) {
             @set_magic_quotes_runtime(0); // Kill magic quotes
         }
@@ -109,17 +138,10 @@ class Pop {
         }
 
         if ($verbose) {
-            throw new Exception('403 Forbidden ' . $url);
+            throw new \Exception('403 Forbidden ' . $url);
         } else {
             return false;
         }
-    }
-
-    public static function _exception_handler($errno, $errstr) {
-        // do nothing?
-        error_log($errstr, 0);
-
-        return true;
     }
 
 // private functions
@@ -135,7 +157,7 @@ class Pop {
             try { // because
                 self::$all_hooks = json_decode(file_get_contents($url_cache),
                                                true);
-            } catch (Exception $err) {
+            } catch (\Exception $err) {
                 self::debug('URL cache is corrupted: %s',
                             $err->getMessage());
             }
@@ -154,23 +176,11 @@ class Pop {
                             }
                         }
                     }
-                } catch (Exception $err) {
+                } catch (\Exception $err) {
                     self::debug($err);
                 }
             }
             @file_put_contents($url_cache, json_encode(self::$all_hooks));
-        }
-    }
-
-    private static function _load_module($name) {
-        static $loaded_modules = array();
-        $paths = array(PATH, MODULE_PATH, LIBRARY_PATH);
-        foreach ($paths as $path) {
-            if (file_exists($path . $name . '.php')) {
-                include_once $path . $name . '.php';
-                $loaded_modules[] = $name;
-                break;
-            }
         }
     }
 }

@@ -1,3 +1,6 @@
 [submodule "test"]
 	path = test
 	url = git@github.com:1337/SimpleTest.git
+[submodule "lib/underscore"]
+	path = lib/underscore
+	url = git@github.com:brianhaveri/Underscore.php.git

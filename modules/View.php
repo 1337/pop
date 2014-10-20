@@ -25,7 +25,7 @@ class View {
         try {
             $template = $this->_resolve_template_name($content); // returns full path
             $this->contents = $this->_get_parsed($template);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             // use the first parameter as the template content.
             $this->contents = $content;
         }
@@ -104,11 +104,11 @@ class View {
                 'subdir'       => SUBDIR,
                 'base'         => DOMAIN . SUBDIR, // so, pop dir
                 'handler'      => $_era ? "$_era.$_ert" : '',
-                'memory_usage' => Pop\filesize_natural(memory_get_peak_usage()),
+                'memory_usage' => filesize_natural(memory_get_peak_usage()),
                 'exec_time'    => (time() - $_SERVER['REQUEST_TIME']) . ' s',
                 'year'         => date('Y'),
             ), // "required" defaults
-            Pop\vars(), // environmental variables
+            vars(), // environmental variables
             $tags // custom tags
         );
 
@@ -135,7 +135,7 @@ class View {
 
             // max iteration of 500 (no way you'll need that many)
             $iters++; if ($iters > 500) break;
-        } while (Pop\preg_match_multi($match_patterns, $this->contents));
+        } while (preg_match_multi($match_patterns, $this->contents));
         unset ($tags_processed, $values_processed); // free ram
 
         // then hide unmatched var tags
@@ -161,7 +161,7 @@ class View {
         if (is_file(VIEWS_PATH . DEFAULT_TEMPLATE)) {
             return VIEWS_PATH . DEFAULT_TEMPLATE;
         }
-        throw new Exception('Template file cannot be found to render this page.');
+        throw new \Exception('Template file cannot be found to render this page.');
     }
 
     private function _include_snippets(&$contents) {
@@ -180,7 +180,7 @@ class View {
                 foreach ($matches[2] as $index => $filename) { // [1] because [0] is full line
                     try {
                         $nv = $this->_get_parsed($filename);
-                    } catch (Exception $e) { // include fail? fail.
+                    } catch (\Exception $e) { // include fail? fail.
                         $nv = '';
                     }
                     // replace tags in this contents with that contents

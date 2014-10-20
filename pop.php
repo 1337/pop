@@ -19,8 +19,11 @@ do {
     $_resolver = $_resolver->parent->parent;
 } while ($_i++ < 10);
 
+// TODO: die if no vars.php found
+
 // import libraries (including the import() function)
-require_once(LIBRARY_PATH . 'lib.php');
+require_once(LIBRARY_PATH . 'import.php');
+import('lib');
 
 
 // run!

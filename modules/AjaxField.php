@@ -1,5 +1,8 @@
 <?php
 
+namespace Pop;
+
+
 class AjaxField extends Model {
 
     public function make($object, $property, $mode = 'text') {

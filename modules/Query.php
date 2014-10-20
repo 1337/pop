@@ -4,7 +4,6 @@ namespace Pop;
 
 require_once(MODULE_PATH . 'View.php');
 
-use Pop\View;
 
 class Query extends View {
     /*  extends View to get property bags. Don't assign an ID!

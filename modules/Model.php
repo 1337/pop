@@ -2,9 +2,6 @@
 
 namespace Pop;
 
-require_once(MODULE_PATH . 'Model/AbstractModel.php');
-require_once(MODULE_PATH . 'View.php');
-require_once(MODULE_PATH . 'ModelInterface.php');
 
 class Model extends AbstractModel implements ModelInterface {
     protected $properties = array(); // associative

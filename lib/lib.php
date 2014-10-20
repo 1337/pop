@@ -2,7 +2,6 @@
 
 namespace Pop;
 
-include_once('import.php');
 import('datetime', 'header');
 
 
