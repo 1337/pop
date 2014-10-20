@@ -1,5 +1,6 @@
 <?php
 
+namespace Pop;
 /**
  * All Models must implement these methods.
  */

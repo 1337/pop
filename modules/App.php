@@ -1,4 +1,5 @@
 <?php
-    class App extends Model {
 
-    }
+class App extends Model {
+
+}

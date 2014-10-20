@@ -1,5 +1,8 @@
 <?php
 
+namespace Pop;
+
+
 class Pop {
 // variables
     private static $all_hooks = array();

@@ -1,5 +1,7 @@
 <?php
 
+namespace Pop;
+
 abstract class AbstractModel {
     /**
      * @return {Query} for that model class.

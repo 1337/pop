@@ -1,6 +1,8 @@
 <?php
 
-include_once(LIBRARY_PATH . 'import.php');
+namespace Pop;
+
+include_once('import.php');
 import('datetime', 'header');
 
 
@@ -49,6 +51,14 @@ function vars($index = false, $default = null) {
     } else {
         return array(); // return nothing
     }
+}
+
+
+/**
+ * Well, dump all variables.
+ */
+function dump_all() {
+    var_dump(get_defined_vars());
 }
 
 
