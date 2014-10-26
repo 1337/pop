@@ -48,7 +48,7 @@ If `$object->b` doesn't exist either, then `$object->c`.
 ### `$object->to_string()`
 By default, returns a JSON dump of the object.
 
-### `$object->to_array()`
+### `$object->toArray()`
 Returns the list of the object's raw properties.
 
 ### `$object->properties()`

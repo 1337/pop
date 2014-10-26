@@ -1,7 +1,7 @@
 {
     "name": "ohai/pop",
     "description": "Simple PHP Object Persistence",
-    "license": "GPL V3",
+    "license": "GPL-3.0",
     "authors": [
         {
             "name": "Brian L",
@@ -9,6 +9,13 @@
         }
     ],
     "require": {
-        "phpunit/phpunit": "~4.3"
-    }
+        "php": ">=5.3.0",
+        "phpunit/phpunit": "4.3.3"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/1337/pop"
+        }
+    ]
 }

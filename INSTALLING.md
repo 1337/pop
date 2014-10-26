@@ -1,7 +1,7 @@
 # Installing
 
 ### Requirements
-* PHP 5.3+, or PHP 5.2 + SPL (Standard PHP library; usually built-in)
+* PHP 5.3+
 * JSON module (json_encode, json_decode)
 * Apache2, lighttpd, or similar web server with URL rewriting
 

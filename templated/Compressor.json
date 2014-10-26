@@ -1,0 +1,6 @@
+{
+    "handlers": {
+        "css/?": "css",
+        "js/?": "js"
+    }
+}

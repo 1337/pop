@@ -1,5 +1,19 @@
 # Changelog
 
+### 2015-01-11
+* Changed minimum PHP version to 5.4.
+* Added namespaces, bumping version to 1.0.
+* Views and templates are no longer a part of the core. "Pop" (PHP Object Persistence) does not involve templating. To use the templating engine, include `templated`.
+* Models no longer ships with the `render()` function, for the same reason as above.
+* Removed the Things SQL adapter.
+* Removed CSV and TSV modules.
+* JSON is now the only accepted route file format. YAML has been removed.
+* Some functions and methods may have been renamed to camelCase.
+* Removed `min` and `max`. They make no sense. Write your own orderBy queries.
+* `<Query>->reject_key(value)` has been removed in favour of `<Query>.exclude(key, value)`.
+* `Model(id)` is replaced by `Model::get(id)`.
+* `<Model>->delete()` has been moved to `QuerySet(Model)->get(id)->delete()`.
+
 ### 2013-09-14
 * Added tests.
 * Added `filter` and `comment` template tags.

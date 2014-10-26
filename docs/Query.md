@@ -1,25 +1,25 @@
-# Query
+# QuerySet
 
-The `Query` is a core component of the Pop framework, allowing for object retrieval.
+The `QuerySet` is a core component of the Pop framework, allowing for object retrieval.
 It has no default subclasses.
 
 ## Common usage
 
 ### Retrieving the list of `Model` types
 
-    $a = new Query();
+    $a = new QuerySet();
     var_dump($a->found);
 
 ### Retrieving a list of models of one type
 
-    $a = new Query('Model');
+    $a = new QuerySet('Model');
     // or
-    $a = Pop::obj('Query', 'ModuleName');
+    $a = Pop::obj('QuerySet', 'ModuleName');
     var_dump($a->get());
 
 ### Filtering
 
-    $a = Pop::obj('Query', 'ModuleName');
+    $a = Pop::obj('QuerySet', 'ModuleName');
     // allowed comparisons: >, <, ==, ===, !=, <=, >=, IN, WITHIN, CONTAINS
     $a->filter('id ==', 123);
     var_dump($a->get());
@@ -30,11 +30,11 @@ All query methods, with the exception of those that return results, can
 be chained if you use PHP 5.3+, i.e. this is possible:
 
     // get list of 5 women aged between 20 and 40, youngest first.
-    $a = Pop::obj('Query', 'People');
+    $a = Pop::obj('QuerySet', 'People');
     $girls = $a->filter('id !=', null)
                ->filter('sex ===', 'female')
                ->filter('age WITHIN', array(20, 40))
-               ->order('age', false)
+               ->orderBy('age', false)
                ->get(5);
 
 
@@ -48,17 +48,17 @@ Adds a filter to the query that requires results to have `$model->propertyName =
 
 Adds a filter to the query that requires results *not* to have `$model->propertyName == $value`.
 
-### `$query->to_string()`
+### `(string)$query`
 
 Returns a JSON list of results.
 
-### `$query->to_array()`
+### `$query->toArray()`
 
 Return a list of objects, which are also lists.
 
 ### `$query->filter($filter, $condition)`
 
-Adds a filter to the Query.
+Adds a filter to the QuerySet.
 
 $filter = field name followed by an operator, e.g. 'name =='
 
@@ -79,7 +79,7 @@ Comparison operators allowed: >, <, ==, ===, !=, <=, >=, IN, WITHIN, CONTAINS
 
 Returns a associative array of objects, where keys are different values of `Model->$key`.
 
-### `$query->order($by, $asc=true)`
+### `$query->orderBy($key, $asc=true)`
 
 Does exactly what it says it does. Returns the query object.
 
@@ -108,7 +108,7 @@ To speed things up, you don't always need to load all objects into a giant array
 #### Example
 
 ```
-$query = Pop::obj('Query', 'People');
+$query = Pop::obj('QuerySet', 'People');
 while($person = $query->iterate) {
     echo "{$person->name}\n";
 }
@@ -124,11 +124,3 @@ Returns the number of objects found by the query.
 ### `$query->pluck($key)`
 
 Returns an array with only the values of one property from objects fetched.
-
-### `$query->min($key)`
-
-Returns the object by which its $key was the smallest.
-
-### `$query->max($key)`
-
-Returns the object by which its $key was the largest.
