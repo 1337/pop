@@ -13,6 +13,7 @@
 * `<Query>->reject_key(value)` has been removed in favour of `<Query>.exclude(key, value)`.
 * `Model(id)` is replaced by `Model::get(id)`.
 * `<Model>->delete()` has been moved to `QuerySet(Model)->get(id)->delete()`.
+* Removed `Collection`, which is just an incomplete version of `QuerySet`.
 
 ### 2013-09-14
 * Added tests.

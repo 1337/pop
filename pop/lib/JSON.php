@@ -65,7 +65,7 @@ function writeJSON($path, $object) {
         throw new \Exception("Could not serialize $path");
     }
 
-    $res = file_put_contents($path, $file_contents);
+    $res = file_put_contents($path, $file_contents, LOCK_EX);
     if ($res === false) {
         $msg = jsonLastError();
         throw new \Exception("Could not write into $path: $msg");

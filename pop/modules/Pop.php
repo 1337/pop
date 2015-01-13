@@ -10,23 +10,23 @@ const VERSION = '1.0';
  * http://php.net/manual/en/function.autoload.php
  * @param $classname
  */
-function __autoload($class_name) {
-    static $loaded_modules = [];
+function __autoload($className) {
+    // static $loaded_modules = [];
     $paths = [
         PATH,
         PATH . 'lib' . DIRECTORY_SEPARATOR,
         PATH . 'modules' . DIRECTORY_SEPARATOR,
     ];
 
-    $class_name = str_replace(__NAMESPACE__ . '\\', '', $class_name);  // remove Pop\
+    $className = str_replace(__NAMESPACE__ . '\\', '', $className);  // remove Pop\
+    $className = str_replace('\\', DIRECTORY_SEPARATOR, $className);
     foreach ($paths as $path) {
-        $fqp = "$path$class_name.php";
-        // print "$fqp \n";
-        if (file_exists($fqp)) {
-            include_once $fqp;
-            $loaded_modules[] = $class_name;
-            break;
+        $fullyQualifiedPath = "$path$className.php";
+        // print "$fullyQualifiedPath \n";
+        if (!file_exists($fullyQualifiedPath)) {
+            continue;
         }
+        require_once($fullyQualifiedPath);
     }
 }
 spl_autoload_register(__NAMESPACE__ . '\__autoload');
@@ -100,15 +100,15 @@ spl_autoload_register(__NAMESPACE__ . '\__autoload');
 //    }
 //
 //    public static function obj() {
-//        // real signature: obj(class_name, *args)
+//        // real signature: obj(className, *args)
 //        // returns a Pop instance of that class name.
 //        $args = func_get_args();
-//        $class_name = $args[0];
+//        $className = $args[0];
 //        if (!isset ($args[1])) {
 //            $args[1] = null; // add default [1] if missing
 //        }
 //
-//        return new $class_name ($args[1]);
+//        return new $className ($args[1]);
 //    }
 //
 //    public static function phpver($checkver = null) {

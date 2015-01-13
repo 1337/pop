@@ -7,7 +7,7 @@ trait Cacheable {
     // Example $_cache_fields: [guid, id, other_unique_keys]
     protected $_cache_fields = [];
 
-    private function _cache($secondary_keys = true) {
+    private function _cache($secondary_keys=true) {
         /*// add to "cache" by indexing this object's _properties.
         // this form of cache is erased after every page load, so it only benefits cases where
         // an object is being read multiple times by different _properties.

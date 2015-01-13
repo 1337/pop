@@ -2,40 +2,39 @@
 
 namespace Pop;
 
+/*  extends View to get property bags. Don't assign an ID!
+    usage:
+        get all existing module types as an array of strings:
+            $a = new QuerySet();
+            var_dump($a->found);
 
+        get all objects of a certain type as an array of objects:
+            $a = Pop::obj('QuerySet', 'ModuleName');
+            var_dump($a->get());
+
+        sort by a property:
+            $a = Pop::obj('QuerySet', 'ModuleName');
+            var_dump(
+                $a->filter('id ==', 123)->get(1)
+            );
+
+        sort by many a property:
+            $a = Pop::obj('QuerySet', 'ModuleName');
+            var_dump(
+                $a->filter('id ==', 123)
+                  ->filter('agQuerye ==', 20)->get(1)
+            );
+
+    reusing a QuerySet object has unexpected results.
+    always create a new QuerySet object.
+*/
 class QuerySet implements QuerySetInterface, \Iterator {
-    /*  extends View to get property bags. Don't assign an ID!
-        usage:
-            get all existing module types as an array of strings:
-                $a = new QuerySet();
-                var_dump($a->found);
 
-            get all objects of a certain type as an array of objects:
-                $a = Pop::obj('QuerySet', 'ModuleName');
-                var_dump($a->get());
-
-            sort by a property:
-                $a = Pop::obj('QuerySet', 'ModuleName');
-                var_dump(
-                    $a->filter('id ==', 123)->get(1)
-                );
-
-            sort by many a property:
-                $a = Pop::obj('QuerySet', 'ModuleName');
-                var_dump(
-                    $a->filter('id ==', 123)
-                      ->filter('agQuerye ==', 20)->get(1)
-                );
-
-        reusing a QuerySet object has unexpected results.
-        always create a new QuerySet object.
-    */
-
-    var $found; // public array of matching filenames. need this to overload $this->found[]
-    protected $found_objects; // array of objects successfully queried. calling fetch() clears it.
+//    var $found; // public array of matching filenames. need this to overload $this->found[]
+//    protected $found_objects; // array of objects successfully queried. calling fetch() clears it.
 
     // module name, e.g. "Product", "Student"
-    protected $module_name;
+    protected $moduleName;
 
     /*  an array of filters:
         [
@@ -46,22 +45,22 @@ class QuerySet implements QuerySetInterface, \Iterator {
     protected $filters;
 
     /**
-     * @param bool  $module_name   type of model to filter.
+     * @param bool  $moduleName   type of model to filter.
      * @param array $filters       filters to construct.
      */
-    function __construct($module_name, $filters=[]) {
+    function __construct($moduleName, $filters=[]) {
         // false module name searches all modules.
         $this->found_objects = []; // init var
         $this->filters = $filters;
-        if (is_string($module_name)) {
-            $this->module_name = $module_name;
+        if (is_string($moduleName)) {
+            $this->moduleName = $moduleName;
             // all data are stored as DATA_PATH/class_name/id
-            $matches = glob(DATA_PATH . $module_name . DIRECTORY_SEPARATOR . '*');
-        } elseif (is_object($module_name)) {
-            $module_name = get_class($module_name); // revert to its name
-            $this->module_name = $module_name;
+            $matches = glob(DATA_PATH . $moduleName . DIRECTORY_SEPARATOR . '*');
+        } elseif (is_object($moduleName)) {
+            $moduleName = get_class($moduleName); // revert to its name
+            $this->moduleName = $moduleName;
             // all data are stored as DATA_PATH/class_name/id
-            $matches = glob(DATA_PATH . $module_name . DIRECTORY_SEPARATOR . '*');
+            $matches = glob(DATA_PATH . $moduleName . DIRECTORY_SEPARATOR . '*');
         } else {
             $matches = [];
         }
@@ -90,6 +89,7 @@ class QuerySet implements QuerySetInterface, \Iterator {
             $bfr .= (string)$obj;
             $bfr .= ',';
         }
+        $bfr = substr($bfr, -1, 0);  // remove trailing comma
         $bfr .= ']';
 
         return $bfr;
@@ -408,7 +408,7 @@ class QuerySet implements QuerySetInterface, \Iterator {
      * @return Model: object of Id.Type
      */
     private function _create_object_from_filename($file) {
-        return Pop::obj($this->module_name, $file);
+        // return Pop::obj($this->moduleName, $file);
     }
 
 

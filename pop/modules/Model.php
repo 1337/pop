@@ -110,7 +110,7 @@ class Model extends AbstractModel implements ModelInterface {
      * @param $id
      * @throws \Exception
      */
-    public static function get($id) {
+    /*public static function get($id) {
         $path = self::_path($id);
         if (!is_file($path)) {
             throw new \Exception('ObjectDoesNotExist');
@@ -120,7 +120,7 @@ class Model extends AbstractModel implements ModelInterface {
         } catch (\Exception $e) {
             throw new \Exception('Read error');
         }
-    }
+    }*/
 
     public function _get_queryset() {
 
@@ -168,13 +168,15 @@ class Model extends AbstractModel implements ModelInterface {
 
         $this->validate();
 
-        $blob = json_encode($this->_properties);
-        $class_dir = dirname($this->_path());
-        if (!file_exists($class_dir) && !mkdir($class_dir)) {
-            throw new \Exception('Cannot create data directory!');
-        }
-
-        return file_put_contents($this->_path(), $blob, LOCK_EX);
+//        $blob = json_encode($this->_properties);
+//        $class_dir = dirname($this->_path());
+//        if (!file_exists($class_dir) && !mkdir($class_dir)) {
+//            throw new \Exception('Cannot create data directory!');
+//        }
+//
+        // return file_put_contents($this->_path(), $blob, LOCK_EX);
+        $json = new lib\JSON($this->_path());
+        return $json->write($this->_properties);
     }
 
     /*public static function handler() {
@@ -185,10 +187,10 @@ class Model extends AbstractModel implements ModelInterface {
         return $handler;
     }*/
 
-    public function get_db_key() {
+    /*public function get_db_key() {
         // wrapper
         return $this->_key();
-    }
+    }*/
 
     /**
      * @return bool       true if data path is writable.
@@ -201,13 +203,13 @@ class Model extends AbstractModel implements ModelInterface {
         return true;
     }
 
-    private function _key() {
+    /*private function _key() {
         if (!isset ($this->_properties['id'])) {
             $this->_properties['id'] = null;
             throw new \Exception('Warning: assigning random ID to unsaved object');
         }
         return $this->_path($this->_properties['id'] || null, true);
-    }
+    }*/
 
     /**
      * The db://ClassName/ID notation means 'this thing is a Model'
@@ -231,33 +233,41 @@ class Model extends AbstractModel implements ModelInterface {
      * @param bool $db_key_format: if true, then db:// replaces data path.
      * @return string
      */
-    private function _path($id = null, $db_key_format = false) {
-        $root = '';
-        $force_save = false;  // turns true if id was automatic
-
-        if ($id === null) {
-            if (isset($this->_properties['id'])) {
-                // ID is not supplied, but object has it
-                $id = $this->_properties['id'];
-            } else {
-                // ID is neither supplied nor an existing object property
-                $id = uniqid('');
-                $force_save = true;
-            }
+    private function _path() {
+//        $root = '';
+//        $force_save = false;  // turns true if id was automatic
+//
+//        if ($id === null) {
+//            if (isset($this->_properties['id'])) {
+//                // ID is not supplied, but object has it
+//                $id = $this->_properties['id'];
+//            } else {
+//                // ID is neither supplied nor an existing object property
+//                $id = uniqid('');
+//                $force_save = true;
+//            }
+//        }
+//
+//        // paths include trailing slash
+//        if ($db_key_format === true) {
+//            $root = DATA_PATH;  // data/obj_class/obj_id[.json]
+//        } else {
+//            $root = 'db://';  // db://obj_class/obj_id[.json]
+//        }
+//
+//        if ($force_save === true) {
+//            $this->save();
+//        }
+//
+//        return $root . get_class($this) . DIRECTORY_SEPARATOR . $id .
+//               DATA_SUFFIX;
+        if (!isset($this->_properties['id']) ||
+            $this->_properties['id'] === null) {
+            throw new \Exception("An object that has not been saved has no _path");
         }
-
-        // paths include trailing slash
-        if ($db_key_format === true) {
-            $root = DATA_PATH;  // data/obj_class/obj_id[.json]
-        } else {
-            $root = 'db://';  // db://obj_class/obj_id[.json]
-        }
-
-        if ($force_save === true) {
-            $this->save();
-        }
-
-        return $root . get_class($this) . DIRECTORY_SEPARATOR . $id .
+        $id = $this->_properties['id'];
+        $class = str_replace('\\', DIRECTORY_SEPARATOR, get_class($this));
+        return DATA_PATH . $class . DIRECTORY_SEPARATOR . $id .
                DATA_SUFFIX;
     }
 
@@ -284,6 +294,7 @@ class Model extends AbstractModel implements ModelInterface {
      * Reads a JSON file.
      *
      * @param $path
+     * @throws \Exception
      * @return array
      */
     private static function _read_from_file($path) {
