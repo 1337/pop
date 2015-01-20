@@ -9,7 +9,7 @@ function smktime($mo, $day, $year) {
     return mktime(0, 0, 0, $mo, $day, $year);
 }
 
-function alt_date($date, $sec, $min, $ho, $mon, $day, $year) {
+function altDate($date, $sec, $min, $ho, $mon, $day, $year) {
     // returns unix timestamp
     $newdate = mktime(date('H', $date) + $ho,
                       date('i', $date) + $min,
@@ -21,23 +21,23 @@ function alt_date($date, $sec, $min, $ho, $mon, $day, $year) {
     return $newdate;
 }
 
-function salt_date($date, $mon, $day, $year) {
+function saltDate($date, $mon, $day, $year) {
     // another shorthand, sir
     // returns unix timestamp.
-    return alt_date($date, 0, 0, 0, $mon, $day, $year);
+    return altDate($date, 0, 0, 0, $mon, $day, $year);
 }
 
 function _date($component = 'second', $date) {
     // date() with even more formats.
-    $conversion_table = array(
+    $conversion_table = [
         'second'     => 's',
         'minute'     => 'i',
         'hour'       => 'G',
         'day'        => 'd',
         'month'      => 'm',
         'month_name' => 'F',
-        'year'       => 'Y'
-    );
+        'year'       => 'Y',
+    ];
     $v = $component; // compat with date()
     if (isset ($conversion_table[$component])) {
         $v = $conversion_table[$component];
@@ -46,17 +46,17 @@ function _date($component = 'second', $date) {
     return date($v, $date);
 }
 
-function break_date($date) {
+function breakDate($date) {
     // date breakdown.
-    return array(
+    return [
         'year'  => _date('year', $date),
         'month' => _date('month', $date),
         'day'   => _date('day', $date)
-    );
+    ];
 }
 
 
-function last_day_of_month($month, $year) {
+function lastDayOfMonth($month, $year) {
     $oldj = 0;
 
     for ($i = 1; $i < 32; ++$i) {

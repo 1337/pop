@@ -23,7 +23,7 @@ interface ModelInterface {
     /**
      * @return {QuerySet} for that class.
      */
-    function _get_queryset();
+    static function objects();
 
     /**
      * throw your own exception if anything is wrong.

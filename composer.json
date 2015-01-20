@@ -1,6 +1,6 @@
 {
     "name": "ohai/pop",
-    "description": "Simple PHP Object Persistence",
+    "description": "PHP Object Persistence",
     "license": "GPL-3.0",
     "authors": [
         {
@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=5.6.0",
         "phpunit/phpunit": "4.3.3"
     },
     "repositories": [

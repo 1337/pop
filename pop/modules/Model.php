@@ -7,40 +7,24 @@ class Model extends AbstractModel implements ModelInterface {
     use Cacheable, Prototypable;
     protected $_properties = []; // associative
 
-    public function __construct($param=null) {
+    public function __construct($props=[]) {
         // if no param (null): create (saved on first __set)
         // if param is associative array: create, with param = default values
         // if param is not array: get as param = id
 
-        if (is_array($param)) {
-            // param is default values.
-            foreach ($param as $key => $value) {
-                $this->__set($key, $value);
-            }
+        if (!isset($props) || !count($props)) {
+            return $this;
         }
 
+        if (!lib\is_assoc($props)) {
+            throw new \Exception("First parameter must be an associative array");
+        }
+
+        foreach ($props as $key => $value) {
+            $this->__set($key, $value);
+        }
         return $this;
     }
-
-    /**
-     * Supports the Model::get_by_something syntax.
-     * Note: PHP 5.30+ only
-     *
-     * @param $name
-     * @param $args
-     * @return mixed
-     * @throws \Exception
-     */
-    /*public static function __callStatic($name, $args) {
-        if (substr($name, 0, 7) === 'get_by_') {
-            // manage get_by_propname methods with this.
-            $prop_name = substr($name, 7); // [get_by_]prop_name
-            $query_obj = Pop::obj('QuerySet', get_class());
-            return $query_obj->get_by($prop_name, $args[0]);
-        } else {
-            throw new \Exception('Method ' . $name . ' not registered');
-        }
-    }*/
 
     public function __get($property) {
         // Pop uses this method to read all unavailable _properties from the
@@ -90,10 +74,10 @@ class Model extends AbstractModel implements ModelInterface {
         $this->_properties[$property] = $value;
 
         // manage special cases
-        if ($property === 'id') {
+        /*if ($property === 'id') {
             // re-initialise
             $this->__construct($value);
-        } else if ($property === 'type') {
+        } else*/ if ($property === 'type') {
             // block changes to immutable props
             throw new \Exception('Object type cannot be changed');
         } else if (is_a($value, 'Model')) {
@@ -122,8 +106,16 @@ class Model extends AbstractModel implements ModelInterface {
         }
     }*/
 
-    public function _get_queryset() {
+    protected static $queryset;
 
+    /**
+     * @return QuerySet  for the subclass.
+     */
+    public static function objects() {
+        if (!isset(static::$queryset)) {
+            static::$queryset = new QuerySet(get_called_class());
+        }
+        return static::$queryset;
     }
 
     public function __toString() {
@@ -135,15 +127,7 @@ class Model extends AbstractModel implements ModelInterface {
         return $this->_properties;
     }
 
-    /*public static function get_by($property, $value) {
-        // returns the first object in the database whose $property
-        // matches $value.
-        // e.g. get_by('name', 'bob') => Model(bob)
-        $q = Pop::obj('QuerySet', 'Model');
-        return $q->filter($property . ' ===', $value)->get();
-    }
-
-    public function _properties() { // read-only prop keys
+    /*public function _properties() { // read-only prop keys
         return array_keys($this->_properties);
     }*/
 
@@ -164,7 +148,7 @@ class Model extends AbstractModel implements ModelInterface {
      */
     public function save() {
         // Model checks for its required permission.
-        self::_test_writable();
+        self::_testWritable();
 
         $this->validate();
 
@@ -176,16 +160,15 @@ class Model extends AbstractModel implements ModelInterface {
 //
         // return file_put_contents($this->_path(), $blob, LOCK_EX);
         $json = new lib\JSON($this->_path());
-        return $json->write($this->_properties);
+        $success = $json->write($this->_properties);
+        if ($success) {
+            $this->_cache();
+        } else {
+            throw new \Exception("Save failed!");
+        }
+
+        return $success;
     }
-
-    /*public static function handler() {
-        // returns the current handler, not the ones
-        // for which this module is responsible.
-        list($module, $handler) = Pop::url();
-
-        return $handler;
-    }*/
 
     /*public function get_db_key() {
         // wrapper
@@ -196,7 +179,7 @@ class Model extends AbstractModel implements ModelInterface {
      * @return bool       true if data path is writable.
      * @throws \Exception
      */
-    private static function _test_writable() {
+    private static function _testWritable() {
         if (!is_writable(DATA_PATH)) {
             throw new \Exception('Path ' . DATA_PATH . ' not writable');
         }
@@ -263,12 +246,19 @@ class Model extends AbstractModel implements ModelInterface {
 //               DATA_SUFFIX;
         if (!isset($this->_properties['id']) ||
             $this->_properties['id'] === null) {
-            throw new \Exception("An object that has not been saved has no _path");
+            throw new \Exception("An ID is required to obtain _path.");
         }
         $id = $this->_properties['id'];
         $class = str_replace('\\', DIRECTORY_SEPARATOR, get_class($this));
-        return DATA_PATH . $class . DIRECTORY_SEPARATOR . $id .
-               DATA_SUFFIX;
+        $path = DATA_PATH . $class . DIRECTORY_SEPARATOR;
+        if (!file_exists($path)) {
+            // allows web server to read path
+            $res = mkdir($path, 0777, true);
+            if ($res !== true) {
+                throw new \Exception("Failed to create directory $path");
+            }
+        }
+        return $path . $id . DATA_SUFFIX;
     }
 
     /**
@@ -287,7 +277,7 @@ class Model extends AbstractModel implements ModelInterface {
             $id = substr($id, 0, -strlen(DATA_SUFFIX));
         }
 
-        return array($class, $id);
+        return [$class, $id];
     }
 
     /**

@@ -1,8 +1,8 @@
 # Changelog
 
 ### 2015-01-11
-* Changed minimum PHP version to 5.4.
-* Added namespaces, bumping version to 1.0.
+* Changed minimum PHP version to 5.6.
+* Added namespaces, bumping version to 2.0.
 * Views and templates are no longer a part of the core. "Pop" (PHP Object Persistence) does not involve templating. To use the templating engine, include `templated`.
 * Models no longer ships with the `render()` function, for the same reason as above.
 * Removed the Things SQL adapter.

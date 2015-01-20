@@ -29,7 +29,7 @@ function vars($index = false, $default = null) {
     // gathers everything from the request.
     static $_vars_cache_ = []; // store once, use forever
 
-    if (!sizeof($_vars_cache_)) { // build cache no matter what
+    if (!count($_vars_cache_)) { // build cache no matter what
         @session_start();
         if (!isset($_SESSION)) {
             $_SESSION = []; // can this be omitted?
@@ -47,7 +47,7 @@ function vars($index = false, $default = null) {
         );
     }
 
-    if (sizeof($_vars_cache_)) {
+    if (count($_vars_cache_)) {
         if ($index === false) {
             return $_vars_cache_; // return cache if it exists
         }
@@ -90,10 +90,10 @@ function check_keys($array, $required_keys) {
     }
 
     $common_keys = array_intersect(array_keys($array), $required_keys);
-    if (sizeof($common_keys) === sizeof($required_keys)) {
+    if (count($common_keys) === count($required_keys)) {
         return true;
     } else {
-        throw new \Exception('Not all arguments present; needed ' . sizeof($required_keys));
+        throw new \Exception('Not all arguments present; needed ' . count($required_keys));
     }
 }
 
@@ -231,7 +231,7 @@ function array_value_key($array, $lookup) {
 
 function array_remove_values($array, $values) {
     if (!is_array($values)) {
-        $values = array($values);
+        $values = [$values];
     }
 
     return array_diff($array, $values);

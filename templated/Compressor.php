@@ -11,7 +11,7 @@ class Compressor {
         if (TEMPLATE_COMPRESS === true) {
             $h = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $h);
             /* remove tabs, spaces, newlines, etc. */
-            $h = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '),
+            $h = str_replace(["\r\n", "\r", "\n", "\t", '  ', '    ', '    '],
                              '', $h);
         }
 
@@ -53,8 +53,8 @@ class Compressor {
                 $filename = $this->safe_file_name(VIEWS_PATH . 'js/' . $file . '.js');
                 // JS compressor adds a ';' at the end of each script by default
                 echo str_replace(
-                    array('{{ domain }}', '{{ subdir }}'),
-                    array(DOMAIN, SUBDIR),
+                    ['{{ domain }}', '{{ subdir }}'],
+                    [DOMAIN, SUBDIR],
                     $this->js_compress(file_get_contents($filename) . ';')
                 );
             }

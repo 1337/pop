@@ -31,10 +31,14 @@ namespace Pop;
 class QuerySet implements QuerySetInterface, \Iterator {
 
 //    var $found; // public array of matching filenames. need this to overload $this->found[]
-//    protected $found_objects; // array of objects successfully queried. calling fetch() clears it.
+//    protected $foundObjects; // array of objects successfully queried. calling fetch() clears it.
 
     // module name, e.g. "Product", "Student"
     protected $moduleName;
+
+    // QuerySet implements Iterator.
+    // See http://php.net/manual/en/class.iterator.php
+    protected $position = 0;
 
     /*  an array of filters:
         [
@@ -45,13 +49,15 @@ class QuerySet implements QuerySetInterface, \Iterator {
     protected $filters;
 
     /**
-     * @param bool  $moduleName   type of model to filter.
-     * @param array $filters       filters to construct.
+     * @param string  $moduleName   type of model to filter.
+     * @param array   $filters      filters to construct.
      */
     function __construct($moduleName, $filters=[]) {
-        // false module name searches all modules.
-        $this->found_objects = []; // init var
+        // init vars
+        $this->foundObjects = [];
+        $this->position = 0;
         $this->filters = $filters;
+
         if (is_string($moduleName)) {
             $this->moduleName = $moduleName;
             // all data are stored as DATA_PATH/class_name/id
@@ -85,11 +91,16 @@ class QuerySet implements QuerySetInterface, \Iterator {
     public function __toString() {
 
         $bfr = '[';
-        foreach ((array)$this->found_objects as $obj) {
+        $objects = (array)$this->foundObjects;
+        foreach ($objects as $obj) {
             $bfr .= (string)$obj;
             $bfr .= ',';
         }
-        $bfr = substr($bfr, -1, 0);  // remove trailing comma
+
+        // remove trailing comma, if it exists
+        if (count($objects) > 0) {
+            $bfr = substr($bfr, -1, 0);
+        }
         $bfr .= ']';
 
         return $bfr;
@@ -98,7 +109,7 @@ class QuerySet implements QuerySetInterface, \Iterator {
     public function toArray() {
         // returns array of all object _properties.
         $objs = [];
-        foreach ((array)$this->found_objects as $obj) {
+        foreach ((array)$this->foundObjects as $obj) {
             $objs[] = $obj->toArray();
         }
 
@@ -125,7 +136,7 @@ class QuerySet implements QuerySetInterface, \Iterator {
 
             underscore alias: indexBy
         */
-        $old_found = $this->found; // keep copy
+        /*$old_found = $this->found; // keep copy
         $pool = [];
 
         while ($obj = $this->iterate()) {
@@ -137,7 +148,7 @@ class QuerySet implements QuerySetInterface, \Iterator {
             }
         }
         $this->found = $old_found; // swap back
-        return $pool;
+        return $pool;*/
     }
 
     /**
@@ -148,21 +159,21 @@ class QuerySet implements QuerySetInterface, \Iterator {
      * @return $this
      */
     public function orderBy($by, $asc=true) {
-        $this->get();  // loads $this->found_objects
+        $this->get();  // loads $this->foundObjects
 
         $this->sort_field = $by;
 
         // php automagic callbacks
-        usort($t = (array)$this->found_objects, [$this, "_sort_function"]);
+        usort($this->foundObjects, [$this, "_sortFunction"]);
         if (!$asc) {
-            $this->found_objects = array_reverse($this->found_objects);
+            $this->foundObjects = array_reverse($this->foundObjects);
         }
 
         return $this; // chaining for php 5
     }
 
     /**
-     * fisher-yates shuffle the found variable, NOT found_objects.
+     * fisher-yates shuffle the found variable, NOT foundObjects.
      * call before get() or fetch().
      * http://stackoverflow.com/a/6557893/1558430
      *
@@ -170,18 +181,18 @@ class QuerySet implements QuerySetInterface, \Iterator {
      * @return $this
      */
     public function shuffle($strong) {
-        if ($strong) {
-            for ($i = count($this->found) - 1; $i > 0; $i--) {
-                $j = @mt_rand(0, $i);
-                $tmp = $this->found[$i];
-                $this->found[$i] = $this->found[$j];
-                $this->found[$j] = $tmp;
-            }
-        } else {
+        if (!$strong) {
             shuffle($this->found);
+            return $this;
         }
 
-        return $this; // chaining for php 5
+        for ($i = count($this->found) - 1; $i > 0; $i--) {
+            $j = @mt_rand(0, $i);
+            $tmp = $this->found[$i];
+            $this->found[$i] = $this->found[$j];
+            $this->found[$j] = $tmp;
+        }
+        return $this;
     }
 
     /**
@@ -193,7 +204,7 @@ class QuerySet implements QuerySetInterface, \Iterator {
     public function fetch($limit=PHP_INT_MAX) {
         // This class does NOT store or cache these results.
         // calling fetch more than once on the same QuerySet object will reset its list of items found.
-        $this->found_objects = []; // reset var
+        $this->foundObjects = []; // reset var
         $found_count = 0;
         // if the DB has fewer matching results than $limit, this will force
         // fetch() to go through the entire store. Performance hit!!
@@ -204,7 +215,7 @@ class QuerySet implements QuerySetInterface, \Iterator {
             $object = $this->_create_object_from_filename($file);
             $include_this_object = $this->_check_against_filters($object);
             if ($include_this_object) {
-                $this->found_objects[] = $object;
+                $this->foundObjects[] = $object;
                 ++$found_count;
             }
             if ($found_count >= $limit) {
@@ -231,17 +242,20 @@ class QuerySet implements QuerySetInterface, \Iterator {
      * @return array
      */
     public function get($limit=PHP_INT_MAX) {
-        if (sizeof($this->found_objects) <= 0) {
+        if (count($this->foundObjects) <= 0) {
             $this->fetch($limit); // if nothing, try fetch again just to be sure
         }
 
-        return $this->found_objects;
+        return $this->foundObjects;
     }
 
+    /**
+     * @deprecated
+     */
     public function iterate() {
         // return one result at a time; FALSE for no more rows
         // (same behaviour as mysql_fetch_???)
-        if (sizeof($this->found) >= 1) {
+        /*if (count($this->found) >= 1) {
             while ($found = array_shift($this->found)) {
                 $object = $this->_create_object_from_filename($found);
 
@@ -251,7 +265,7 @@ class QuerySet implements QuerySetInterface, \Iterator {
                 }
                 unset ($object);
             }
-        }
+        }*/
 
         return false;
     }
@@ -260,18 +274,18 @@ class QuerySet implements QuerySetInterface, \Iterator {
         /*  Returns the size of the resultset.
             It WILL recount if pending filters are present in the QuerySet object.
         */
-        if (sizeof($this->filters) > 0) {
+        if (count($this->filters) > 0) {
             $this->fetch(); // gotta recount...
         }
 
-        return sizeof($this->found);
+        return count($this->found);
     }
 
     public function pluck($key) {
         // returns an array with only the values of one property
         // from objects fetched.
         $props = [];
-        foreach ((array)$this->found_objects as $obj) {
+        foreach ((array)$this->foundObjects as $obj) {
             $props[] = $obj->$key;
         }
 
@@ -279,21 +293,21 @@ class QuerySet implements QuerySetInterface, \Iterator {
     }
 
     public function first() {
-        return $this->found_objects[0];
+        return $this->foundObjects[0];
     }
 
     public function last() {
-        return end($this->found_objects);
+        return end($this->foundObjects);
     }
 
     public function delete() {
         // objects could never be deleted. whoops.
-        foreach ($this->found_objects as $obj) {
+        foreach ($this->foundObjects as $obj) {
             unlink($obj->_path());
         }
     }
 
-    private function _sort_function($a, $b) {
+    private function _sortFunction($a, $b) {
         $field = $this->sort_field; // orderBy() supplies this using $key.
         if ($a->{$field} == $b->{$field}) {
             return 0;
@@ -419,50 +433,65 @@ class QuerySet implements QuerySetInterface, \Iterator {
 
 
 
+
+
     /**
      * Return the current element
-     *
-     * @link http://php.net/manual/en/iterator.current.php
      * @return mixed Can return any type.
      */
     public function current() {
-        // TODO: Implement current() method.
+        // return one result at a time; FALSE for no more rows
+        // (same behaviour as mysql_fetch_???)
+
+
+        // @stub
+        return $this->foundObjects[$this->position];
+
+        if (count($this->found) >= 1) {
+            while ($found = array_shift($this->found)) {
+                $object = $this->_create_object_from_filename($found);
+
+                $include_this_object = $this->_check_against_filters($object);
+                if ($include_this_object) {
+                    return $object;
+                }
+                unset ($object);
+            }
+        }
+
+        return false;
     }
 
     /**
      * Move forward to next element
-     * @link http://php.net/manual/en/iterator.next.php
      * @return void Any returned value is ignored.
      */
     public function next() {
-        // TODO: Implement next() method.
+        ++$this->position;
     }
 
     /**
      * Return the key of the current element
-     * @link http://php.net/manual/en/iterator.key.php
      * @return mixed scalar on success, or null on failure.
      */
     public function key() {
-        // TODO: Implement key() method.
+        return $this->position;
     }
 
     /**
      * Checks if current position is valid
-     * @link http://php.net/manual/en/iterator.valid.php
      * @return boolean The return value will be casted to boolean and then evaluated.
      * Returns true on success or false on failure.
      */
     public function valid() {
-        // TODO: Implement valid() method.
+        return isset($this->foundObjects[$this->position]);
     }
 
     /**
      * Rewind the Iterator to the first element
-     * @link http://php.net/manual/en/iterator.rewind.php
      * @return void Any returned value is ignored.
      */
     public function rewind() {
-        // TODO: Implement rewind() method.
+        $this->position = 0;
     }
 }

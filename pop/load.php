@@ -12,7 +12,6 @@ $_resolver = new lib\PathResolver(PATH); $_i = 0;
 do {
     $_resolver = $_resolver('vars.php');
     if ($_resolver->exists) {
-        // echo "$_resolver exists \n";
         require_once($_resolver);
         break;
     }

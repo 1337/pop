@@ -21,7 +21,7 @@ class View {
      * @param array  $context: an associative array of things the template
      *                         will use to render itself.
      */
-    function __construct($content = '', $context = array()) {
+    function __construct($content='', $context=[]) {
         try {
             $template = $this->_resolve_template_name($content); // returns full path
             $this->contents = $this->_get_parsed($template);
@@ -46,7 +46,7 @@ class View {
         self::$comment_pattern = "/$ot ?comment ?$ct(.*)$ot ?endcomment ?$ct/sU";
         self::$filter_pattern = "/$ot ?filter $vpf ?$ct(.*)$ot ?endfilter ?$ct/sU";
 
-        if (sizeof($context)) {
+        if (count($context)) {
             $this->replace_tags($context);
         }
     }
@@ -67,13 +67,13 @@ class View {
      * @param array $tags
      * @return $this
      */
-    public function replace_tags($tags = array()) {
+    public function replace_tags($tags=[]) {
         $iters = 0;
         $ot = self::$ot;
         $ct = self::$ct;
         $vf = self::$vf;
 
-        $match_patterns = array(
+        $match_patterns = [
             self::$include_pattern,
             self::$forloop_pattern,
             self::$if_pattern,
@@ -82,9 +82,10 @@ class View {
             self::$variable_pattern,
             self::$comment_pattern,
             self::$filter_pattern,
-        );
+        ];
 
-        list($_era, $_ert) = Pop::url( /* defaults to REQUEST_URI */);
+        // list($_era, $_ert) = Pop::url( /* defaults to REQUEST_URI */);
+        list($_era, $_ert) = ['undefined', 'undefined'];
         $tags = array_merge(
             array( // defaults
                 '__cacheable'  => false,
@@ -162,12 +163,12 @@ class View {
 
            replace_tags help recurse this function.
         */
-        $matches = array(); // preg_match_all gives you an array of &$matches.
+        $matches = []; // preg_match_all gives you an array of &$matches.
         if (preg_match_all(self::$include_pattern,
                            $contents,
                            $matches) > 0
         ) {
-            if (sizeof($matches) > 0 && sizeof($matches[2]) > 0) {
+            if (count($matches) > 0 && count($matches[2]) > 0) {
                 foreach ($matches[2] as $index => $filename) { // [1] because [0] is full line
                     try {
                         $nv = $this->_get_parsed($filename);
@@ -223,15 +224,15 @@ class View {
             $contents);
     }
 
-    private function _expand_page_loops(&$contents, $tags = array()) {
+    private function _expand_page_loops(&$contents, $tags=[]) {
         $ot = self::$ot;
         $ct = self::$ct;
         $regex = self::$forloop_pattern;
         // e.g. {% for i in objects %} bla bla bla {% endfor %}
 
-        $matches = array();
+        $matches = [];
         preg_match_all($regex, $contents, $matches);
-        $len = sizeof($matches[0]);
+        $len = count($matches[0]);
         for ($i = 0; $i < $len; ++$i) { // each match
             $buffer = ''; // stuff to be printed
             // replace tags within the inner loop, n times
@@ -242,17 +243,17 @@ class View {
                 $match_vals = array_values($tags[$matches[4][$i]]);
 
                 // number of times the specific match is to be repeated
-                for ($lc = 0; $lc < sizeof($tags[$matches[4][$i]]); ++$lc) {
+                for ($lc = 0; $lc < count($tags[$matches[4][$i]]); ++$lc) {
                     // now, replace the key and value
                     $buffer .= preg_replace(
-                        array( // search
+                        [ // search
                             "/$ot ?" . preg_quote($matches[2][$i], '/') . " ?$ct/sU",  // key
                             "/$ot ?" . preg_quote($matches[3][$i], '/') . " ?$ct/sU"  // value
-                        ),
-                        array( // replace
+                        ],
+                        [ // replace
                             (string)$match_keys[$lc],
                             (string)$match_vals[$lc]
-                        ),
+                        ],
                         $matches[6][$i] // loop content
                     );
                 }
@@ -263,8 +264,7 @@ class View {
         }
     }
 
-    private function _resolve_if_conditionals(&$contents,
-        $tags = array()) {
+    private function _resolve_if_conditionals(&$contents, $tags=[]) {
         $regex = self::$if_pattern;
         // e.g. {% if a %} b
         //      {% elseif c %} d
@@ -272,9 +272,9 @@ class View {
         //      {% else g %} h
         //      {% endif %}
 
-        $matches = array();
+        $matches = [];
         preg_match_all($regex, $contents, $matches);
-        for ($i = 0; $i < sizeof($matches[0]); ++$i) { // each match
+        for ($i = 0; $i < count($matches[0]); ++$i) { // each match
 
             if (isset($tags[$matches[2][$i]])
                 && $tags[$matches[2][$i]]
@@ -346,7 +346,7 @@ class View {
      * @param array  $options: tag variables.
      * @param string $template: path of a template file.
      */
-    public static function render($options = array(), $template = '') {
+    public static function render($options=[], $template='') {
         global $context;  // global context (might not exist)
 
         // that's why you ob_start at the beginning of Things.
@@ -354,11 +354,11 @@ class View {
         ob_end_clean();
 
         $view = new View($template, array_merge($options, (array)$context,
-                                                array('content' => $content)));
+                                                ['content' => $content]));
         echo (string)$view;
 
         // append messages.
-        if (sizeof((array)Pop::$debug_messages) > 0) {
+        if (count((array)Pop::$debug_messages) > 0) {
             $buffer = '<ul class="pop debug">';
             foreach(Pop::$debug_messages as $msg_config) {
                 $msg = $msg_config[0];
@@ -375,6 +375,6 @@ class View {
  * @param array  $arg1
  * @param string $arg2
  */
-function render($arg1 = array(), $arg2 = '') {
+function render($arg1=[], $arg2 = '') {
     View::render($arg1, $arg2);
 }

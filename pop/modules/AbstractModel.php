@@ -3,13 +3,17 @@
 namespace Pop;
 
 abstract class AbstractModel {
+    protected static $queryset;
+
     /**
-     * @return {QuerySet} for that model class.
+     * @return QuerySet {QuerySet} for that model class.
+     * for that model class.
      */
-    protected function _get_queryset() {
-        $class = get_class();
-        echo $class;
-        // return Pop::obj('QuerySet', $class);
-        return new QuerySet($class);
+    public static function objects() {
+        if (!isset(self::$queryset)) {
+            self::$queryset = new QuerySet(get_class());
+        }
+
+        return self::$queryset;
     }
 }
