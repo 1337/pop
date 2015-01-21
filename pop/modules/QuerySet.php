@@ -39,19 +39,9 @@ class QuerySet implements QuerySetInterface, \Iterator {
                                  gettype($moduleName));
         }
         $this->_moduleName = $moduleName;
-        $this->_filenames = self::_findModuleFiles($moduleName);
+        $this->_filenames = static::_findModuleFiles($moduleName);
 
         return $this; // chaining for php 5
-    }
-
-    public function __call($name, $args) {
-        // everyone loves magic functions
-        /*if (substr($name, 0, 7) === 'get_by_') {
-            $get_by = substr($name, 7);
-
-            return $this->filter($get_by . ' ==', $args[0]);
-        }*/
-        return $this;
     }
 
     public function __toString() {
@@ -248,9 +238,10 @@ class QuerySet implements QuerySetInterface, \Iterator {
                 unlink($obj->_path());
             } catch (\Exception $err) {
                 lib\warnings\endCatchWarnings();
-                throw;
+                throw $err;
+            } finally {
+                lib\warnings\endCatchWarnings();
             }
-            lib\warnings\endCatchWarnings();
         }
     }
 
@@ -320,23 +311,32 @@ class QuerySet implements QuerySetInterface, \Iterator {
         $moduleName = str_replace('\'', DIRECTORY_SEPARATOR, $moduleName);
         $matches = glob(DATA_PATH . $moduleName . DIRECTORY_SEPARATOR . '*',
                         GLOB_MARK|GLOB_ERR);
-        $matches2 = [];
         if ($matches === false) {
             throw new \Exception("Failed to glob()!");
         }
-
+        // turn all paths found to absolute paths.
         return array_map(function ($path) {
-            return basename($path);
+            return realpath($path);
         }, $matches);
     }
 
     /**
-     * @return QuerySet  with the same module, filters, and ordering.
+     * @param string $moduleName
+     * @param array  $filters
+     * @param string $orderField
+     * @return QuerySet with the same module, filters, and ordering.
      */
-    private function _clone() {
-        return new self($this->_moduleName,
-                        $this->_filters,
-                        $this->_orderField);
+    private function _clone($moduleName=null, $filters=null, $orderField=null) {
+        if ($moduleName !== null) {
+            $moduleName = $this->_moduleName;
+        }
+        if ($filters !== null) {
+            $filters = $this->_filters;
+        }
+        if ($orderField !== null) {
+            $orderField = $this->_orderField;
+        }
+        return new static($moduleName, $filters, $orderField);
     }
 
 
