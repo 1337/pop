@@ -81,7 +81,7 @@ class Model extends AbstractModel implements ModelInterface {
             // block changes to immutable props
             throw new \Exception('Object type cannot be changed');
         } else if (is_a($value, 'Model')) {
-            // replace objects by references, so we can serialize them.
+            // replace _objects by references, so we can serialize them.
             // this will cause exceptions if the linked object has no key.
             $this->_properties[$property] = $value->get_db_key();
         }
@@ -124,7 +124,7 @@ class Model extends AbstractModel implements ModelInterface {
 
     public function toArray() {
         // isn't this what it is?
-        return $this->_properties;
+        return (array)$this->_properties;
     }
 
     /*public function _properties() { // read-only prop keys

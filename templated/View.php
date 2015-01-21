@@ -217,7 +217,7 @@ class View {
     }
 
     private function _expand_list_comprehension(&$contents) {
-        // e.g. {% object in objects %}
+        // e.g. {% object in _objects %}
         $contents = preg_replace(
             self::$listcmp_pattern,
             '{% for _lop,_$2 in $3 %}{{ _$2 }}{% endfor %}',
@@ -228,7 +228,7 @@ class View {
         $ot = self::$ot;
         $ct = self::$ct;
         $regex = self::$forloop_pattern;
-        // e.g. {% for i in objects %} bla bla bla {% endfor %}
+        // e.g. {% for i in _objects %} bla bla bla {% endfor %}
 
         $matches = [];
         preg_match_all($regex, $contents, $matches);

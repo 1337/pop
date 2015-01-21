@@ -54,7 +54,7 @@ Returns a JSON list of results.
 
 ### `$query->toArray()`
 
-Return a list of objects, which are also lists.
+Return a list of _objects, which are also lists.
 
 ### `$query->filter($filter, $condition)`
 
@@ -77,7 +77,7 @@ Comparison operators allowed: >, <, ==, ===, !=, <=, >=, IN, WITHIN, CONTAINS
 
 ### `$query->aggregate_by($key)`
 
-Returns a associative array of objects, where keys are different values of `Model->$key`.
+Returns a associative array of _objects, where keys are different values of `Model->$key`.
 
 ### `$query->orderBy($key, $asc=true)`
 
@@ -85,7 +85,7 @@ Does exactly what it says it does. Returns the query object.
 
 ### `$query->shuffle($strong)`
 
-Shuffles objects.
+Shuffles _objects.
 
 If `$strong` is true, then the seeded Fisher-Yates shuffling algorithm will be used.
 
@@ -93,17 +93,17 @@ Returns the query object.
 
 ### `$query->fetch($limit=PHP_INT_MAX)`
 
-Finds objects that meet the query object's filter criteria, if any.
+Finds _objects that meet the query object's filter criteria, if any.
 
 Returns the query object.
 
 ### `$query->get($limit=PHP_INT_MAX)`
 
-Returns objects found by the query, after `fetch` is called.
+Returns _objects found by the query, after `fetch` is called.
 
 ### `while($object = $query->iterate)`
 
-To speed things up, you don't always need to load all objects into a giant array.
+To speed things up, you don't always need to load all _objects into a giant array.
 
 #### Example
 
@@ -115,12 +115,12 @@ while($person = $query->iterate) {
 
 ```
 
-Instead, if objects are needed for a loop, then this call saves memory.
+Instead, if _objects are needed for a loop, then this call saves memory.
 
 ### `$query->count()`
 
-Returns the number of objects found by the query.
+Returns the number of _objects found by the query.
 
 ### `$query->pluck($key)`
 
-Returns an array with only the values of one property from objects fetched.
+Returns an array with only the values of one property from _objects fetched.

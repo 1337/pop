@@ -24,21 +24,11 @@ interface QuerySetInterface {
     public function aggregate($key);
 
     /**
-     * Orders all objects by a key. This is EXTREMELY slow.
+     * Orders all _objects by a key. This is EXTREMELY slow.
      *
      * @param string $by: name of a field
      * @param bool $asc: ascending or descending
      * @return $this
      */
     public function orderBy($by, $asc);
-
-    /**
-     * @return Model|null
-     */
-    public function first();
-
-    /**
-     * @return Model|null
-     */
-    public function last();
 }

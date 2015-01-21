@@ -14,6 +14,7 @@
 * `Model(id)` is replaced by `Model::get(id)`.
 * `<Model>->delete()` has been moved to `QuerySet(Model)->get(id)->delete()`.
 * Removed `Collection`, which is just an incomplete version of `QuerySet`.
+* Replaced `<QuerySet>.first()` and `<QuerySet>.last()` with direct index access.
 
 ### 2013-09-14
 * Added tests.
@@ -25,7 +26,7 @@
 * Removed the `field` tag. It is not fundamental enough to be in the core.
 
 ### 2013-09-13
-* Added `to_array` to Models and Query objects.
+* Added `to_array` to Models and Query _objects.
 * Added `min`, `max`, `pluck` and `shuffle`.
 * Added `Thing` adapter.
 * Added `StaticServer` component.
@@ -62,7 +63,7 @@
 * Removed HTML comment mode for templating (as it processes html comments as well)
 
 ### 2012-04-10
-* Added object instance prototyping: you can now add functions to individual objects:
+* Added object instance prototyping: you can now add functions to individual _objects:
 
 ```
 $a = new Model();
@@ -84,7 +85,7 @@ $a->methods['foo'] = function (arg) {
 ```
 
 ### 2012-03-09
-* Query can now be called iteratively. With this pattern, the Query class can fetch thousands of objects without memory shortage.
+* Query can now be called iteratively. With this pattern, the Query class can fetch thousands of _objects without memory shortage.
 
 ```
 while ($object = $query->iterate ()) {
@@ -123,7 +124,7 @@ Handlers:
 ### 2012-03-04
 * Added Thing adaptor for [Things](http://github.com/1337/things). You can use `new Thing ($oid)` exactly the same way.
 * Improved UnitTest UI.
-* Improved Query class performance: filters are now only processed on-demand.
+* Improved Query class performance: _filters are now only processed on-demand.
 * Simplified Query syntax: `$query_class->all()->filter('property IN', $values)->fetch()->get()` can be done with `$query_class->filter('property IN', $values)->get()`.
 * Removed `Subclass.query_functions()` because it is unorthodox.
 
@@ -148,6 +149,6 @@ Handlers:
 * Added tag properties: memory usage (`{{ memory_usage }}`), subdirectories (`{{ subdir }}`), and current handler (`{{ handler }}`).
 
 ### 2012-03-01
-* Changed storage format from serialized PHP to JSON. It is still possible to read serialized PHP objects, but they will be re-saved as JSON.
+* Changed storage format from serialized PHP to JSON. It is still possible to read serialized PHP _objects, but they will be re-saved as JSON.
 * CSS/JS compressors now accept multiple filenames, and concatenates them when serving.
 * Misc cross-machine bug fixes.
